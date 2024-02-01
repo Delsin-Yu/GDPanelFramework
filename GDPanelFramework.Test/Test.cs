@@ -1,4 +1,6 @@
-﻿using GDPanelSystem.Core.Core;
+﻿using System.Dynamic;
+using GDPanelSystem.Core;
+using GDPanelSystem.Core.Core;
 using GDPanelSystem.Core.Panels;
 using Godot;
 using GodotTask.Tasks;
@@ -11,20 +13,19 @@ public class Test
     
     public async GDTask Run()
     {
-        
-        _test
+        await _test
             .CreateOrGetPanel<TestPanel>()
             .OpenPanel()
+            .InNewLayer(LayerVisual.Visible);
+
+        var closeParam = await _test
+            .CreateOrGetPanel<TestPanel2>()
+            .OpenPanel(Empty.Default)
             .InCurrentLayer();
-        
-        
-        TestPanel instance = null!;
-        var result = await instance .OpenPanelInternal();
-        GD.Print(result.ToString());
     }
 }
 
-public partial class TestPanel : UIPanelBase<TestPanel>
+public partial class TestPanel : UIPanel
 {
     protected override void _OnPanelInitialize()
     {
@@ -34,13 +35,19 @@ public partial class TestPanel : UIPanelBase<TestPanel>
 
     protected override void _OnPanelOpen()
     {
-        base._OnPanelOpen();
-        GD.Print("_OnPanelOpen");
+        
+    }
+}
+public partial class TestPanel2 : UIPanelParam<Empty, int>
+{
+    protected override void _OnPanelInitialize()
+    {
+        base._OnPanelInitialize();
+        GD.Print("_OnPanelInitialize");
     }
 
-    protected override void _OnPanelClose()
+    protected override void _OnPanelOpen(Empty openParam)
     {
-        base._OnPanelClose();
-        GD.Print("_OnPanelClose");
+        
     }
 }

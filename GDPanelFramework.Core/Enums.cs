@@ -33,3 +33,22 @@ public enum LayerVisual
     /// </summary>
     Hidden
 }
+
+/// <summary>
+/// Internal enum for indicating the selection cache result when opening panel in <see cref="PanelLayer.NewLayer"/> 
+/// </summary>
+internal enum SelectionCachingResult
+{
+    /// <summary>
+    /// Nothing is currently selected system wise, the caching enumeration should stop
+    /// </summary>
+    NoSelections,
+    /// <summary>
+    /// Currently focusing control is not a child of the specified panel, the caching enumeration should continues
+    /// </summary>
+    NotAChild,
+    /// <summary>
+    /// Currently focusing control is a child of the specified panel, and is cached successfully, the caching enumeration should stop
+    /// </summary>
+    Successful
+}

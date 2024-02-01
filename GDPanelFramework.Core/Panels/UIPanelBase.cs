@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Godot;
 
 namespace GDPanelSystem.Core.Panels;
 
-public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : Control
+public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBaseCore
 {
     private enum PanelOpenStatus
     {
@@ -19,7 +18,7 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : Control
     private CancellationTokenSource _panelCloseTokenSource;
     private TCloseParam? _closeParam;
 
-    internal void InitializePanelInternal()
+    internal sealed override void InitializePanelInternal()
     {
         _panelCloseTokenSource = new CancellationTokenSource();
         _isInitialized = true;
@@ -53,8 +52,8 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : Control
     protected virtual void _OnPanelInitialize() { }
     protected abstract void _OnPanelOpen(TOpenParam openParam);
     protected virtual void _OnPanelClose(TCloseParam closeParam) { }
-
-    public struct PanelCloseAwaitable : ICriticalNotifyCompletion
+    
+    internal struct PanelCloseAwaitable : INotifyCompletion
     {
         private readonly UIPanelBase<TOpenParam, TCloseParam> _panel;
         private Action _continuation;
@@ -76,9 +75,6 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : Control
         }
 
         public void OnCompleted(Action continuation) => 
-            UnsafeOnCompleted(continuation);
-
-        public void UnsafeOnCompleted(Action continuation) => 
             _continuation = continuation;
 
         internal void Complete()
