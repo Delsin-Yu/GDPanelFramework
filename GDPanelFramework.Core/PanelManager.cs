@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using GDPanelSystem.Core.Panels;
 using Godot;
 
-namespace GDPanelSystem.Core.Core;
+namespace GDPanelSystem.Core;
 
 public static class PanelManager
 {
@@ -12,24 +12,34 @@ public static class PanelManager
     {
         private readonly Stack<T> _cache = new();
 
-        public T Get() => 
+        public T Get() =>
             _cache.TryPop(out var result) ? result : new T();
 
-        public void Release(T queue) => 
+        public void Release(T queue) =>
             _cache.Push(queue);
     }
 
     private record struct PanelRootInfo(Node Owner, Control Root);
 
     private static readonly Pool<Stack<UIPanelBaseCore>> _stackPool = new();
-    
+
     private static readonly Dictionary<PackedScene, Queue<object>> _bufferedPanels = new();
     private static readonly Stack<Stack<UIPanelBaseCore>> _panelStack = new();
 
-    #warning Initialize
+#warning Initialize
     private static readonly Stack<PanelRootInfo> _panelRoots = new();
 
-    private static Control GetCurrentPanelRoot() => _panelRoots.Peek().Root;
+    private static bool _panelRootInitialized;
+
+    private static Control GetCurrentPanelRoot()
+    {
+        if (_panelRootInitialized) return _panelRoots.Peek().Root;
+        
+        _panelRoots.Push(new PanelRootInfo(RootPanelContainer.PanelRoot, RootPanelContainer.PanelRoot));
+        _panelRootInitialized = true;
+
+        return _panelRoots.Peek().Root;
+    }
 
     private static Stack<UIPanelBaseCore> PushPanelStack()
     {
@@ -38,7 +48,14 @@ public static class PanelManager
         return newInstance;
     }
 
-    internal static TPanel PushPanelToPanelStack<TPanel>(TPanel panelInstance, PanelLayer panelLayer, LayerVisual previousLayerVisual) where TPanel : UIPanelBaseCore
+    private static void PopPanelStack()
+    {
+        var instance = _panelStack.Pop();
+        instance.Clear();
+        _stackPool.Release(instance);
+    }
+
+    internal static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, OpenLayer openLayer, LayerVisual previousLayerVisual) where TPanel : UIPanelBaseCore
     {
         Stack<UIPanelBaseCore> focusingPanelStack;
 
@@ -49,7 +66,7 @@ public static class PanelManager
         else panelInstance.Reparent(parent);
 
         // When pushing a panel to the current layer, create an initial panel stack if necessary, and sets the focusingPanelStack to the topmost stack.
-        if (panelLayer == PanelLayer.SameLayer)
+        if (openLayer == OpenLayer.SameLayer)
         {
             if (_panelStack.Count == 0) PushPanelStack();
 
@@ -72,13 +89,53 @@ public static class PanelManager
 
             focusingPanelStack = PushPanelStack();
         }
-        
-        focusingPanelStack.Push(panelInstance);
 
-        return panelInstance;
+        focusingPanelStack.Push(panelInstance);
     }
-    
-    public static TPanel CreateOrGetPanel<TPanel>(this PackedScene packedPanel, Action<TPanel> initializeCallback = null) where TPanel : UIPanelBaseCore
+
+    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, OpenLayer openLayer, LayerVisual previousLayerVisual) where TPanel : UIPanelBaseCore
+    {
+        if (openLayer == OpenLayer.SameLayer)
+        {
+            var operatingLayer = _panelStack.Peek();
+            var topPanel = operatingLayer.Peek();
+
+            ExceptionUtils.ThrowIfClosingPanelIsNotTopPanel(closingPanel, topPanel);
+
+            operatingLayer.Pop();
+
+            if (operatingLayer.Count == 0)
+            {
+                PopPanelStack();
+            }
+
+            operatingLayer = _panelStack.Peek();
+            topPanel = operatingLayer.Peek();
+            var _ = false;
+            topPanel.TryRestoreSelection(ref _);
+        }
+        else
+        {
+            var operatingLayer = _panelStack.Peek();
+            ExceptionUtils.ThrowIfPanelLayerIsGreaterThanOne(operatingLayer);
+            var topPanel = operatingLayer.Peek();
+
+            ExceptionUtils.ThrowIfClosingPanelIsNotTopPanel(closingPanel, topPanel);
+
+            PopPanelStack();
+
+            if (!_panelStack.TryPop(out operatingLayer)) return;
+
+            var selectionRestoreResult = false;
+            foreach (var panel in operatingLayer)
+            {
+                panel.SetPanelActiveState(true, previousLayerVisual);
+                panel.TryRestoreSelection(ref selectionRestoreResult);
+            }
+        }
+    }
+
+    public static TPanel GetOrCreatePanel<TPanel>(this PackedScene packedPanel, Action<TPanel> initializeCallback = null) where TPanel : UIPanelBaseCore
     {
         TPanel panelInstance;
         if (_bufferedPanels.TryGetValue(packedPanel, out var instanceQueue))
@@ -93,15 +150,22 @@ public static class PanelManager
         {
             throw new InvalidOperationException($"Unable to cast {packedPanel.ResourceName} to {typeof(TPanel)}!");
         }
-        
+
         GetCurrentPanelRoot().AddChild(panelInstance);
         initializeCallback?.Invoke(panelInstance);
         panelInstance.InitializePanelInternal();
         return panelInstance;
     }
-    
-    public static UIPanel.OpenArgsBuilder OpenPanel<TPanel>(this TPanel panel) where TPanel : UIPanel => 
-        new(panel);
-    public static UIPanelParam<TOpenParam, TCloseParam>.OpenArgsBuilder OpenPanel<TOpenParam, TCloseParam>(this UIPanelParam<TOpenParam, TCloseParam> panel, TOpenParam param) => 
-        new(panel, param);
+
+    public static UIPanel.OpenArgsBuilder OpenPanel<TPanel>(this TPanel panel) where TPanel : UIPanel
+    {
+        panel.ThrowIfUninitialized();
+        return new UIPanel.OpenArgsBuilder(panel);
+    }
+
+    public static UIPanelParam<TOpenParam, TCloseParam>.OpenArgsBuilder OpenPanel<TOpenParam, TCloseParam>(this UIPanelParam<TOpenParam, TCloseParam> panel, TOpenParam param)
+    {
+        panel.ThrowIfUninitialized();
+        return new UIPanelParam<TOpenParam, TCloseParam>.OpenArgsBuilder(panel, param);
+    }
 }

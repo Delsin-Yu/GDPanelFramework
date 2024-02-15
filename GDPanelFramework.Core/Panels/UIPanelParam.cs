@@ -1,50 +1,49 @@
 using System;
 using System.Runtime.CompilerServices;
-using GDPanelSystem.Core.Core;
+using GDPanelSystem.Utils.AsyncInterop;
 
 namespace GDPanelSystem.Core.Panels;
 
 public abstract partial class UIPanelParam<TOpenParam, TCloseParam> : UIPanelBase<TOpenParam, TCloseParam>
 {
-    protected void ClosePanel(TCloseParam closeParam) => ClosePanelInternal(closeParam);
+    protected void ClosePanel(TCloseParam closeParam)
+    {
+        this.ThrowIfNotOpened();
+        ClosePanelInternal(closeParam);
+    }
 
     public readonly struct OpenArgsBuilder
     {
         private readonly UIPanelParam<TOpenParam, TCloseParam> _panel;
         private readonly TOpenParam _openParam;
 
-        public OpenArgsBuilder(UIPanelParam<TOpenParam, TCloseParam> panel, TOpenParam openParam)
+        internal OpenArgsBuilder(UIPanelParam<TOpenParam, TCloseParam> panel, TOpenParam openParam)
         {
             _panel = panel;
             _openParam = openParam;
         }
 
-        public PanelCloseAwaitable InNewLayer(LayerVisual previousLayerVisual) => new(
-            PanelManager
-                .PushPanelToPanelStack(_panel, PanelLayer.NewLayer, previousLayerVisual)
-                .OpenPanelInternal(_openParam)
-        );
-
-        public PanelCloseAwaitable InCurrentLayer() => new(
-            PanelManager
-                .PushPanelToPanelStack(_panel, PanelLayer.NewLayer, LayerVisual.Visible)
-                .OpenPanelInternal(_openParam)
-        );
-
-
-        public struct PanelCloseAwaitable : INotifyCompletion
+        private AsyncAwaitable<TCloseParam> OpenImpl(OpenLayer layer, LayerVisual previousLayerVisual)
         {
-            private UIPanelBase<TOpenParam, TCloseParam>.PanelCloseAwaitable _backing;
-
-            internal PanelCloseAwaitable(UIPanelBase<TOpenParam, TCloseParam>.PanelCloseAwaitable backing) => _backing = backing;
-
-            public PanelCloseAwaitable GetAwaiter() => this;
-
-            public bool IsCompleted => _backing.IsCompleted;
-
-            public void OnCompleted(Action continuation) => _backing.OnCompleted(continuation);
-
-            public TCloseParam GetResult() => _backing.GetResult();
+            var panel = _panel;
+            var openParam = _openParam;
+            PanelManager.PushPanelToPanelStack(_panel, layer, previousLayerVisual);
+            return AsyncInterop.ToAsync<TCloseParam>(
+                call => panel.OpenPanelInternal(
+                    openParam,
+                    result =>
+                    {
+                        PanelManager.HandlePanelClose(panel, layer, previousLayerVisual);
+                        call(result);
+                    }
+                )
+            );
         }
+        
+        public AsyncAwaitable<TCloseParam> InNewLayer(LayerVisual previousLayerVisual) => 
+            OpenImpl(OpenLayer.NewLayer, previousLayerVisual);
+
+        public AsyncAwaitable<TCloseParam> InCurrentLayer() =>
+            OpenImpl(OpenLayer.SameLayer, LayerVisual.Visible);
     }
 }

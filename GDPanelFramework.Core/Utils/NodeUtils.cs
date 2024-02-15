@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System.Collections.Generic;
 using GDPanelSystem.Core.Panels;
 using Godot;
 
 namespace GDPanelSystem.Core;
 
-internal static class Utils
+internal static class NodeUtils
 {
-    
     internal static void SetNodeChildAvailability(Node node, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool enabled)
     {
         ToggleFocusModeRecursive(node, enabled, cachedControlInfo);
     }
-    
+
     private static void ToggleFocusModeRecursive(Node root, bool enable, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedNodeFocusMode, bool includeInternal = false)
     {
         if (!enable)
@@ -27,7 +24,7 @@ internal static class Utils
             cachedNodeFocusMode.Clear();
         }
     }
-    
+
     private static void DisableFocusModeRecursive(Node root, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool includeInternal = false)
     {
         if (root is Control control)
@@ -49,7 +46,7 @@ internal static class Utils
             DisableFocusModeRecursive(child, cachedControlInfo, includeInternal);
         }
     }
-    
+
     private static void EnableFocusModeRecursive(Node root, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool includeInternal = false)
     {
         if (root is Control control)
@@ -67,43 +64,5 @@ internal static class Utils
             if (child is UIPanelBaseCore) continue;
             EnableFocusModeRecursive(child, cachedControlInfo, includeInternal);
         }
-    }
-    
-    internal static void LogError(string message) => GD.PushError(message);
-
-    internal static void RunProtected<T>(Action<T> call, T arg, string actionName, string targetName, [CallerArgumentExpression(nameof(call))] string methodName = default)
-    {
-        try
-        {
-            call(arg);
-        }
-        catch (Exception e)
-        {
-            ReportException(e, actionName, targetName, methodName);
-        }  
-    }
-    internal static void RunProtected(Action call, string actionName, string targetName, [CallerArgumentExpression(nameof(call))] string methodName = default)
-    {
-        try
-        {
-            call();
-        }
-        catch (Exception e)
-        {
-            ReportException(e, actionName, targetName, methodName);
-        }
-    }
-
-    internal static void ReportException(Exception e, string actionName, string targetName, string methodName)
-    {
-        LogError(
-            $"""
-             ┌┈┈┈┈ {actionName} Error ┈┈┈┈
-             │ {e.GetType().Name} on {targetName}.{methodName}
-             │ Message:
-             │   {e.Message}
-             └┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-             """
-        );
     }
 }

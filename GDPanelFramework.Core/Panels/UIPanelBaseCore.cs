@@ -3,16 +3,24 @@ using Godot;
 
 namespace GDPanelSystem.Core.Panels;
 
-public abstract class UIPanelBaseCore : Control
+public abstract partial class UIPanelBaseCore : Control
 {
+    internal enum PanelStatus
+    {
+        Uninitialized,
+        Initialized,
+        Opened,
+        Closed
+    }
+    
     private Control _cachedSelection;
     private bool _isShownInternal;
     private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos= new();
 
     internal record struct CachedControlInfo(FocusModeEnum FocusMode, MouseFilterEnum MouseFilter);
-    
 
-    
+    internal PanelStatus CurrentPanelStatus { get; set; } = PanelStatus.Uninitialized;
+
     internal abstract void InitializePanelInternal();
     
     internal SelectionCachingResult CacheCurrentSelection(ref Control currentSelection)
@@ -25,6 +33,17 @@ public abstract class UIPanelBaseCore : Control
         return SelectionCachingResult.Successful;
     }
 
+    internal void TryRestoreSelection(ref bool success)
+    {
+        if (success) return;
+
+        if (_cachedSelection is null) return;
+
+        success = true;
+        _cachedSelection.CallDeferred(Control.MethodName.GrabFocus);
+        _cachedSelection = null;
+    }
+    
     internal void SetPanelActiveState(bool active, LayerVisual layerVisual)
     {
         if (!active)
@@ -38,17 +57,16 @@ public abstract class UIPanelBaseCore : Control
                 HidePanel();
             }
 
-            Utils.SetNodeChildAvailability(this, _cachedChildrenControlInfos, false);
+            NodeUtils.SetNodeChildAvailability(this, _cachedChildrenControlInfos, false);
         }
         else
         {
-            Utils.SetNodeChildAvailability(this, _cachedChildrenControlInfos, true);
+            NodeUtils.SetNodeChildAvailability(this, _cachedChildrenControlInfos, true);
 
-            if (!_isShownInternal)
-            {
-                _isShownInternal = true;
-                ShowPanel();
-            }
+            if (_isShownInternal) return;
+            
+            _isShownInternal = true;
+            ShowPanel();
         }
     }
 

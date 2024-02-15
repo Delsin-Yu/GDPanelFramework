@@ -5,7 +5,7 @@ namespace GDPanelSystem.Core;
 /// <summary>
 /// Defines the behaviour when opening a new panel.
 /// </summary>
-public enum PanelLayer
+public enum OpenLayer
 {
     /// <summary>
     /// Opens the panel in new panel layer, which means every panel inside the previous layer will no longer focusable or react to pointer click.
@@ -19,23 +19,23 @@ public enum PanelLayer
 }
 
 /// <summary>
-/// When opening a panel in <see cref="PanelLayer.NewLayer"/> mode, controls the visual status of panels inside the previous layer.
+/// When opening a panel in <see cref="OpenLayer.NewLayer"/> mode, controls the visual status of panels inside the previous layer.
 /// </summary>
 public enum LayerVisual
 {
     /// <summary>
-    /// When opening a panel in <see cref="PanelLayer.NewLayer"/> mode, every panel inside the previous layer remains visible.
+    /// When opening a panel in <see cref="OpenLayer.NewLayer"/> mode, every panel inside the previous layer remains visible.
     /// </summary>
     Visible,
 
     /// <summary>
-    /// When opening a panel in <see cref="PanelLayer.NewLayer"/> mode, every panel become hidden.
+    /// When opening a panel in <see cref="OpenLayer.NewLayer"/> mode, every panel become hidden.
     /// </summary>
     Hidden
 }
 
 /// <summary>
-/// Internal enum for indicating the selection cache result when opening panel in <see cref="PanelLayer.NewLayer"/> 
+/// Internal enum for indicating the selection cache result when opening panel in <see cref="OpenLayer.NewLayer"/> 
 /// </summary>
 internal enum SelectionCachingResult
 {
