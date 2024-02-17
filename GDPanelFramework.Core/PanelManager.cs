@@ -109,7 +109,7 @@ public static class PanelManager
                 PopPanelStack();
             }
 
-            operatingLayer = _panelStack.Peek();
+            if(!_panelStack.TryPeek(out operatingLayer)) return;
             topPanel = operatingLayer.Peek();
             var _ = false;
             topPanel.TryRestoreSelection(ref _);

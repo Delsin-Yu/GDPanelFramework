@@ -11,31 +11,34 @@ public partial class RootPanelContainer : Control
         get
         {
             if (_backing != null) return _backing;
-
+            
+            var newInstance = new RootPanelContainer
+            {
+                Name = "RootPanelContainer"
+            };
+            
             var canvasLayer = new CanvasLayer
             {
                 FollowViewportEnabled = true, 
                 Name = "RootPanelViewport",
             };
             
-            var newInstance = new RootPanelContainer();
+            var container = new Control
+            {
+                Name = "PanelRoot"
+            };
+            
+            newInstance.AddChild(canvasLayer);
+            canvasLayer.AddChild(container);
             
             var root = ((SceneTree)Engine.GetMainLoop()).Root;
+            
             root.CallDeferred(Node.MethodName.AddChild, newInstance, false, Variant.From(InternalMode.Front));
-            newInstance.Name = "RootPanelContainer";
-            _backing = newInstance;
-            newInstance.CallDeferred(MethodName.InitializeBackingSize);
+            newInstance.CallDeferred(Control.MethodName.SetAnchorsAndOffsetsPreset, Variant.From(LayoutPreset.FullRect));
+            container.CallDeferred(Control.MethodName.SetAnchorsAndOffsetsPreset, Variant.From(LayoutPreset.FullRect));
+            
+            _backing = container;
             return _backing;
         }
-    }
-
-
-    private void InitializeBackingSize()
-    {
-        SetAnchorsPreset(LayoutPreset.FullRect);
-        OffsetBottom = 0f;
-        OffsetTop = 0f;
-        OffsetLeft = 0f;
-        OffsetRight = 0f;
     }
 }

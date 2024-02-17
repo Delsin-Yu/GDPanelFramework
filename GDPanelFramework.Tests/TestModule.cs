@@ -3,7 +3,8 @@ using GodotTask.Tasks;
 
 namespace GDPanelFramework.Tests;
 
-public abstract partial class TestModule : Control
+[GlobalClass]
+public abstract partial class TestModule : Node
 {
     public abstract GDTask Run();
 }

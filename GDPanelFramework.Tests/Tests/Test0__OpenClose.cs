@@ -5,10 +5,10 @@ using GodotTask.Tasks;
 
 namespace GDPanelFramework.Tests.Tests;
 
-public partial class Test0_OpenClose : TestModule
+public partial class Test0__OpenClose : TestModule
 {
-    [Export] private PackedScene _nonParamPanel;
-    [Export] private PackedScene _paramPanel;
+    [Export(hintString: "*.tscn")] private PackedScene _nonParamPanel;
+    [Export(hintString: "*.tscn")] private PackedScene _paramPanel;
 
     public override async GDTask Run()
     {

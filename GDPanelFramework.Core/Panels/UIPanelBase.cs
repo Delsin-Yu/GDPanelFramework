@@ -8,6 +8,8 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBase
 {
     private Action<TCloseParam> _onPanelCloseCallback;
     private CancellationTokenSource _panelCloseTokenSource;
+    
+    protected TOpenParam OpenParam { get; private set; }
 
     internal sealed override void InitializePanelInternal()
     {
@@ -20,11 +22,13 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBase
     {
         _onPanelCloseCallback = onPanelCloseCallback;
         CurrentPanelStatus = PanelStatus.Opened;
+        OpenParam = openParam;
         DelegateRunner.RunProtected(_OnPanelOpen, openParam, "On Open Panel", Name);
     }
 
     internal void ClosePanelInternal(TCloseParam closeParam)
     {
+        OpenParam = default;
         CurrentPanelStatus = PanelStatus.Closed;
         _panelCloseTokenSource.Cancel();
         _panelCloseTokenSource = new CancellationTokenSource();
