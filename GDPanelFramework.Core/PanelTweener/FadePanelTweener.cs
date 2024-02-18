@@ -7,7 +7,6 @@ public class FadePanelTweener : IPanelTweener
 {
     public float FadeTime { get; set; }
 
-
     public void Show(Control panel, Action? onFinish)
     {
         

@@ -16,10 +16,10 @@ public abstract partial class UIPanelBaseCore : Control
         Closed
     }
     
-    private Control _cachedSelection;
+    private Control? _cachedSelection;
     private bool _isShownInternal;
     private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos= new();
-    private IPanelTweener _panelTweener;
+    private IPanelTweener? _panelTweener;
     
     
     internal record struct CachedControlInfo(FocusModeEnum FocusMode, MouseFilterEnum MouseFilter);
@@ -34,7 +34,7 @@ public abstract partial class UIPanelBaseCore : Control
         set => _panelTweener = value;
     }
     
-    internal SelectionCachingResult CacheCurrentSelection(ref Control currentSelection)
+    internal SelectionCachingResult CacheCurrentSelection(ref Control? currentSelection)
     {
         _cachedSelection = null;
         currentSelection ??= GetViewport().GuiGetFocusOwner();
@@ -59,7 +59,7 @@ public abstract partial class UIPanelBaseCore : Control
     {
         if (!active)
         {
-            Control control = null;
+            Control? control = null;
             CacheCurrentSelection(ref control);
 
             if (layerVisual == LayerVisual.Hidden)
@@ -81,7 +81,7 @@ public abstract partial class UIPanelBaseCore : Control
         }
     }
 
-	protected void HidePanel(Action onFinish = null) => PanelTweener.Hide(this, onFinish);
+	protected void HidePanel(Action? onFinish = null) => PanelTweener.Hide(this, onFinish);
 
-	protected void ShowPanel(Action onFinish = null) => PanelTweener.Show(this, onFinish);
+	protected void ShowPanel(Action? onFinish = null) => PanelTweener.Show(this, onFinish);
 }

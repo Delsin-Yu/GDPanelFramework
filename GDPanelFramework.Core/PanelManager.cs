@@ -25,7 +25,7 @@ public static class PanelManager
     {
         if (_panelRootInitialized) return _panelRoots.Peek().Root;
         
-        _panelRoots.Push(new PanelRootInfo(RootPanelContainer.PanelRoot, RootPanelContainer.PanelRoot));
+        _panelRoots.Push(new(RootPanelContainer.PanelRoot, RootPanelContainer.PanelRoot));
         _panelRootInitialized = true;
 
         return _panelRoots.Peek().Root;
@@ -33,7 +33,7 @@ public static class PanelManager
 
     private static Stack<UIPanelBaseCore> PushPanelStack()
     {
-        Stack<UIPanelBaseCore> newInstance = Pool<Stack<UIPanelBaseCore>>.Get(() => new Stack<UIPanelBaseCore>());
+        var newInstance = Pool.Get<Stack<UIPanelBaseCore>>(() => new());
         _panelStack.Push(newInstance);
         return newInstance;
     }
@@ -42,7 +42,7 @@ public static class PanelManager
     {
         var instance = _panelStack.Pop();
         instance.Clear();
-        Pool<Stack<UIPanelBaseCore>>.Collect(instance);
+        Pool.Collect(instance);
     }
 
     internal static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, OpenLayer openLayer, LayerVisual previousLayerVisual) where TPanel : UIPanelBaseCore
@@ -156,12 +156,12 @@ public static class PanelManager
     public static UIPanel.OpenArgsBuilder OpenPanel<TPanel>(this TPanel panel) where TPanel : UIPanel
     {
         panel.ThrowIfUninitialized();
-        return new UIPanel.OpenArgsBuilder(panel);
+        return new(panel);
     }
 
     public static UIPanelParam<TOpenParam, TCloseParam>.OpenArgsBuilder OpenPanel<TOpenParam, TCloseParam>(this UIPanelParam<TOpenParam, TCloseParam> panel, TOpenParam param)
     {
         panel.ThrowIfUninitialized();
-        return new UIPanelParam<TOpenParam, TCloseParam>.OpenArgsBuilder(panel, param);
+        return new(panel, param);
     }
 }

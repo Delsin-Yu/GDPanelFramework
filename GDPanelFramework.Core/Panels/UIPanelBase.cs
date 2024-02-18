@@ -7,7 +7,7 @@ namespace GDPanelSystem.Core.Panels;
 
 public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBaseCore
 {
-    private Action<TCloseParam> _onPanelCloseCallback;
+    private Action<TCloseParam>? _onPanelCloseCallback;
     
     private CancellationTokenSource _panelCloseTokenSource  = new();
     private CancellationTokenSource _panelOpenTransitionTokenSource  = new();
@@ -17,7 +17,7 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBase
     private readonly Action<TOpenParam> _onPanelOpen;
     private readonly Action<TCloseParam> _onPanelClose;
     
-    protected TOpenParam OpenParam { get; private set; }
+    protected TOpenParam? OpenParam { get; private set; }
     
     protected CancellationToken? PanelCloseToken => _panelCloseTokenSource?.Token;
     protected CancellationToken? PanelOpenTransitionToken => _panelOpenTransitionTokenSource?.Token;
@@ -53,7 +53,7 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBase
         FinishAndResetTokenSource(ref _panelCloseTokenSource);
         DelegateRunner.RunProtected(_onPanelClose, closeParam, "On Close Panel", Name);
 
-        var call = _onPanelCloseCallback;
+        var call = _onPanelCloseCallback!;
         _onPanelCloseCallback = null;
         call(closeParam);
 

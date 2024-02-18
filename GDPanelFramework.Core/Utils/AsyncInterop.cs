@@ -8,27 +8,23 @@ namespace GDPanelSystem.Utils.AsyncInterop;
 
 public static class AsyncInterop
 {
-    private static Dictionary<Type, Stack<AsyncAwaitable>> _typedPool;
-
     private static AsyncAwaitable Create(Action<Action> callbackFunction)
     {
-        var instance = Pool<AsyncAwaitable>.Get(() => new AsyncAwaitable());
+        var instance = Pool.Get<AsyncAwaitable>(() => new());
         instance.Init(callbackFunction);
         return instance;
     }
 
     private static AsyncAwaitable<T> Create<T>(Action<Action<T>> callbackFunction)
     {
-        var instance = Pool<AsyncAwaitable<T>>.Get(() => new AsyncAwaitable<T>());
+        var instance = Pool.Get<AsyncAwaitable<T>>(() => new());
         instance.Init(callbackFunction);
         return instance;
     }
 
-    public static AsyncAwaitable ToAsync(Action<Action> callbackFunction) =>
-        Create(callbackFunction);
+    public static AsyncAwaitable ToAsync(Action<Action> callbackFunction) => Create(callbackFunction);
 
-    public static AsyncAwaitable<T> ToAsync<T>(Action<Action<T>> callbackFunction) =>
-        Create(callbackFunction);
+    public static AsyncAwaitable<T> ToAsync<T>(Action<Action<T>> callbackFunction) => Create(callbackFunction);
 }
 
 public sealed class AsyncAwaitable : INotifyCompletion
@@ -71,14 +67,11 @@ public sealed class AsyncAwaitable<T> : INotifyCompletion
 
 internal class AsyncAwaitableBase<T>
 {
-    private Action<Action<T>> _callbackFunction;
-    private Action _continuation;
-    private T _result;
+    private Action<Action<T>>? _callbackFunction;
+    private Action? _continuation;
+    private T? _result;
     private bool _isActive;
     private bool _isCompleted;
-    private readonly Action _beforeContinuation;
-
-    internal AsyncAwaitableBase(Action beforeContinuation = null) => _beforeContinuation = beforeContinuation;
 
     private void ThrowIfNotActive()
     {
@@ -90,7 +83,7 @@ internal class AsyncAwaitableBase<T>
         get
         {
             ThrowIfNotActive();
-            _callbackFunction(Complete);
+            _callbackFunction!(Complete);
             return _isCompleted;
         }
     }
@@ -99,10 +92,10 @@ internal class AsyncAwaitableBase<T>
     {
         _isActive = false;
         _isCompleted = false;
-        var result = _result;
+        var result = _result!;
         _result = default;
         _continuation = null;
-        Pool<AsyncAwaitableBase<T>>.Collect(this);
+        Pool.Collect(this);
         return result;
     }
 
@@ -111,12 +104,11 @@ internal class AsyncAwaitableBase<T>
         _callbackFunction = callbackFunction;
         _isActive = true;
     }
-   
+
     private void Complete(T result)
     {
         _isCompleted = true;
         _result = result;
-        _beforeContinuation?.Invoke();
         _continuation?.Invoke();
     }
 

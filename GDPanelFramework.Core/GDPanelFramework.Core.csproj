@@ -5,7 +5,7 @@
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>12</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Nullable>disable</Nullable>
+        <Nullable>enable</Nullable>
         <CopyAllFiles>true</CopyAllFiles>
         <RootNamespace>GodotPanelFramework</RootNamespace>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>

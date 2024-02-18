@@ -34,7 +34,7 @@ internal static class NodeUtils
             // Only cache the control when it is in any form of focusable
             if (controlFocusMode != Control.FocusModeEnum.None || controlMouseFilter != Control.MouseFilterEnum.Ignore)
             {
-                cachedControlInfo[control] = new UIPanelBaseCore.CachedControlInfo(controlFocusMode, controlMouseFilter);
+                cachedControlInfo[control] = new(controlFocusMode, controlMouseFilter);
                 control.FocusMode = Control.FocusModeEnum.None;
                 control.MouseFilter = Control.MouseFilterEnum.Ignore;
             }
