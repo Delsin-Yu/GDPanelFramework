@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using GDPanelSystem.Core.Panels;
 using Godot;
 using GodotTask.Tasks;

@@ -16,7 +16,7 @@ internal static class ExceptionUtils
 
     internal static void ThrowIfNotOpened(this UIPanelBaseCore panel)
     {
-        if (panel.CurrentPanelStatus != UIPanelBaseCore.PanelStatus.Opened) return;
+        if (panel.CurrentPanelStatus == UIPanelBaseCore.PanelStatus.Opened) return;
         throw new InvalidOperationException("Attempting to close a not opened panel, this is not supported.");
     }
 

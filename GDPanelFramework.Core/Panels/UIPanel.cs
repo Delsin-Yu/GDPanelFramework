@@ -6,7 +6,11 @@ namespace GDPanelSystem.Core.Panels;
 
 public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
 {
-    protected void ClosePanel() => ClosePanelInternal(Empty.Default);
+    protected void ClosePanel()
+    {
+        this.ThrowIfNotOpened();
+        ClosePanelInternal(Empty.Default);
+    }
 
     protected sealed override void _OnPanelClose(Empty closeParam) => _OnPanelClose();
 

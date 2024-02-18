@@ -2,34 +2,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using GDPanelSystem.Core.Panels;
+using GDPanelSystem.Core.Panels.Tweener;
+using GDPanelSystem.Utils.Pooling;
 using Godot;
 
 namespace GDPanelSystem.Core;
 
 public static class PanelManager
 {
-    private class Pool<T> where T : new()
-    {
-        private readonly Stack<T> _cache = new();
-
-        public T Get() =>
-            _cache.TryPop(out var result) ? result : new T();
-
-        public void Release(T queue) =>
-            _cache.Push(queue);
-    }
-
     private record struct PanelRootInfo(Node Owner, Control Root);
 
-    private static readonly Pool<Stack<UIPanelBaseCore>> _stackPool = new();
-
+#warning Initialize
     private static readonly Dictionary<PackedScene, Queue<object>> _bufferedPanels = new();
     private static readonly Stack<Stack<UIPanelBaseCore>> _panelStack = new();
-
-#warning Initialize
     private static readonly Stack<PanelRootInfo> _panelRoots = new();
 
     private static bool _panelRootInitialized;
+    private static readonly NonePanelTweener _fallbackPanelTweener = new();
+    private static IPanelTweener _defaultPanelTweener = _fallbackPanelTweener;
 
     private static Control GetCurrentPanelRoot()
     {
@@ -43,7 +33,7 @@ public static class PanelManager
 
     private static Stack<UIPanelBaseCore> PushPanelStack()
     {
-        Stack<UIPanelBaseCore> newInstance = _stackPool.Get();
+        Stack<UIPanelBaseCore> newInstance = Pool<Stack<UIPanelBaseCore>>.Get(() => new Stack<UIPanelBaseCore>());
         _panelStack.Push(newInstance);
         return newInstance;
     }
@@ -52,7 +42,7 @@ public static class PanelManager
     {
         var instance = _panelStack.Pop();
         instance.Clear();
-        _stackPool.Release(instance);
+        Pool<Stack<UIPanelBaseCore>>.Collect(instance);
     }
 
     internal static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, OpenLayer openLayer, LayerVisual previousLayerVisual) where TPanel : UIPanelBaseCore
@@ -133,6 +123,12 @@ public static class PanelManager
                 panel.TryRestoreSelection(ref selectionRestoreResult);
             }
         }
+    }
+
+    public static IPanelTweener DefaultPanelTweener
+    {
+        get => _defaultPanelTweener;
+        set => _defaultPanelTweener = value ?? _fallbackPanelTweener;
     }
 
     public static TPanel GetOrCreatePanel<TPanel>(this PackedScene packedPanel, Action<TPanel> initializeCallback = null) where TPanel : UIPanelBaseCore

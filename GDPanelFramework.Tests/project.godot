@@ -15,6 +15,10 @@ run/main_scene="res://test_entry.tscn"
 config/features=PackedStringArray("4.3", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
+[display]
+
+window/size/initial_position_type=3
+
 [dotnet]
 
 project/assembly_name="GDPanelFramework.Tests"

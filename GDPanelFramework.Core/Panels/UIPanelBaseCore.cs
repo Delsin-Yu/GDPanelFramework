@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using GDPanelSystem.Core.Panels.Tweener;
+using GDPanelSystem.Utils.AsyncInterop;
 using Godot;
 
 namespace GDPanelSystem.Core.Panels;
@@ -16,12 +19,20 @@ public abstract partial class UIPanelBaseCore : Control
     private Control _cachedSelection;
     private bool _isShownInternal;
     private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos= new();
-
+    private IPanelTweener _panelTweener;
+    
+    
     internal record struct CachedControlInfo(FocusModeEnum FocusMode, MouseFilterEnum MouseFilter);
 
     internal PanelStatus CurrentPanelStatus { get; set; } = PanelStatus.Uninitialized;
 
     internal abstract void InitializePanelInternal();
+
+    protected IPanelTweener PanelTweener
+    {
+        get => _panelTweener ?? PanelManager.DefaultPanelTweener;
+        set => _panelTweener = value;
+    }
     
     internal SelectionCachingResult CacheCurrentSelection(ref Control currentSelection)
     {
@@ -70,13 +81,7 @@ public abstract partial class UIPanelBaseCore : Control
         }
     }
 
-    internal void HidePanel()
-    {
-        
-    }
-    
-    internal void ShowPanel()
-    {
-        
-    }
+	protected void HidePanel(Action onFinish = null) => PanelTweener.Hide(this, onFinish);
+
+	protected void ShowPanel(Action onFinish = null) => PanelTweener.Show(this, onFinish);
 }
