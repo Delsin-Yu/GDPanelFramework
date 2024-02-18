@@ -80,7 +80,7 @@ public static class PanelManager
         focusingPanelStack.Push(panelInstance);
     }
 
-    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, OpenLayer openLayer, LayerVisual previousLayerVisual, CachingPolicy cachingPolicy) where TPanel : UIPanelBaseCore
+    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, OpenLayer openLayer, LayerVisual previousLayerVisual, ClosePolicy closePolicy) where TPanel : UIPanelBaseCore
     {
         if (openLayer == OpenLayer.SameLayer)
         {
@@ -124,9 +124,7 @@ public static class PanelManager
             }
         }
 
-        closingPanel.SetPanelChildAvailability(false);
-        
-        if (cachingPolicy == CachingPolicy.Delete)
+        if (closePolicy == ClosePolicy.Delete)
         {
             closingPanel.PanelCloseTweenFinishToken!.Value.Register(closingPanel.QueueFree);
             return;

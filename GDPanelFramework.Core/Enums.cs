@@ -20,7 +20,7 @@ public enum CreatePolicy
 /// <summary>
 /// Defines the subsequent behavior after the panel has closed.
 /// </summary>
-public enum CachingPolicy
+public enum ClosePolicy
 {
     /// <summary>
     /// The framework will cache this instance of the panel, and, when specifying createPolicy as <see cref="CreatePolicy.TryReuse"/>, reuse it in the next <see cref="PanelManager.CreatePanel{T}"/> call.

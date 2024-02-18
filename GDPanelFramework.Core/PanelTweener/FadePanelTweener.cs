@@ -13,7 +13,7 @@ public class FadePanelTweener : IPanelTweener
 
     public float FadeTime { get; set; }
 
-    private Tween KillAndCreateNewTween(Control panel, in Color color, Action? onFinish)
+    private void KillAndCreateNewTween(Control panel, in Color color, Action? onFinish, string methodName)
     {
         if (_activeTween.TryGetValue(panel, out var runningTween))
         {
@@ -21,31 +21,32 @@ public class FadePanelTweener : IPanelTweener
         }
 
         runningTween = panel.CreateTween();
+        _activeTween[panel] = runningTween;
+        
         runningTween.TweenProperty(panel, _modulatePath, color, FadeTime);
         runningTween.TweenCallback(
             Callable.From(
                 () =>
                 {
-                    onFinish?.Invoke();
+                    if(onFinish != null) DelegateRunner.RunProtected(onFinish, "OnFinish", panel.Name, methodName);
                     if (!_activeTween.Remove(panel, out var tween)) return;
                     tween.Kill();
                 }
             )
         );
-        return runningTween;
     }
     
     /// <inheritdoc/>
     public void Show(Control panel, Action? onFinish)
     {
         panel.Modulate = Colors.Transparent;
-        KillAndCreateNewTween(panel, Colors.White, onFinish);
+        KillAndCreateNewTween(panel, Colors.White, onFinish, "Show");
     }
 
     /// <inheritdoc/>
     public void Hide(Control panel, Action? onFinish)
     {
         panel.Modulate = Colors.White;
-        KillAndCreateNewTween(panel, Colors.Transparent, onFinish);
+        KillAndCreateNewTween(panel, Colors.Transparent, onFinish, "Hide");
     }
 }
