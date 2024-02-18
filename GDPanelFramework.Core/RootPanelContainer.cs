@@ -4,7 +4,7 @@ namespace GDPanelSystem.Core;
 
 public partial class RootPanelContainer : Control
 {
-    private static Control _backing;
+    private static Control? _backing;
 
     public static Control PanelRoot
     {

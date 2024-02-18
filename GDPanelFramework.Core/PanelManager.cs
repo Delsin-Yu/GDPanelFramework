@@ -61,7 +61,7 @@ public static class PanelManager
             if (_panelStack.Count == 0) PushPanelStack();
 
             focusingPanelStack = _panelStack.Peek();
-            Control currentFocusingControl = null;
+            Control? currentFocusingControl = null;
             foreach (var item in focusingPanelStack)
             {
                 if (item.CacheCurrentSelection(ref currentFocusingControl) is SelectionCachingResult.Successful or SelectionCachingResult.NoSelections) break;
@@ -131,7 +131,7 @@ public static class PanelManager
         set => _defaultPanelTweener = value ?? _fallbackPanelTweener;
     }
 
-    public static TPanel GetOrCreatePanel<TPanel>(this PackedScene packedPanel, Action<TPanel> initializeCallback = null) where TPanel : UIPanelBaseCore
+    public static TPanel GetOrCreatePanel<TPanel>(this PackedScene packedPanel, Action<TPanel>? initializeCallback = null) where TPanel : UIPanelBaseCore
     {
         TPanel panelInstance;
         if (_bufferedPanels.TryGetValue(packedPanel, out var instanceQueue))
