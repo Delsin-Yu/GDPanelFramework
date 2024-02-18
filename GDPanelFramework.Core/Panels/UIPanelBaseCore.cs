@@ -81,7 +81,21 @@ public abstract partial class UIPanelBaseCore : Control
         }
     }
 
-	protected void HidePanel(Action? onFinish = null) => PanelTweener.Hide(this, onFinish);
+	protected void HidePanel(Action? onFinish = null)
+    {
+        PanelTweener.Hide(
+            this,
+            () =>
+            {
+                Visible = false;
+                onFinish?.Invoke();
+            }
+        );
+    }
 
-	protected void ShowPanel(Action? onFinish = null) => PanelTweener.Show(this, onFinish);
+    protected void ShowPanel(Action? onFinish = null)
+    {
+        Visible = true;
+        PanelTweener.Show(this, onFinish);
+    }
 }

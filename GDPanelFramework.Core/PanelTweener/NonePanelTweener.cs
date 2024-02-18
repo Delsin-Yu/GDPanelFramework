@@ -5,15 +5,9 @@ namespace GDPanelSystem.Core.Panels.Tweener;
 
 public class NonePanelTweener : IPanelTweener
 {
-    public void Show(Control panel, Action? onFinish)
-    {
-        panel.Visible = true;
-        onFinish?.Invoke();
-    }
+    /// <inheritdoc/>
+    public void Show(Control panel, Action? onFinish) => onFinish?.Invoke();
 
-    public void Hide(Control panel, Action? onFinish)
-    {
-        panel.Visible = false;
-        onFinish?.Invoke();
-    }
+    /// <inheritdoc/>
+    public void Hide(Control panel, Action? onFinish) => onFinish?.Invoke();
 }
