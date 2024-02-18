@@ -3,7 +3,37 @@
 namespace GDPanelSystem.Core;
 
 /// <summary>
-/// Defines the behaviour when opening a new panel.
+/// Defines the behavior when creating a panel.
+/// </summary>
+public enum CreatePolicy
+{
+    /// <summary>
+    /// The framework will reuse a panel if there is cache available, otherwise creating a new instance.
+    /// </summary>
+    TryReuse,
+    /// <summary>
+    /// The framework will creating a new instance of panel regardless the cache status.
+    /// </summary>
+    ForceCreate
+}
+
+/// <summary>
+/// Defines the subsequent behavior after the panel has closed.
+/// </summary>
+public enum CachingPolicy
+{
+    /// <summary>
+    /// The framework will cache this instance of the panel, and, when specifying createPolicy as <see cref="CreatePolicy.TryReuse"/>, reuse it in the next <see cref="PanelManager.CreatePanel{T}"/> call.
+    /// </summary>
+    Cache,
+    /// <summary>
+    /// The framework will calls the <see cref="Node.QueueFree"/> on this panel for deletion.
+    /// </summary>
+    Delete
+}
+
+/// <summary>
+/// Defines the behavior when opening a new panel.
 /// </summary>
 public enum OpenLayer
 {

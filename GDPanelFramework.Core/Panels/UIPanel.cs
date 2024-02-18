@@ -26,7 +26,7 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
 
         internal OpenArgsBuilder(UIPanel panel) => _panel = panel;
         
-        private AsyncAwaitable OpenImpl(OpenLayer layer, LayerVisual previousLayerVisual)
+        private AsyncAwaitable OpenImpl(OpenLayer layer, LayerVisual previousLayerVisual, CachingPolicy cachingPolicy)
         {
             var panel = _panel;
             PanelManager.PushPanelToPanelStack(_panel, layer, previousLayerVisual);
@@ -35,17 +35,17 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
                     Empty.Default,
                     _ =>
                     {
-                        PanelManager.HandlePanelClose(panel, layer, previousLayerVisual);
+                        PanelManager.HandlePanelClose(panel, layer, previousLayerVisual, cachingPolicy);
                         call();
                     }
                 )
             );
         }
         
-        public AsyncAwaitable InNewLayer(LayerVisual previousLayerVisual) => 
-            OpenImpl(OpenLayer.NewLayer, previousLayerVisual);
+        public AsyncAwaitable InNewLayer(LayerVisual previousLayerVisual, CachingPolicy cachingPolicy = CachingPolicy.Cache) => 
+            OpenImpl(OpenLayer.NewLayer, previousLayerVisual, cachingPolicy);
 
-        public AsyncAwaitable InCurrentLayer() =>
-            OpenImpl(OpenLayer.SameLayer, LayerVisual.Visible);
+        public AsyncAwaitable InCurrentLayer(CachingPolicy cachingPolicy = CachingPolicy.Cache) =>
+            OpenImpl(OpenLayer.SameLayer, LayerVisual.Visible, cachingPolicy);
     }
 }

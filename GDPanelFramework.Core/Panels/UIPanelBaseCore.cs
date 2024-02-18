@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using GDPanelSystem.Core.Panels.Tweener;
-using GDPanelSystem.Utils.AsyncInterop;
 using Godot;
 
 namespace GDPanelSystem.Core.Panels;
@@ -20,13 +20,26 @@ public abstract partial class UIPanelBaseCore : Control
     private bool _isShownInternal;
     private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos= new();
     private IPanelTweener? _panelTweener;
+    internal CancellationTokenSource _panelCloseTokenSource  = new();
+    internal CancellationTokenSource _panelOpenTweenFinishTokenSource  = new();
+    internal CancellationTokenSource _panelCloseTweenFinishTokenSource  = new();
     
+        
+    public CancellationToken? PanelCloseToken => _panelCloseTokenSource?.Token;
+    public CancellationToken? PanelOpenTweenFinishToken => _panelOpenTweenFinishTokenSource?.Token;
+    public CancellationToken? PanelCloseTweenFinishToken => _panelCloseTweenFinishTokenSource?.Token;
+    
+    internal PackedScene? SourcePrefab { get; private set; }
     
     internal record struct CachedControlInfo(FocusModeEnum FocusMode, MouseFilterEnum MouseFilter);
 
     internal PanelStatus CurrentPanelStatus { get; set; } = PanelStatus.Uninitialized;
 
-    internal abstract void InitializePanelInternal();
+    internal virtual void InitializePanelInternal(PackedScene sourcePrefab)
+    {
+        SourcePrefab = sourcePrefab;
+        SetPanelChildAvailability(false);
+    }
 
     protected IPanelTweener PanelTweener
     {
@@ -68,11 +81,11 @@ public abstract partial class UIPanelBaseCore : Control
                 HidePanel();
             }
 
-            NodeUtils.SetNodeChildAvailability(this, _cachedChildrenControlInfos, false);
+            SetPanelChildAvailability(false);
         }
         else
         {
-            NodeUtils.SetNodeChildAvailability(this, _cachedChildrenControlInfos, true);
+            SetPanelChildAvailability(true);
 
             if (_isShownInternal) return;
             
@@ -81,7 +94,10 @@ public abstract partial class UIPanelBaseCore : Control
         }
     }
 
-	protected void HidePanel(Action? onFinish = null)
+    internal void SetPanelChildAvailability(bool enabled) => 
+        NodeUtils.SetNodeChildAvailability(this, _cachedChildrenControlInfos, enabled);
+
+    protected void HidePanel(Action? onFinish = null)
     {
         PanelTweener.Hide(
             this,

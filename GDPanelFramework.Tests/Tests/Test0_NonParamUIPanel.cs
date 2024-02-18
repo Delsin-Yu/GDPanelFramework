@@ -17,7 +17,7 @@ public partial class Test0_NonParamUIPanel : UIPanel
 
     protected override void _OnPanelOpen()
     {
-        GD.Print("NonParamPanel:Open");
+        GD.Print("NonParamPanel:_OnPanelOpen");
     }
 
     protected override void _OnPanelClose()

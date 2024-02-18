@@ -23,7 +23,7 @@ public abstract partial class UIPanelParam<TOpenParam, TCloseParam> : UIPanelBas
             _openParam = openParam;
         }
 
-        private AsyncAwaitable<TCloseParam> OpenImpl(OpenLayer layer, LayerVisual previousLayerVisual)
+        private AsyncAwaitable<TCloseParam> OpenImpl(OpenLayer layer, LayerVisual previousLayerVisual, CachingPolicy cachingPolicy)
         {
             var panel = _panel;
             var openParam = _openParam;
@@ -33,17 +33,17 @@ public abstract partial class UIPanelParam<TOpenParam, TCloseParam> : UIPanelBas
                     openParam,
                     result =>
                     {
-                        PanelManager.HandlePanelClose(panel, layer, previousLayerVisual);
+                        PanelManager.HandlePanelClose(panel, layer, previousLayerVisual, cachingPolicy);
                         call(result);
                     }
                 )
             );
         }
         
-        public AsyncAwaitable<TCloseParam> InNewLayer(LayerVisual previousLayerVisual) => 
-            OpenImpl(OpenLayer.NewLayer, previousLayerVisual);
+        public AsyncAwaitable<TCloseParam> InNewLayer(LayerVisual previousLayerVisual, CachingPolicy cachingPolicy = CachingPolicy.Cache) => 
+            OpenImpl(OpenLayer.NewLayer, previousLayerVisual, cachingPolicy);
 
-        public AsyncAwaitable<TCloseParam> InCurrentLayer() =>
-            OpenImpl(OpenLayer.SameLayer, LayerVisual.Visible);
+        public AsyncAwaitable<TCloseParam> InCurrentLayer(CachingPolicy cachingPolicy = CachingPolicy.Cache) =>
+            OpenImpl(OpenLayer.SameLayer, LayerVisual.Visible, cachingPolicy);
     }
 }

@@ -12,14 +12,12 @@ public static class PanelManager
 {
     private record struct PanelRootInfo(Node Owner, Control Root);
 
-#warning Initialize
-    private static readonly Dictionary<PackedScene, Queue<object>> _bufferedPanels = new();
+    private static readonly Dictionary<PackedScene, Stack> _bufferedPanels = new();
     private static readonly Stack<Stack<UIPanelBaseCore>> _panelStack = new();
     private static readonly Stack<PanelRootInfo> _panelRoots = new();
 
     private static bool _panelRootInitialized;
-    private static readonly NonePanelTweener _fallbackPanelTweener = new();
-    private static IPanelTweener _defaultPanelTweener = _fallbackPanelTweener;
+    private static IPanelTweener _defaultPanelTweener = NonePanelTweener.Instance;
 
     private static Control GetCurrentPanelRoot()
     {
@@ -76,14 +74,13 @@ public static class PanelManager
                     item.SetPanelActiveState(false, previousLayerVisual);
                 }
 
-
             focusingPanelStack = PushPanelStack();
         }
 
         focusingPanelStack.Push(panelInstance);
     }
 
-    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, OpenLayer openLayer, LayerVisual previousLayerVisual) where TPanel : UIPanelBaseCore
+    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, OpenLayer openLayer, LayerVisual previousLayerVisual, CachingPolicy cachingPolicy) where TPanel : UIPanelBaseCore
     {
         if (openLayer == OpenLayer.SameLayer)
         {
@@ -99,10 +96,12 @@ public static class PanelManager
                 PopPanelStack();
             }
 
-            if(!_panelStack.TryPeek(out operatingLayer)) return;
-            topPanel = operatingLayer.Peek();
-            var _ = false;
-            topPanel.TryRestoreSelection(ref _);
+            if (_panelStack.TryPeek(out operatingLayer))
+            {
+                topPanel = operatingLayer.Peek();
+                var _ = false;
+                topPanel.TryRestoreSelection(ref _);
+            }
         }
         else
         {
@@ -114,30 +113,55 @@ public static class PanelManager
 
             PopPanelStack();
 
-            if (!_panelStack.TryPop(out operatingLayer)) return;
-
-            var selectionRestoreResult = false;
-            foreach (var panel in operatingLayer)
+            if (_panelStack.TryPop(out operatingLayer))
             {
-                panel.SetPanelActiveState(true, previousLayerVisual);
-                panel.TryRestoreSelection(ref selectionRestoreResult);
+                var selectionRestoreResult = false;
+                foreach (var panel in operatingLayer)
+                {
+                    panel.SetPanelActiveState(true, previousLayerVisual);
+                    panel.TryRestoreSelection(ref selectionRestoreResult);
+                }
             }
         }
+
+        closingPanel.SetPanelChildAvailability(false);
+        
+        if (cachingPolicy == CachingPolicy.Delete)
+        {
+            closingPanel.PanelCloseTweenFinishToken!.Value.Register(closingPanel.QueueFree);
+            return;
+        }
+
+        var sourcePrefab = closingPanel.SourcePrefab!;
+        
+        if (!_bufferedPanels.TryGetValue(sourcePrefab, out var cacheStack))
+        {
+            cacheStack = Pool.Get<Stack>(() => new());
+            _bufferedPanels.Add(sourcePrefab, cacheStack);
+        }
+        
+        cacheStack.Push(closingPanel);
     }
 
     public static IPanelTweener DefaultPanelTweener
     {
         get => _defaultPanelTweener;
-        set => _defaultPanelTweener = value ?? _fallbackPanelTweener;
+        set => _defaultPanelTweener = value ?? NonePanelTweener.Instance;
     }
 
-    public static TPanel GetOrCreatePanel<TPanel>(this PackedScene packedPanel, Action<TPanel>? initializeCallback = null) where TPanel : UIPanelBaseCore
+    public static TPanel CreatePanel<TPanel>(this PackedScene packedPanel, CreatePolicy createPolicy = CreatePolicy.TryReuse, Action<TPanel>? initializeCallback = null) where TPanel : UIPanelBaseCore
     {
         TPanel panelInstance;
-        if (_bufferedPanels.TryGetValue(packedPanel, out var instanceQueue))
+
+        if (createPolicy == CreatePolicy.TryReuse && _bufferedPanels.TryGetValue(packedPanel, out var cacheStack))
         {
-            panelInstance = (TPanel)instanceQueue.Dequeue();
+            panelInstance = (TPanel)cacheStack.Pop()!;
             initializeCallback?.Invoke(panelInstance);
+            if (cacheStack.Count == 0)
+            {
+                Pool.Collect(cacheStack);
+                _bufferedPanels.Remove(packedPanel);
+            }
             return panelInstance;
         }
 
@@ -149,7 +173,7 @@ public static class PanelManager
 
         GetCurrentPanelRoot().AddChild(panelInstance);
         initializeCallback?.Invoke(panelInstance);
-        panelInstance.InitializePanelInternal();
+        panelInstance.InitializePanelInternal(packedPanel);
         return panelInstance;
     }
 

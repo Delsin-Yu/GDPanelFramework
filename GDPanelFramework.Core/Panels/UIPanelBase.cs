@@ -8,20 +8,12 @@ namespace GDPanelSystem.Core.Panels;
 public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBaseCore
 {
     private Action<TCloseParam>? _onPanelCloseCallback;
-    
-    private CancellationTokenSource _panelCloseTokenSource  = new();
-    private CancellationTokenSource _panelOpenTransitionTokenSource  = new();
-    private CancellationTokenSource _panelCloseTransitionTokenSource  = new();
 
     private readonly Action _onPanelInitialize;
     private readonly Action<TOpenParam> _onPanelOpen;
     private readonly Action<TCloseParam> _onPanelClose;
     
     protected TOpenParam? OpenParam { get; private set; }
-    
-    protected CancellationToken? PanelCloseToken => _panelCloseTokenSource?.Token;
-    protected CancellationToken? PanelOpenTransitionToken => _panelOpenTransitionTokenSource?.Token;
-    protected CancellationToken? PanelCloseTransitionToken => _panelCloseTransitionTokenSource?.Token;
 
     internal UIPanelBase()
     {
@@ -30,8 +22,9 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBase
         _onPanelClose = _OnPanelClose;
     }
 
-    internal sealed override void InitializePanelInternal()
+    internal sealed override void InitializePanelInternal(PackedScene sourcePrefab)
     {
+        base.InitializePanelInternal(sourcePrefab);
         CurrentPanelStatus = PanelStatus.Initialized;
         DelegateRunner.RunProtected(_onPanelInitialize, "On Initialize Panel", Name);
     }
@@ -41,9 +34,9 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBase
         _onPanelCloseCallback = onPanelCloseCallback;
         CurrentPanelStatus = PanelStatus.Opened;
         OpenParam = openParam;
+		ShowPanel(() => FinishAndResetTokenSource(ref _panelOpenTweenFinishTokenSource));
+        SetPanelChildAvailability(true);
         DelegateRunner.RunProtected(_onPanelOpen, openParam, "On Open Panel", Name);
-
-		ShowPanel(() => FinishAndResetTokenSource(ref _panelOpenTransitionTokenSource));
 	}
 
     internal void ClosePanelInternal(TCloseParam closeParam)
@@ -51,13 +44,12 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBase
         OpenParam = default;
         CurrentPanelStatus = PanelStatus.Closed;
         FinishAndResetTokenSource(ref _panelCloseTokenSource);
+        HidePanel(() => FinishAndResetTokenSource(ref _panelCloseTweenFinishTokenSource));
         DelegateRunner.RunProtected(_onPanelClose, closeParam, "On Close Panel", Name);
-
+        SetPanelChildAvailability(false);
         var call = _onPanelCloseCallback!;
         _onPanelCloseCallback = null;
         call(closeParam);
-
-		HidePanel(() => FinishAndResetTokenSource(ref _panelCloseTransitionTokenSource));
 	}
 
     private static void FinishAndResetTokenSource(ref CancellationTokenSource cancellationTokenSource)

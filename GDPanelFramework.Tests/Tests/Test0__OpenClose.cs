@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+using System;
+using System.Runtime.InteropServices;
 using GDPanelSystem.Core;
 using Godot;
 using GodotTask.Tasks;
@@ -12,16 +13,19 @@ public partial class Test0__OpenClose : TestModule
 
     public override async GDTask Run()
     {
-        await _nonParamPanel
-            .GetOrCreatePanel<Test0_NonParamUIPanel>()
-            .OpenPanel()
-            .InCurrentLayer();
+        while (true)
+        {
+            await _nonParamPanel
+                .CreatePanel<Test0_NonParamUIPanel>()
+                .OpenPanel()
+                .InCurrentLayer(CachingPolicy.Delete);
 
-        var result = await _paramPanel
-            .GetOrCreatePanel<Test0_ParamUIPanel>()
-            .OpenPanel(5)
-            .InCurrentLayer();
+            var result = await _paramPanel
+                .CreatePanel<Test0_ParamUIPanel>()
+                .OpenPanel(5)
+                .InCurrentLayer(CachingPolicy.Delete);
         
-        GD.Print(result);
+            GD.Print(result);
+        }
     }
 }
