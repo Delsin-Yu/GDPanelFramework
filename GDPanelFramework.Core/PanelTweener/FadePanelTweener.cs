@@ -35,18 +35,16 @@ public class FadePanelTweener : IPanelTweener
             )
         );
     }
-    
-    /// <inheritdoc/>
-    public void Show(Control panel, Action? onFinish)
-    {
-        panel.Modulate = Colors.Transparent;
-        KillAndCreateNewTween(panel, Colors.White, onFinish, "Show");
-    }
 
     /// <inheritdoc/>
-    public void Hide(Control panel, Action? onFinish)
-    {
-        panel.Modulate = Colors.White;
+    public void Init(Control panel) => 
+        panel.Modulate = Colors.Transparent;
+
+    /// <inheritdoc/>
+    public void Show(Control panel, Action? onFinish) => 
+        KillAndCreateNewTween(panel, Colors.White, onFinish, "Show");
+
+    /// <inheritdoc/>
+    public void Hide(Control panel, Action? onFinish) => 
         KillAndCreateNewTween(panel, Colors.Transparent, onFinish, "Hide");
-    }
 }

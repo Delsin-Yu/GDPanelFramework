@@ -11,6 +11,9 @@ public class NonePanelTweener : IPanelTweener
     private NonePanelTweener() { }
 
     /// <inheritdoc/>
+    public void Init(Control panel) { }
+
+    /// <inheritdoc/>
     public void Show(Control panel, Action? onFinish) => onFinish?.Invoke();
 
     /// <inheritdoc/>
