@@ -1,10 +1,8 @@
-using System;
-using System.Runtime.CompilerServices;
 using GDPanelSystem.Utils.AsyncInterop;
 
 namespace GDPanelSystem.Core.Panels;
 
-public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
+public abstract partial class UIPanel : _UIPanelBase<Empty, Empty>
 {
     protected void ClosePanel()
     {

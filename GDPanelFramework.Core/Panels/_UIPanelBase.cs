@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Godot;
 
 namespace GDPanelSystem.Core.Panels;
 
-public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBaseCore
+public abstract partial class _UIPanelBase<TOpenParam, TCloseParam> : _UIPanelBaseCore
 {
     private Action<TCloseParam>? _onPanelCloseCallback;
 
@@ -15,7 +14,7 @@ public abstract partial class UIPanelBase<TOpenParam, TCloseParam> : UIPanelBase
     
     protected TOpenParam? OpenParam { get; private set; }
 
-    internal UIPanelBase()
+    internal _UIPanelBase()
     {
         _onPanelInitialize = _OnPanelInitialize;
         _onPanelOpen = _OnPanelOpen;

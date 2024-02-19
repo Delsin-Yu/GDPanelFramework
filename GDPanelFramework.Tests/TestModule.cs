@@ -1,4 +1,4 @@
-﻿using Godot;
+using Godot;
 using GodotTask.Tasks;
 
 namespace GDPanelFramework.Tests;

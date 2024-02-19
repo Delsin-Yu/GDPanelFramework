@@ -1,10 +1,8 @@
-using System;
-using System.Runtime.CompilerServices;
 using GDPanelSystem.Utils.AsyncInterop;
 
 namespace GDPanelSystem.Core.Panels;
 
-public abstract partial class UIPanelParam<TOpenParam, TCloseParam> : UIPanelBase<TOpenParam, TCloseParam>
+public abstract partial class UIPanelParam<TOpenParam, TCloseParam> : _UIPanelBase<TOpenParam, TCloseParam>
 {
     protected void ClosePanel(TCloseParam closeParam)
     {

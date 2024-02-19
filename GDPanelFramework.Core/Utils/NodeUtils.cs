@@ -6,12 +6,12 @@ namespace GDPanelSystem.Core;
 
 internal static class NodeUtils
 {
-    internal static void SetNodeChildAvailability(Node node, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool enabled)
+    internal static void SetNodeChildAvailability(Node node, Dictionary<Control, _UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool enabled)
     {
         ToggleFocusModeRecursive(node, enabled, cachedControlInfo);
     }
 
-    private static void ToggleFocusModeRecursive(Node root, bool enable, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedNodeFocusMode, bool includeInternal = false)
+    private static void ToggleFocusModeRecursive(Node root, bool enable, Dictionary<Control, _UIPanelBaseCore.CachedControlInfo> cachedNodeFocusMode, bool includeInternal = false)
     {
         if (!enable)
         {
@@ -25,7 +25,7 @@ internal static class NodeUtils
         }
     }
 
-    private static void DisableFocusModeRecursive(Node root, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool includeInternal = false)
+    private static void DisableFocusModeRecursive(Node root, Dictionary<Control, _UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool includeInternal = false)
     {
         if (root is Control control)
         {
@@ -42,12 +42,12 @@ internal static class NodeUtils
 
         foreach (var child in root.GetChildren(includeInternal))
         {
-            if (child is UIPanelBaseCore) continue;
+            if (child is _UIPanelBaseCore) continue;
             DisableFocusModeRecursive(child, cachedControlInfo, includeInternal);
         }
     }
 
-    private static void EnableFocusModeRecursive(Node root, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool includeInternal = false)
+    private static void EnableFocusModeRecursive(Node root, Dictionary<Control, _UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool includeInternal = false)
     {
         if (root is Control control)
         {
@@ -61,7 +61,7 @@ internal static class NodeUtils
 
         foreach (var child in root.GetChildren(includeInternal))
         {
-            if (child is UIPanelBaseCore) continue;
+            if (child is _UIPanelBaseCore) continue;
             EnableFocusModeRecursive(child, cachedControlInfo, includeInternal);
         }
     }

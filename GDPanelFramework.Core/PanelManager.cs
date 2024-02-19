@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using GDPanelSystem.Core.Panels;
 using GDPanelSystem.Core.Panels.Tweener;
@@ -12,8 +11,8 @@ public static class PanelManager
 {
     private record struct PanelRootInfo(Node Owner, Control Root);
 
-    private static readonly Dictionary<PackedScene, Stack> _bufferedPanels = new();
-    private static readonly Stack<Stack<UIPanelBaseCore>> _panelStack = new();
+    private static readonly Dictionary<PackedScene, Stack<_UIPanelBaseCore>> _bufferedPanels = new();
+    private static readonly Stack<Stack<_UIPanelBaseCore>> _panelStack = new();
     private static readonly Stack<PanelRootInfo> _panelRoots = new();
 
     private static bool _panelRootInitialized;
@@ -29,9 +28,9 @@ public static class PanelManager
         return _panelRoots.Peek().Root;
     }
 
-    private static Stack<UIPanelBaseCore> PushPanelStack()
+    private static Stack<_UIPanelBaseCore> PushPanelStack()
     {
-        var newInstance = Pool.Get<Stack<UIPanelBaseCore>>(() => new());
+        var newInstance = Pool.Get<Stack<_UIPanelBaseCore>>(() => new());
         _panelStack.Push(newInstance);
         return newInstance;
     }
@@ -43,9 +42,9 @@ public static class PanelManager
         Pool.Collect(instance);
     }
 
-    internal static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, OpenLayer openLayer, LayerVisual previousLayerVisual) where TPanel : UIPanelBaseCore
+    internal static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, OpenLayer openLayer, LayerVisual previousLayerVisual) where TPanel : _UIPanelBaseCore
     {
-        Stack<UIPanelBaseCore> focusingPanelStack;
+        Stack<_UIPanelBaseCore> focusingPanelStack;
 
         // Ensure the current panel is at the front most.
         var parent = GetCurrentPanelRoot();
@@ -80,7 +79,7 @@ public static class PanelManager
         focusingPanelStack.Push(panelInstance);
     }
 
-    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, OpenLayer openLayer, LayerVisual previousLayerVisual, ClosePolicy closePolicy) where TPanel : UIPanelBaseCore
+    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, OpenLayer openLayer, LayerVisual previousLayerVisual, ClosePolicy closePolicy) where TPanel : _UIPanelBaseCore
     {
         if (openLayer == OpenLayer.SameLayer)
         {
@@ -134,7 +133,7 @@ public static class PanelManager
         
         if (!_bufferedPanels.TryGetValue(sourcePrefab, out var cacheStack))
         {
-            cacheStack = Pool.Get<Stack>(() => new());
+            cacheStack = Pool.Get<Stack<_UIPanelBaseCore>>(() => new());
             _bufferedPanels.Add(sourcePrefab, cacheStack);
         }
         
@@ -147,7 +146,7 @@ public static class PanelManager
         set => _defaultPanelTweener = value ?? NonePanelTweener.Instance;
     }
 
-    public static TPanel CreatePanel<TPanel>(this PackedScene packedPanel, CreatePolicy createPolicy = CreatePolicy.TryReuse, Action<TPanel>? initializeCallback = null) where TPanel : UIPanelBaseCore
+    public static TPanel CreatePanel<TPanel>(this PackedScene packedPanel, CreatePolicy createPolicy = CreatePolicy.TryReuse, Action<TPanel>? initializeCallback = null) where TPanel : _UIPanelBaseCore
     {
         TPanel panelInstance;
 

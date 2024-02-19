@@ -6,7 +6,7 @@ using Godot;
 
 namespace GDPanelSystem.Core.Panels;
 
-public abstract partial class UIPanelBaseCore : Control
+public abstract partial class _UIPanelBaseCore : Control
 {
     internal enum PanelStatus
     {
