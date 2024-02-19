@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using GDPanelSystem.Core.Panels;
+using Godot;
 
 namespace GDPanelSystem.Core;
 
@@ -30,5 +31,11 @@ internal static class ExceptionUtils
     {
         if (panelLayer.Count == 1) return;
         throw new InvalidOperationException($"Attempting to close a panel layer while there are other active panels inside the current layer, this is not supported. {PanelClosingOrderNotification}");
+    }
+
+    public static void ThrowIfUnauthorizedPanelRootOwner(Node requester, Node? owner)
+    {
+        if(ReferenceEquals(requester, owner)) return;
+        throw new InvalidOperationException($"{requester.Name} is attempting to pop a panel root that's owned by {owner?.Name ?? nameof(PanelManager)}, this is not supported.");
     }
 }

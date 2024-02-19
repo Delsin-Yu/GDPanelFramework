@@ -3,7 +3,7 @@ using Godot;
 
 namespace GDPanelFramework.Tests.Tests;
 
-public partial class Test0_ParamUIPanel : UIPanelParam<int, string>
+public partial class Test0_ParamUIPanel : UIPanelArg<int, string>
 {
     [Export] private Button _closeButton;
     

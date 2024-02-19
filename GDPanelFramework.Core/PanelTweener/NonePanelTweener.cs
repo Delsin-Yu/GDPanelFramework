@@ -4,8 +4,14 @@ using GodotPanelFramework.Utils;
 
 namespace GDPanelSystem.Core.Panels.Tweener;
 
+/// <summary>
+/// This is the default tweener that does not have any animated transition properties, it instantly hides and shows the panel.
+/// </summary>
 public class NonePanelTweener : IPanelTweener
 {
+    /// <summary>
+    /// The unified instance of this <see cref="NonePanelTweener"/>.
+    /// </summary>
     public static NonePanelTweener Instance => Singleton<NonePanelTweener>.GetInstance(() => new());
     
     private NonePanelTweener() { }

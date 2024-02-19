@@ -4,12 +4,18 @@ using Godot;
 
 namespace GDPanelSystem.Core.Panels.Tweener;
 
+/// <summary>
+/// Fades panels between solid and transparent for transitions.
+/// </summary>
 public class FadePanelTweener : IPanelTweener
 {
     private readonly Dictionary<Control, Tween> _activeTween = new();
 
     private static readonly NodePath _modulatePath = new(Control.PropertyName.Modulate);
 
+    /// <summary>
+    /// The duration for fading.
+    /// </summary>
     public float FadeTime { get; set; }
 
     private void KillAndCreateNewTween(Control panel, in Color color, Action? onFinish, string methodName)

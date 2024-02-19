@@ -7,25 +7,32 @@ using Godot;
 
 namespace GDPanelSystem.Core;
 
+/// <summary>
+/// <see cref="PanelManager"/> is the core module of GDPanelFramework, it manages panel opening and closing as well as communicates between panel layers, and activates/deactivates them at appropriate times.<br/>
+/// This module provides you access to public APIs that responsible for:<br/>
+/// 1. Creating panels from PackedScene (<see cref="CreatePanel{TPanel}"/>) and initiating panel opening behavior (<see cref="OpenPanel"/>).<br/>
+/// 2. Exposes the system-wide <see cref="DefaultPanelTweener"/>.<br/>
+/// 3. Configuring parent for the opening panels through <see cref="PushPanelParent"/> and <see cref="PopPanelParent"/>.
+/// </summary>
 public static class PanelManager
 {
-    private record struct PanelRootInfo(Node Owner, Control Root);
+    private record struct PanelRootInfo(Node? Owner, Control Root);
 
     private static readonly Dictionary<PackedScene, Stack<_UIPanelBaseCore>> _bufferedPanels = new();
     private static readonly Stack<Stack<_UIPanelBaseCore>> _panelStack = new();
-    private static readonly Stack<PanelRootInfo> _panelRoots = new();
+    private static readonly Stack<PanelRootInfo> _panelParents = new();
 
     private static bool _panelRootInitialized;
     private static IPanelTweener _defaultPanelTweener = NonePanelTweener.Instance;
 
     private static Control GetCurrentPanelRoot()
     {
-        if (_panelRootInitialized) return _panelRoots.Peek().Root;
+        if (_panelRootInitialized) return _panelParents.Peek().Root;
         
-        _panelRoots.Push(new(RootPanelContainer.PanelRoot, RootPanelContainer.PanelRoot));
+        _panelParents.Push(new(null, RootPanelContainer.PanelRoot));
         _panelRootInitialized = true;
 
-        return _panelRoots.Peek().Root;
+        return _panelParents.Peek().Root;
     }
 
     private static Stack<_UIPanelBaseCore> PushPanelStack()
@@ -140,13 +147,55 @@ public static class PanelManager
         cacheStack.Push(closingPanel);
     }
 
+    /// <summary>
+    /// Access the default system-wide <see cref="IPanelTweener"/>.
+    /// </summary>
     public static IPanelTweener DefaultPanelTweener
     {
         get => _defaultPanelTweener;
         set => _defaultPanelTweener = value ?? NonePanelTweener.Instance;
     }
 
-    public static TPanel CreatePanel<TPanel>(this PackedScene packedPanel, CreatePolicy createPolicy = CreatePolicy.TryReuse, Action<TPanel>? initializeCallback = null) where TPanel : _UIPanelBaseCore
+    /// <summary>
+    /// Pushes a new <see cref="Control"/> as the parent for subsequent opening panels to the parent stack.
+    /// </summary>
+    /// <remarks>
+    /// Pushing and popping actions must be parallel, that is, the topmost parent must be popped before you can pop the other parents.
+    /// </remarks>
+    /// <param name="owner">The owner that perform this action.</param>
+    /// <param name="newRoot">The <see cref="Control"/> that is becoming the parent for subsequent opening panels.</param>
+    public static void PushPanelParent(Node owner, Control newRoot)
+    {
+        _panelParents.Push(new(owner, newRoot));
+    }
+
+    /// <summary>
+    /// Pops the topmost parent from the parent stack, which makes the next topmost <see cref="Control"/> become the parent for subsequent opening panels.
+    /// </summary>
+    /// <remarks>
+    /// Pushing and popping actions must be parallel, that is, the topmost parent must be popped before you can pop the other parents.
+    /// </remarks>
+    /// <param name="requester">The owner that performs this action.</param>
+    /// <exception cref="ArgumentNullException">The requester is null.</exception>
+    /// <exception cref="InvalidOperationException">The requester is not the owner of the topmost parent of the parent stack.</exception>
+    public static void PopPanelParent(Node requester)
+    {
+        ArgumentNullException.ThrowIfNull(requester);
+        ExceptionUtils.ThrowIfUnauthorizedPanelRootOwner(requester, _panelParents.Peek().Owner);
+        _panelParents.Pop();
+    }
+    
+    /// <summary>
+    /// Try create an instance of the <typeparamref name="TPanel"/> from the supplied <paramref name="packedPanel"/>.
+    /// </summary>
+    /// <param name="packedPanel">The <see cref="PackedScene"/> to create the panel from.</param>
+    /// <param name="createPolicy">When set to <see cref="CreatePolicy.TryReuse"/>, the system will try reuse an existing cached instance if possible.</param>
+    /// <param name="initializeCallback">A delegate that gets called on the instance for pre-initialization.</param>
+    /// <typeparam name="TPanel">The panel type to create from the <see cref="PackedScene"/></typeparam>
+    /// <returns>The instance of the specified panel.</returns>
+    /// <exception cref="InvalidOperationException">Throws when the system is unable to cast the instance of the <paramref name="packedPanel"/> to desired <typeparamref name="TPanel"/> type.</exception>
+    public static TPanel CreatePanel<TPanel>(this PackedScene packedPanel, CreatePolicy createPolicy = CreatePolicy.TryReuse, 
+        Action<TPanel>? initializeCallback = null) where TPanel : _UIPanelBaseCore
     {
         TPanel panelInstance;
 
@@ -174,15 +223,28 @@ public static class PanelManager
         return panelInstance;
     }
 
-    public static UIPanel.OpenArgsBuilder OpenPanel<TPanel>(this TPanel panel) where TPanel : UIPanel
+    /// <summary>
+    /// Initiates an opening action on the specified panel.
+    /// </summary>
+    /// <param name="panel">The panel for performing the opening action on.</param>
+    /// <returns>A builder that handles the subsequent procedures for opening this panel.</returns>
+    public static UIPanel.OpenArgsBuilder OpenPanel(this UIPanel panel)
     {
         panel.ThrowIfUninitialized();
         return new(panel);
     }
 
-    public static UIPanelParam<TOpenParam, TCloseParam>.OpenArgsBuilder OpenPanel<TOpenParam, TCloseParam>(this UIPanelParam<TOpenParam, TCloseParam> panel, TOpenParam param)
+    /// <summary>
+    /// Initiates an opening action on the specified panel with args.
+    /// </summary>
+    /// <param name="panel">The panel for performing the opening action on.</param>
+    /// <param name="openArg">The argument passes to the panel.</param>
+    /// <typeparam name="TOpenArg">The argument passed to the panel when opening.</typeparam>
+    /// <typeparam name="TCloseArg">The value returned by the panel after closing.</typeparam>
+    /// <returns>A builder that handles the subsequent procedures for opening this panel.</returns>
+    public static UIPanelArg<TOpenArg, TCloseArg>.OpenArgsBuilder OpenPanel<TOpenArg, TCloseArg>(this UIPanelArg<TOpenArg, TCloseArg> panel, TOpenArg openArg)
     {
         panel.ThrowIfUninitialized();
-        return new(panel, param);
+        return new(panel, openArg);
     }
 }

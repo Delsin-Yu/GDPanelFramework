@@ -2,22 +2,17 @@
 
 namespace GDPanelSystem.Core;
 
-public partial class RootPanelContainer : Control
+internal partial class RootPanelContainer : CanvasLayer
 {
     private static Control? _backing;
 
-    public static Control PanelRoot
+    internal static Control PanelRoot
     {
         get
         {
             if (_backing != null) return _backing;
             
-            var newInstance = new RootPanelContainer
-            {
-                Name = "RootPanelContainer"
-            };
-            
-            var canvasLayer = new CanvasLayer
+            var panelContainer = new RootPanelContainer
             {
                 FollowViewportEnabled = true, 
                 Name = "RootPanelViewport",
@@ -28,14 +23,11 @@ public partial class RootPanelContainer : Control
                 Name = "PanelRoot"
             };
             
-            newInstance.AddChild(canvasLayer);
-            canvasLayer.AddChild(container);
+            panelContainer.AddChild(container);
             
             var root = ((SceneTree)Engine.GetMainLoop()).Root;
-            
-            root.CallDeferred(Node.MethodName.AddChild, newInstance, false, Variant.From(InternalMode.Front));
-            newInstance.CallDeferred(Control.MethodName.SetAnchorsAndOffsetsPreset, Variant.From(LayoutPreset.FullRect));
-            container.CallDeferred(Control.MethodName.SetAnchorsAndOffsetsPreset, Variant.From(LayoutPreset.FullRect));
+            root.CallDeferred(Node.MethodName.AddChild, panelContainer, false, Variant.From(InternalMode.Front));
+            container.CallDeferred(Control.MethodName.SetAnchorsAndOffsetsPreset, Variant.From(Control.LayoutPreset.FullRect));
             
             _backing = container;
             return _backing;
