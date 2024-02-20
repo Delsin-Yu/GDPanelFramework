@@ -63,8 +63,11 @@ public sealed class AsyncAwaitable : INotifyCompletion
     /// <inheritdoc cref="AsyncAwaitableBase{T}.GetAwaiter{T}"/>
     public AsyncAwaitable GetAwaiter() => _backing.GetAwaiter(this);
     
-    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start"/>
-    public void Start(Action? onFinish = null) => _backing.Start(_ => onFinish?.Invoke());
+    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start(Action{T})"/>
+    public void Start(Action onFinish) => _backing.Start(_ => onFinish?.Invoke());
+    
+    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start()"/>
+    public void Start() => _backing.Start();
 }
 
 /// <inheritdoc cref="AsyncAwaitableBase{T}"/>
@@ -90,9 +93,12 @@ public sealed class AsyncAwaitable<T> : INotifyCompletion
     /// <inheritdoc cref="AsyncAwaitableBase{T}.GetAwaiter{T}"/>
     public AsyncAwaitable<T> GetAwaiter() => _backing.GetAwaiter(this);
 
-    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start"/>
-    public void Start(Action<T>? onFinish = null) => _backing.Start(onFinish);
-
+    
+    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start(Action{T})"/>
+    public void Start(Action<T> onFinish) => _backing.Start(onFinish);
+    
+    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start()"/>
+    public void Start() => _backing.Start();
 }
 
 /// <summary>
@@ -177,17 +183,16 @@ internal class AsyncAwaitableBase<T>
     }
 
     /// <summary>
+    /// Execute this awaitable without using await/async syntax.
+    /// </summary>
+    internal void Start() => _ = IsCompleted;
+
+    /// <summary>
     /// Execute this awaitable in delegate-callback style without using await/async syntax.
     /// </summary>
     /// <param name="onFinish">A delegate that calls when this asynchronous operation completes.</param>
-    internal void Start(Action<T>? onFinish = null)
+    internal void Start(Action<T> onFinish)
     {
-        if (onFinish == null)
-        {
-            _ = IsCompleted;
-            return;
-        }
-        
         if (IsCompleted)
         {
             DelegateRunner.RunProtected(onFinish, GetResult(), "Async Continuation", onFinish.Target?.ToString() ?? "Null");

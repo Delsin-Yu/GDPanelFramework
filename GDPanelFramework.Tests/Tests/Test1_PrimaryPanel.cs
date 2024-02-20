@@ -17,7 +17,6 @@ public partial class Test1_PrimaryPanel : UIPanel
     {
         base._OnPanelInitialize();
         _closeButton.Pressed += ClosePanel;
-        EnableCloseWithCancelKey();
     }
 
     protected override void _OnPanelOpen()

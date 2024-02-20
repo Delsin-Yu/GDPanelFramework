@@ -25,7 +25,7 @@ public static class PanelManager
     [ModuleInitializer]
     internal static void Initializer()
     {
-        if(Engine.IsEditorHint()) return;
+        if (Engine.IsEditorHint()) return;
         GetCurrentPanelRoot();
     }
 #pragma warning restore CA2255
@@ -42,7 +42,7 @@ public static class PanelManager
     private static Control GetCurrentPanelRoot()
     {
         if (_panelRootInitialized) return _panelParents.Peek().Root;
-        
+
         _panelParents.Push(new(null, RootPanelContainer.PanelRoot));
         _panelRootInitialized = true;
 
@@ -133,11 +133,13 @@ public static class PanelManager
 
             PopPanelStack();
 
-            if (_panelStack.TryPop(out operatingLayer))
+            if (_panelStack.TryPeek(out operatingLayer))
             {
                 var selectionRestoreResult = false;
-                foreach (var panel in operatingLayer)
+                var span = CollectionsMarshal.AsSpan(operatingLayer);
+                for (var i = span.Length - 1; i >= 0; i--)
                 {
+                    ref var panel = ref span[i];
                     panel.SetPanelActiveState(true, previousLayerVisual);
                     panel.TryRestoreSelection(ref selectionRestoreResult);
                 }
@@ -151,13 +153,13 @@ public static class PanelManager
         }
 
         var sourcePrefab = closingPanel.SourcePrefab!;
-        
+
         if (!_bufferedPanels.TryGetValue(sourcePrefab, out var cacheStack))
         {
             cacheStack = Pool.Get<Stack<_UIPanelBaseCore>>(() => new());
             _bufferedPanels.Add(sourcePrefab, cacheStack);
         }
-        
+
         cacheStack.Push(closingPanel);
     }
 
@@ -166,9 +168,9 @@ public static class PanelManager
         if (!_panelStack.TryPeek(out var topmostPanelStack)) return false;
 
         var cachedWrapper = new CachedInputEvent(inputEvent);
-        
+
         var span = CollectionsMarshal.AsSpan(topmostPanelStack);
-        
+
         for (var i = span.Length - 1; i >= 0; i--)
         {
             if (span[i].ProcessPanelInput(ref cachedWrapper))
@@ -178,7 +180,7 @@ public static class PanelManager
         }
 
         cachedWrapper.Dispose();
-        
+
         return false;
     }
 
@@ -192,7 +194,7 @@ public static class PanelManager
             _actionHasEvent = Pool.Get<Dictionary<StringName, bool>>(() => []);
             Phase = Event.IsPressed() ? InputActionPhase.Pressed : InputActionPhase.Released;
         }
-        
+
         public InputActionPhase Phase { get; }
         public InputEvent Event { get; }
 
@@ -224,7 +226,7 @@ public static class PanelManager
     /// Access the system-wide <see cref="InputEvent"/> name that is considered the UI Cancel Action.
     /// </summary>
     public static string UICancelActionName { get; set; } = GodotBuiltinActionNames.UICancel;
-    
+
     /// <summary>
     /// Pushes a new <see cref="Control"/> as the parent for subsequent opening panels to the parent stack.
     /// </summary>
@@ -253,7 +255,7 @@ public static class PanelManager
         ExceptionUtils.ThrowIfUnauthorizedPanelRootOwner(requester, _panelParents.Peek().Owner);
         _panelParents.Pop();
     }
-    
+
     /// <summary>
     /// Try create an instance of the <typeparamref name="TPanel"/> from the supplied <paramref name="packedPanel"/>.
     /// </summary>
@@ -263,7 +265,7 @@ public static class PanelManager
     /// <typeparam name="TPanel">The panel type to create from the <see cref="PackedScene"/></typeparam>
     /// <returns>The instance of the specified panel.</returns>
     /// <exception cref="InvalidOperationException">Throws when the system is unable to cast the instance of the <paramref name="packedPanel"/> to desired <typeparamref name="TPanel"/> type.</exception>
-    public static TPanel CreatePanel<TPanel>(this PackedScene packedPanel, CreatePolicy createPolicy = CreatePolicy.TryReuse, 
+    public static TPanel CreatePanel<TPanel>(this PackedScene packedPanel, CreatePolicy createPolicy = CreatePolicy.TryReuse,
         Action<TPanel>? initializeCallback = null) where TPanel : _UIPanelBaseCore
     {
         TPanel panelInstance;
@@ -277,6 +279,7 @@ public static class PanelManager
                 Pool.Collect(cacheStack);
                 _bufferedPanels.Remove(packedPanel);
             }
+
             return panelInstance;
         }
 

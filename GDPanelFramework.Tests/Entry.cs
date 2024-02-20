@@ -21,5 +21,7 @@ public partial class Entry : Control
         {
             await testModule.Run();
         }
+
+        ((SceneTree)Engine.GetMainLoop()).Quit();
     }
 }
