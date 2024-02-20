@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace GDPanelSystem.Core;
+namespace GDPanelFramework;
 
 internal static class DelegateRunner
 {

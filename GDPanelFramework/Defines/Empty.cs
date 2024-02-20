@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace GDPanelSystem.Core;
+namespace GDPanelFramework;
 
 /// <summary>
 /// A struct that used as a <see cref="System.Void"/> type in generic panels.

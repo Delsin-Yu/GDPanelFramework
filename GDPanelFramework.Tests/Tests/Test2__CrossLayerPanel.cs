@@ -1,8 +1,8 @@
-using GDPanelSystem.Core;
+using GDPanelFramework;
 using Godot;
 using GodotTask.Tasks;
 
-namespace GDPanelFramework.Tests.Tests;
+namespace GDPanelFramework.Tests;
 
 public partial class Test2__CrossLayerPanel : TestModule
 {

@@ -1,8 +1,7 @@
-using GDPanelSystem.Core;
 using Godot;
 using GodotTask.Tasks;
 
-namespace GDPanelFramework.Tests.Tests;
+namespace GDPanelFramework.Tests;
 
 public partial class Test0__OpenClose : TestModule
 {

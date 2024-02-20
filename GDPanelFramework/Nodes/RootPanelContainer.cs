@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace GDPanelSystem.Core;
+namespace GDPanelFramework;
 
 internal partial class RootPanelContainer : CanvasLayer
 {

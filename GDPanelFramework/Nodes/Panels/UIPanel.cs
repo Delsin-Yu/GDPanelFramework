@@ -1,8 +1,8 @@
 using System;
-using GDPanelSystem.Utils.AsyncInterop;
+using GDPanelFramework.Utils.AsyncInterop;
 using Godot;
 
-namespace GDPanelSystem.Core.Panels;
+namespace GDPanelFramework.Panels;
 
 /// <summary>
 /// Inherit this panel to create a panel that does not require opening / closing arguments

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace GDPanelSystem.Utils.Pooling;
+namespace GDPanelFramework.Utils.Pooling;
 
 internal static class Pool
 {

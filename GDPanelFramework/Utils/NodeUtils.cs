@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using GDPanelSystem.Core.Panels;
+using GDPanelFramework.Panels;
 using Godot;
 
-namespace GDPanelSystem.Core;
+namespace GDPanelFramework;
 
 internal static class NodeUtils
 {

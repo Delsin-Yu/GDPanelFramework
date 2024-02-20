@@ -1,7 +1,7 @@
-using GDPanelSystem.Core.Panels;
+using GDPanelFramework.Panels;
 using Godot;
 
-namespace GDPanelFramework.Tests.Tests;
+namespace GDPanelFramework.Tests;
 
 public partial class Test0_NonParamUIPanel : UIPanel
 {

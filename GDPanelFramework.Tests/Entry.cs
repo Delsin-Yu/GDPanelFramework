@@ -1,5 +1,5 @@
-using GDPanelSystem.Core;
-using GDPanelSystem.Core.Panels.Tweener;
+using GDPanelFramework;
+using GDPanelFramework.Panels.Tweener;
 using Godot;
 using GodotTask.Tasks;
 

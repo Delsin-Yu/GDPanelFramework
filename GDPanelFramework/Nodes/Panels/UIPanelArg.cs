@@ -1,6 +1,6 @@
-using GDPanelSystem.Utils.AsyncInterop;
+using GDPanelFramework.Utils.AsyncInterop;
 
-namespace GDPanelSystem.Core.Panels;
+namespace GDPanelFramework.Panels;
 
 /// <summary>
 /// Inherit this panel to create a panel that requires opening / closing arguments, you can use <see cref="Empty"/> for a placeholder if you do not need either side.

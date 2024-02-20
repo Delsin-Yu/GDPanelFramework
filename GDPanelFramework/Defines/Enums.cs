@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace GDPanelSystem.Core;
+namespace GDPanelFramework;
 
 /// <summary>
 /// Defines the behavior when creating a panel.

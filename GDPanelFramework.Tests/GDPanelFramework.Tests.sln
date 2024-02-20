@@ -2,7 +2,7 @@
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GDPanelFramework.Tests", "GDPanelFramework.Tests.csproj", "{99A490D3-D91A-4FDA-A3AB-E47EE52F3BAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GDPanelFramework.Core", "..\GDPanelFramework.Core\GDPanelFramework.Core.csproj", "{069D1616-5C88-4820-9A0E-8D677C12EDC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GDPanelFramework", "..\GDPanelFramework\GDPanelFramework.csproj", "{069D1616-5C88-4820-9A0E-8D677C12EDC7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -3,13 +3,13 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using GDPanelSystem.Core.Panels;
-using GDPanelSystem.Core.Panels.Tweener;
-using GDPanelSystem.Utils.Pooling;
+using GDPanelFramework.Panels;
+using GDPanelFramework.Panels.Tweener;
+using GDPanelFramework.Utils.Pooling;
 using Godot;
 using GodotPanelFramework;
 
-namespace GDPanelSystem.Core;
+namespace GDPanelFramework;
 
 /// <summary>
 /// <see cref="PanelManager"/> is the core module of GDPanelFramework, it manages panel opening and closing as well as communicates between panel layers, and activates/deactivates them at appropriate times.<br/>

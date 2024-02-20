@@ -2,7 +2,7 @@
 using System.Threading;
 using Godot;
 
-namespace GDPanelSystem.Core.Panels;
+namespace GDPanelFramework.Panels;
 /// <summary>
 /// The fundamental type for all panels, do not inherit this type.
 /// </summary>

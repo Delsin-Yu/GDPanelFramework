@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
-using GDPanelSystem.Core.Panels.Tweener;
-using GDPanelSystem.Utils.Pooling;
+using GDPanelFramework.Panels.Tweener;
+using GDPanelFramework.Utils.Pooling;
 using Godot;
 
-namespace GDPanelSystem.Core.Panels;
+namespace GDPanelFramework.Panels;
 
 /// <summary>
 /// The fundamental type for all panels, do not inherit this type.

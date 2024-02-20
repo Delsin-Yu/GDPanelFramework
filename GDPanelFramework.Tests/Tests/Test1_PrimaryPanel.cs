@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using GDPanelSystem.Core;
-using GDPanelSystem.Core.Panels;
+using GDPanelFramework.Panels;
 using Godot;
 
-namespace GDPanelFramework.Tests.Tests;
+namespace GDPanelFramework.Tests;
 
 public partial class Test1_PrimaryPanel : UIPanel
 {

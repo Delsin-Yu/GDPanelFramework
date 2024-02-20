@@ -1,7 +1,7 @@
 ﻿using System;
 using Godot;
 
-namespace GDPanelSystem.Core.Panels.Tweener;
+namespace GDPanelFramework.Panels.Tweener;
 
 /// <summary>
 /// Defines the behavior for panel transitions.

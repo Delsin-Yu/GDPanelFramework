@@ -7,7 +7,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../GDPanelFramework.Core/GDPanelFramework.Core.csproj" />
+    <ProjectReference Include="..\GDPanelFramework\GDPanelFramework.csproj" />
     <PackageReference Include="GDTask" Version="*" />
   </ItemGroup>
 </Project>

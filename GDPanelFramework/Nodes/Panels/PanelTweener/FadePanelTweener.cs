@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace GDPanelSystem.Core.Panels.Tweener;
+namespace GDPanelFramework.Panels.Tweener;
 
 /// <summary>
 /// Fades panels between solid and transparent for transitions.

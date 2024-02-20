@@ -1,7 +1,7 @@
 ﻿using System;
 using Godot;
 
-namespace GDPanelSystem.Core.Panels;
+namespace GDPanelFramework.Panels;
 
 public abstract partial class _UIPanelBaseCore
 {

@@ -2,7 +2,7 @@
 using Godot;
 using GodotPanelFramework.Utils;
 
-namespace GDPanelSystem.Core.Panels.Tweener;
+namespace GDPanelFramework.Panels.Tweener;
 
 /// <summary>
 /// This is the default tweener that does not have any animated transition properties, it instantly hides and shows the panel.

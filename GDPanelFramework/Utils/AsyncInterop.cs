@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using GDPanelSystem.Core;
-using GDPanelSystem.Utils.Pooling;
-using Godot;
+using GDPanelFramework.Utils.Pooling;
 
-namespace GDPanelSystem.Utils.AsyncInterop;
+namespace GDPanelFramework.Utils.AsyncInterop;
 
 /// <summary>
 /// A helper class that provide methods translate a delegate-callback styled method to async/await-compatible styled method.
