@@ -21,7 +21,7 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
     /// <summary>
     /// The argument passed to the panel when opening.
     /// </summary>
-    protected TOpenArg? OpenParam { get; private set; }
+    protected TOpenArg? OpenArg { get; private set; }
 
     /// <summary>
     /// Construct an instance of this panel and make necessary caching on certain event functions. 
@@ -46,7 +46,7 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
     {
         _onPanelCloseCallback = onPanelCloseCallback;
         CurrentPanelStatus = PanelStatus.Opened;
-        OpenParam = openArg;
+        OpenArg = openArg;
 		ShowPanel(() => FinishAndResetTokenSource(ref _panelOpenTweenFinishTokenSource));
         SetPanelChildAvailability(true);
         DelegateRunner.RunProtected(_onPanelOpen, openArg, "Open Panel", Name);
@@ -54,11 +54,11 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
 
     internal void ClosePanelInternal(TCloseArg closeArg)
     {
-        OpenParam = default;
         CurrentPanelStatus = PanelStatus.Closed;
         FinishAndResetTokenSource(ref _panelCloseTokenSource);
         HidePanel(() => FinishAndResetTokenSource(ref _panelCloseTweenFinishTokenSource));
         DelegateRunner.RunProtected(_onPanelClose, closeArg, "Close Panel", Name);
+        OpenArg = default;
         SetPanelChildAvailability(false);
         var call = _onPanelCloseCallback!;
         _onPanelCloseCallback = null;

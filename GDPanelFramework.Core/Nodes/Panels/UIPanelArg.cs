@@ -20,22 +20,22 @@ public abstract partial class UIPanelArg<TOpenArg, TCloseArg> : _UIPanelBase<TOp
     public readonly struct OpenArgsBuilder
     {
         private readonly UIPanelArg<TOpenArg, TCloseArg> _panel;
-        private readonly TOpenArg m_OpenArg;
+        private readonly TOpenArg _openArg;
 
         internal OpenArgsBuilder(UIPanelArg<TOpenArg, TCloseArg> panel, TOpenArg openArg)
         {
             _panel = panel;
-            m_OpenArg = openArg;
+            _openArg = openArg;
         }
 
         private AsyncAwaitable<TCloseArg> OpenImpl(OpenLayer layer, LayerVisual previousLayerVisual, ClosePolicy closePolicy)
         {
             var panel = _panel;
-            var openParam = m_OpenArg;
+            var openArg = _openArg;
             PanelManager.PushPanelToPanelStack(_panel, layer, previousLayerVisual);
             return AsyncInterop.ToAsync<TCloseArg>(
                 call => panel.OpenPanelInternal(
-                    openParam,
+                    openArg,
                     result =>
                     {
                         PanelManager.HandlePanelClose(panel, layer, previousLayerVisual, closePolicy);
@@ -44,7 +44,7 @@ public abstract partial class UIPanelArg<TOpenArg, TCloseArg> : _UIPanelBase<TOp
                 )
             );
         }
-        
+
         /// <inheritdoc cref="UIPanel.OpenArgsBuilder.InNewLayer"/> 
         public AsyncAwaitable<TCloseArg> InNewLayer(LayerVisual previousLayerVisual, ClosePolicy closePolicy = ClosePolicy.Cache) => 
             OpenImpl(OpenLayer.NewLayer, previousLayerVisual, closePolicy);

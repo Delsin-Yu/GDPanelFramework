@@ -11,6 +11,7 @@ namespace GDPanelSystem.Core.Panels;
 /// <summary>
 /// The fundamental type for all panels, do not inherit this type.
 /// </summary>
+[GlobalClass]
 public abstract partial class _UIPanelBaseCore : Control
 {
     internal enum PanelStatus
@@ -42,7 +43,7 @@ public abstract partial class _UIPanelBaseCore : Control
     internal virtual void InitializePanelInternal(PackedScene sourcePrefab)
     {
         SourcePrefab = sourcePrefab;
-        SetPanelActiveState(false, LayerVisual.Hidden);
+        SetPanelActiveState(false, LayerVisual.Hidden, true);
     }
     
     /// <summary>
@@ -86,11 +87,11 @@ public abstract partial class _UIPanelBaseCore : Control
         if (_cachedSelection is null) return;
 
         success = true;
-        _cachedSelection.CallDeferred(Control.MethodName.GrabFocus);
+        _cachedSelection.GrabFocus();
         _cachedSelection = null;
     }
 
-    internal void SetPanelActiveState(bool active, LayerVisual layerVisual)
+    internal void SetPanelActiveState(bool active, LayerVisual layerVisual, bool useNoneTweener = false)
     {
         if (!active)
         {
@@ -100,7 +101,7 @@ public abstract partial class _UIPanelBaseCore : Control
             if (layerVisual == LayerVisual.Hidden)
             {
                 _isShownInternal = false;
-                HidePanel();
+                HidePanel(useNoneTweener: useNoneTweener);
             }
 
             SetPanelChildAvailability(false);
@@ -112,7 +113,7 @@ public abstract partial class _UIPanelBaseCore : Control
             if (_isShownInternal) return;
 
             _isShownInternal = true;
-            ShowPanel();
+            ShowPanel(useNoneTweener: useNoneTweener);
         }
     }
 
@@ -150,30 +151,49 @@ public abstract partial class _UIPanelBaseCore : Control
         }
     }
 
+    private static IPanelTweener GetPanelTweener(IPanelTweener panelTweener, bool useNonTweener)
+    {
+        if(useNonTweener) return NonePanelTweener.Instance;
+        return panelTweener;
+    }
+
+    private void TweenHide(IPanelTweener tweener)
+    {
+        tweener.Hide(this, () => Visible = true);
+    }
+    
+    private void TweenHide(IPanelTweener tweener, Action onFinish)
+    {
+        tweener.Hide(this, () =>
+        {
+            Visible = true;
+            onFinish();
+        });
+    }
+    
     /// <summary>
     /// Using the <see cref="PanelTweener"/> to hide this panel.
     /// </summary>
     /// <param name="onFinish">Calls when then hiding animation completes.</param>
-    protected void HidePanel(Action? onFinish = null)
+    /// <param name="useNoneTweener">Use <see cref="NonePanelTweener"/> to hide this panel.</param>
+    protected void HidePanel(Action? onFinish = null, bool useNoneTweener = false)
     {
-        PanelTweener.Hide(
-            this,
-            () =>
-            {
-                Visible = false;
-                onFinish?.Invoke();
-            }
-        );
+        var tweener = GetPanelTweener(PanelTweener, useNoneTweener);
+        
+        if (onFinish == null) TweenHide(tweener);
+        else TweenHide(tweener, onFinish);
     }
+
 
     /// <summary>
     /// Using the <see cref="PanelTweener"/> to show this panel.
     /// </summary>
     /// <param name="onFinish">Calls when then showing animation completes.</param>
-    protected void ShowPanel(Action? onFinish = null)
+    /// <param name="useNoneTweener">Use <see cref="NonePanelTweener"/> to show this panel.</param>
+    protected void ShowPanel(Action? onFinish = null, bool useNoneTweener = false)
     {
         Visible = true;
-        PanelTweener.Show(this, onFinish);
+        GetPanelTweener(PanelTweener, useNoneTweener).Show(this, onFinish);
     }
 
     /// <summary>

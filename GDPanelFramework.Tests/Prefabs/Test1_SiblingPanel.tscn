@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3 uid="uid://bralhhuwg0vp6"]
+
+[ext_resource type="Script" path="res://Tests/Test1_SiblingPanel.cs" id="1_0ro3i"]
+
+[node name="Test1_SiblingPanel" type="PanelContainer" node_paths=PackedStringArray("_label")]
+auto_translate_mode = 1
+script = ExtResource("1_0ro3i")
+_label = NodePath("MarginContainer/VBoxContainer/Label2")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+auto_translate_mode = 1
+layout_mode = 2
+color = Color(0.119835, 0.119835, 0.119835, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+auto_translate_mode = 1
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "Sibling Panel #"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="MarginContainer/VBoxContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "Message:"
+horizontal_alignment = 1

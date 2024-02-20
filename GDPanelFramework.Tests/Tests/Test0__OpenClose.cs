@@ -11,19 +11,16 @@ public partial class Test0__OpenClose : TestModule
 
     public override async GDTask Run()
     {
-        while (true)
-        {
-            await _nonParamPanel
-                .CreatePanel<Test0_NonParamUIPanel>(CreatePolicy.ForceCreate)
-                .OpenPanel()
-                .InCurrentLayer();
+        await _nonParamPanel
+            .CreatePanel<Test0_NonParamUIPanel>(CreatePolicy.ForceCreate)
+            .OpenPanel()
+            .InCurrentLayer(ClosePolicy.Delete);
 
-            var result = await _paramPanel
-                .CreatePanel<Test0_ParamUIPanel>()
-                .OpenPanel(5)
-                .InCurrentLayer();
-        
-            GD.Print(result);
-        }
+        var result = await _paramPanel
+            .CreatePanel<Test0_ParamUIPanel>()
+            .OpenPanel(5)
+            .InCurrentLayer(ClosePolicy.Delete);
+
+        GD.Print(result);
     }
 }

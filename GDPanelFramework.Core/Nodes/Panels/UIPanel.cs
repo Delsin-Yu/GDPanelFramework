@@ -30,12 +30,12 @@ public abstract partial class UIPanel : _UIPanelBase<Empty, Empty>
     /// <summary>
     /// Override the parameterless version <see cref="_OnPanelClose()"/> instead.
     /// </summary>
-    protected sealed override void _OnPanelClose(Empty closeParam) => _OnPanelClose();
+    protected sealed override void _OnPanelClose(Empty closeArg) => _OnPanelClose();
 
     /// <summary>
     /// Override the parameterless version <see cref="_OnPanelOpen()"/> instead.
     /// </summary>
-    protected sealed override void _OnPanelOpen(Empty openParam) => _OnPanelOpen();
+    protected sealed override void _OnPanelOpen(Empty openArg) => _OnPanelOpen();
 
     /// <summary>
     /// Called when the system is opening the panel.
@@ -51,7 +51,9 @@ public abstract partial class UIPanel : _UIPanelBase<Empty, Empty>
     /// <remarks>
     /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
     /// </remarks>
-    protected abstract void _OnPanelClose();
+    protected virtual void _OnPanelClose()
+    {
+    }
 
     /// <summary>
     /// Enable this panel to be closed with the <see cref="PanelManager.UICancelActionName"/>.

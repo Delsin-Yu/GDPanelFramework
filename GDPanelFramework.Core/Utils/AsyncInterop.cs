@@ -51,7 +51,6 @@ public sealed class AsyncAwaitable : INotifyCompletion
 
     internal void Init(Action<Action> callbackFunction) => _backing.Init(callback => callbackFunction(() => callback(Empty.Default)));
 
-
     /// <inheritdoc cref="AsyncAwaitableBase{T}.OnCompleted"/>
     public void OnCompleted(Action continuation) => _backing.OnCompleted(continuation);
 
@@ -63,6 +62,9 @@ public sealed class AsyncAwaitable : INotifyCompletion
 
     /// <inheritdoc cref="AsyncAwaitableBase{T}.GetAwaiter{T}"/>
     public AsyncAwaitable GetAwaiter() => _backing.GetAwaiter(this);
+    
+    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start"/>
+    public void Start(Action? onFinish = null) => _backing.Start(_ => onFinish?.Invoke());
 }
 
 /// <inheritdoc cref="AsyncAwaitableBase{T}"/>
@@ -87,6 +89,10 @@ public sealed class AsyncAwaitable<T> : INotifyCompletion
 
     /// <inheritdoc cref="AsyncAwaitableBase{T}.GetAwaiter{T}"/>
     public AsyncAwaitable<T> GetAwaiter() => _backing.GetAwaiter(this);
+
+    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start"/>
+    public void Start(Action<T>? onFinish = null) => _backing.Start(onFinish);
+
 }
 
 /// <summary>
@@ -168,5 +174,29 @@ internal class AsyncAwaitableBase<T>
     {
         ThrowIfNotActive();
         return instance;
+    }
+
+    /// <summary>
+    /// Execute this awaitable in delegate-callback style without using await/async syntax.
+    /// </summary>
+    /// <param name="onFinish">A delegate that calls when this asynchronous operation completes.</param>
+    internal void Start(Action<T>? onFinish = null)
+    {
+        if (onFinish == null)
+        {
+            _ = IsCompleted;
+            return;
+        }
+        
+        if (IsCompleted)
+        {
+            DelegateRunner.RunProtected(onFinish, GetResult(), "Async Continuation", onFinish.Target?.ToString() ?? "Null");
+            return;
+        }
+        
+        OnCompleted(() =>
+        {
+            DelegateRunner.RunProtected(onFinish, GetResult(), "Async Continuation", onFinish.Target?.ToString() ?? "Null");
+        });
     }
 }
