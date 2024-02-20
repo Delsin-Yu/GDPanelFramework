@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using GDPanelSystem.Core.Panels;
 using GDPanelSystem.Core.Panels.Tweener;
 using GDPanelSystem.Utils.Pooling;
 using Godot;
+using GodotPanelFramework;
 
 namespace GDPanelSystem.Core;
 
@@ -12,14 +16,24 @@ namespace GDPanelSystem.Core;
 /// This module provides you access to public APIs that responsible for:<br/>
 /// 1. Creating panels from PackedScene (<see cref="CreatePanel{TPanel}"/>) and initiating panel opening behavior (<see cref="OpenPanel"/>).<br/>
 /// 2. Exposes the system-wide <see cref="DefaultPanelTweener"/>.<br/>
-/// 3. Configuring parent for the opening panels through <see cref="PushPanelParent"/> and <see cref="PopPanelParent"/>.
+/// 3. Configuring parent for the opening panels through <see cref="PushPanelParent"/> and <see cref="PopPanelParent"/>.<br/>
+/// 4. Dispatches the <see cref="InputEvent"/>s to the active panels and lets you configures the system-wide <see cref="UICancelActionName"/>.
 /// </summary>
 public static class PanelManager
 {
+#pragma warning disable CA2255
+    [ModuleInitializer]
+    internal static void Initializer()
+    {
+        if(Engine.IsEditorHint()) return;
+        GetCurrentPanelRoot();
+    }
+#pragma warning restore CA2255
+
     private record struct PanelRootInfo(Node? Owner, Control Root);
 
     private static readonly Dictionary<PackedScene, Stack<_UIPanelBaseCore>> _bufferedPanels = new();
-    private static readonly Stack<Stack<_UIPanelBaseCore>> _panelStack = new();
+    private static readonly Stack<List<_UIPanelBaseCore>> _panelStack = new();
     private static readonly Stack<PanelRootInfo> _panelParents = new();
 
     private static bool _panelRootInitialized;
@@ -35,9 +49,9 @@ public static class PanelManager
         return _panelParents.Peek().Root;
     }
 
-    private static Stack<_UIPanelBaseCore> PushPanelStack()
+    private static List<_UIPanelBaseCore> PushPanelStack()
     {
-        var newInstance = Pool.Get<Stack<_UIPanelBaseCore>>(() => new());
+        var newInstance = Pool.Get<List<_UIPanelBaseCore>>(() => new());
         _panelStack.Push(newInstance);
         return newInstance;
     }
@@ -51,7 +65,7 @@ public static class PanelManager
 
     internal static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, OpenLayer openLayer, LayerVisual previousLayerVisual) where TPanel : _UIPanelBaseCore
     {
-        Stack<_UIPanelBaseCore> focusingPanelStack;
+        List<_UIPanelBaseCore> focusingPanelStack;
 
         // Ensure the current panel is at the front most.
         var parent = GetCurrentPanelRoot();
@@ -83,7 +97,7 @@ public static class PanelManager
             focusingPanelStack = PushPanelStack();
         }
 
-        focusingPanelStack.Push(panelInstance);
+        focusingPanelStack.Add(panelInstance);
     }
 
     internal static void HandlePanelClose<TPanel>(TPanel closingPanel, OpenLayer openLayer, LayerVisual previousLayerVisual, ClosePolicy closePolicy) where TPanel : _UIPanelBaseCore
@@ -91,11 +105,11 @@ public static class PanelManager
         if (openLayer == OpenLayer.SameLayer)
         {
             var operatingLayer = _panelStack.Peek();
-            var topPanel = operatingLayer.Peek();
+            var topPanel = operatingLayer[^1];
 
             ExceptionUtils.ThrowIfClosingPanelIsNotTopPanel(closingPanel, topPanel);
 
-            operatingLayer.Pop();
+            operatingLayer.RemoveAt(operatingLayer.Count - 1);
 
             if (operatingLayer.Count == 0)
             {
@@ -104,7 +118,7 @@ public static class PanelManager
 
             if (_panelStack.TryPeek(out operatingLayer))
             {
-                topPanel = operatingLayer.Peek();
+                topPanel = operatingLayer[^1];
                 var _ = false;
                 topPanel.TryRestoreSelection(ref _);
             }
@@ -113,7 +127,7 @@ public static class PanelManager
         {
             var operatingLayer = _panelStack.Peek();
             ExceptionUtils.ThrowIfPanelLayerIsGreaterThanOne(operatingLayer);
-            var topPanel = operatingLayer.Peek();
+            var topPanel = operatingLayer[^1];
 
             ExceptionUtils.ThrowIfClosingPanelIsNotTopPanel(closingPanel, topPanel);
 
@@ -147,6 +161,56 @@ public static class PanelManager
         cacheStack.Push(closingPanel);
     }
 
+    internal static bool ProcessInputEvent(InputEvent inputEvent)
+    {
+        if (!_panelStack.TryPeek(out var topmostPanelStack)) return false;
+
+        var cachedWrapper = new CachedInputEvent(inputEvent);
+        
+        var span = CollectionsMarshal.AsSpan(topmostPanelStack);
+        
+        for (var i = span.Length - 1; i >= 0; i--)
+        {
+            if (span[i].ProcessPanelInput(ref cachedWrapper))
+            {
+                return true;
+            }
+        }
+
+        cachedWrapper.Dispose();
+        
+        return false;
+    }
+
+    internal readonly struct CachedInputEvent
+    {
+        private readonly Dictionary<StringName, bool> _actionHasEvent;
+
+        public CachedInputEvent(InputEvent @event)
+        {
+            Event = @event;
+            _actionHasEvent = Pool.Get<Dictionary<StringName, bool>>(() => []);
+            Phase = Event.IsPressed() ? InputActionPhase.Pressed : InputActionPhase.Released;
+        }
+        
+        public InputActionPhase Phase { get; }
+        public InputEvent Event { get; }
+
+        public bool ActionHasEventCached(StringName action)
+        {
+            if (_actionHasEvent.TryGetValue(action, out var result)) return result;
+            result = InputMap.ActionHasEvent(action, Event);
+            _actionHasEvent.Add(action, result);
+            return result;
+        }
+
+        public void Dispose()
+        {
+            _actionHasEvent.Clear();
+            Pool.Collect(_actionHasEvent);
+        }
+    }
+
     /// <summary>
     /// Access the default system-wide <see cref="IPanelTweener"/>.
     /// </summary>
@@ -156,6 +220,11 @@ public static class PanelManager
         set => _defaultPanelTweener = value ?? NonePanelTweener.Instance;
     }
 
+    /// <summary>
+    /// Access the system-wide <see cref="InputEvent"/> name that is considered the UI Cancel Action.
+    /// </summary>
+    public static string UICancelActionName { get; set; } = GodotBuiltinActionNames.UICancel;
+    
     /// <summary>
     /// Pushes a new <see cref="Control"/> as the parent for subsequent opening panels to the parent stack.
     /// </summary>

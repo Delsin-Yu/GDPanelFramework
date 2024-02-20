@@ -11,11 +11,13 @@ public partial class Test0_NonParamUIPanel : UIPanel
     {
         GD.Print("NonParamPanel:Initialize");
         _closeButton.Pressed += ClosePanel;
+        EnableCloseWithCancelKey();
     }
 
     protected override void _OnPanelOpen()
     {
         GD.Print("NonParamPanel:_OnPanelOpen");
+        _closeButton.GrabFocus();
     }
 
     protected override void _OnPanelClose()

@@ -1,4 +1,6 @@
+using System;
 using GDPanelSystem.Utils.AsyncInterop;
+using Godot;
 
 namespace GDPanelSystem.Core.Panels;
 
@@ -7,6 +9,15 @@ namespace GDPanelSystem.Core.Panels;
 /// </summary>
 public abstract partial class UIPanel : _UIPanelBase<Empty, Empty>
 {
+    private readonly Action _closePanel;
+    private InputActionPhase? _registeredInputActionPhase;
+
+    /// <inheritdoc cref="_UIPanelBase{T1, T2}()"/>
+    protected UIPanel()
+    {
+        _closePanel = ClosePanel;
+    }
+    
     /// <summary>
     /// Close this panel.
     /// </summary>
@@ -29,13 +40,46 @@ public abstract partial class UIPanel : _UIPanelBase<Empty, Empty>
     /// <summary>
     /// Called when the system is opening the panel.
     /// </summary>
+    /// <remarks>
+    /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
+    /// </remarks>
     protected abstract void _OnPanelOpen();
 
     /// <summary>
     /// Called when the system is closing the panel.
     /// </summary>
+    /// <remarks>
+    /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
+    /// </remarks>
     protected abstract void _OnPanelClose();
-    
+
+    /// <summary>
+    /// Enable this panel to be closed with the <see cref="PanelManager.UICancelActionName"/>.
+    /// </summary>
+    /// <param name="actionPhase">The action phase focuses on.</param>
+    /// <remarks>
+    /// Repeated calls to this method will not function, only the first call actually registers the <see cref="ClosePanel"/> method.
+    /// </remarks>
+    protected void EnableCloseWithCancelKey(InputActionPhase actionPhase = InputActionPhase.Released)
+    {
+        if(_registeredInputActionPhase != null) return;
+        _registeredInputActionPhase = actionPhase;
+        RegisterCancelInput(_closePanel, actionPhase);
+    }
+
+    /// <summary>
+    /// Disable this panel to be closed with the <see cref="PanelManager.UICancelActionName"/>.
+    /// </summary>
+    /// <remarks>
+    /// Repeated calls to this method will not functions, only the first call actually de-registers the <see cref="ClosePanel"/> method.
+    /// </remarks>
+    protected void DisableCloseWithCancelKey()
+    {
+        if(_registeredInputActionPhase == null) return;
+        RemoveCancelInput(_closePanel, _registeredInputActionPhase!.Value);
+        _registeredInputActionPhase = null;
+    }
+
     /// <summary>
     /// A builder that handles the subsequent procedures for opening this panel.
     /// </summary>

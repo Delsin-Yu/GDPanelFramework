@@ -82,3 +82,22 @@ internal enum SelectionCachingResult
     /// </summary>
     Successful
 }
+
+/// <summary>
+/// Define the input phase of a specific <see cref="Godot.InputEvent"/>
+/// </summary>
+public enum InputActionPhase
+{
+    /// <summary>
+    /// Triggers when the <see cref="InputEvent.IsPressed"/> method of the <see cref="InputEvent"/> returns true 
+    /// </summary>
+    Pressed,
+    /// <summary>
+    /// Triggers when the <see cref="InputEvent.IsReleased"/> method of the <see cref="InputEvent"/> returns true 
+    /// </summary>
+    Released,
+    /// <summary>
+    /// Triggers when the <see cref="InputEvent.IsPressed"/> or the <see cref="InputEvent.IsReleased"/> method of the <see cref="InputEvent"/> returns true
+    /// </summary>
+    Any
+}

@@ -14,7 +14,7 @@ public partial class Test0__OpenClose : TestModule
         while (true)
         {
             await _nonParamPanel
-                .CreatePanel<Test0_NonParamUIPanel>()
+                .CreatePanel<Test0_NonParamUIPanel>(CreatePolicy.ForceCreate)
                 .OpenPanel()
                 .InCurrentLayer();
 

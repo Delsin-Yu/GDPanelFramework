@@ -13,6 +13,8 @@ public partial class Entry : Control
 
     private async GDTaskVoid RunTests()
     {
+        await GDTask.NextFrame();
+        
         PanelManager.DefaultPanelTweener = new FadePanelTweener { FadeTime = 0.1f };
 
         foreach (var testModule in _testModules)

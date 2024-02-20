@@ -11,11 +11,13 @@ public partial class Test0_ParamUIPanel : UIPanelArg<int, string>
     {
         GD.Print("ParamPanel:Initialize");
         _closeButton.Pressed += () => ClosePanel(OpenParam.ToString("D3"));
+        RegisterCancelInput(() => ClosePanel("D4"));
     }
 
     protected override void _OnPanelOpen(int param)
     {
         GD.Print($"ParamPanel:Open({param})");
+        _closeButton.GrabFocus();
     }
 
     protected override void _OnPanelClose(string param)
