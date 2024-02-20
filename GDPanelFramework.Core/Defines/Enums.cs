@@ -93,11 +93,11 @@ public enum InputActionPhase
     /// </summary>
     Pressed,
     /// <summary>
-    /// Triggers when the <see cref="InputEvent.IsReleased"/> method of the <see cref="InputEvent"/> returns true 
+    /// Triggers when the <see cref="InputEvent.IsPressed"/> method of the <see cref="InputEvent"/> returns false 
     /// </summary>
     Released,
     /// <summary>
-    /// Triggers when the <see cref="InputEvent.IsPressed"/> or the <see cref="InputEvent.IsReleased"/> method of the <see cref="InputEvent"/> returns true
+    /// Triggers regardless the return value of the <see cref="InputEvent.IsPressed"/>.
     /// </summary>
     Any
 }
