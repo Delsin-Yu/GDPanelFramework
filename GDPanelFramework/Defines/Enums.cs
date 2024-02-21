@@ -33,39 +33,23 @@ public enum ClosePolicy
 }
 
 /// <summary>
-/// Defines the behavior when opening a new panel.
+/// Controls the visual status of the previous panel when opening a panel 
 /// </summary>
-public enum OpenLayer
+public enum PreviousPanelVisual
 {
     /// <summary>
-    /// Opens the panel in new panel layer, which means every panel inside the previous layer will no longer focusable or react to pointer click.
-    /// </summary>
-    NewLayer,
-
-    /// <summary>
-    /// Opens the panel in current layer, which means every panel inside this layer will remains focusable and react to pointer click if specified via <see cref="Godot.Control.MouseFilter"/>.
-    /// </summary>
-    SameLayer
-}
-
-/// <summary>
-/// When opening a panel in <see cref="OpenLayer.NewLayer"/> mode, controls the visual status of panels inside the previous layer.
-/// </summary>
-public enum LayerVisual
-{
-    /// <summary>
-    /// When opening a panel in <see cref="OpenLayer.NewLayer"/> mode, every panel inside the previous layer remains visible.
+    /// When opening a panel, the previous panel remains visible.
     /// </summary>
     Visible,
 
     /// <summary>
-    /// When opening a panel in <see cref="OpenLayer.NewLayer"/> mode, every panel become hidden.
+    /// When opening a panel, the previous panel become hidden.
     /// </summary>
     Hidden
 }
 
 /// <summary>
-/// Internal enum for indicating the selection cache result when opening panel in <see cref="OpenLayer.NewLayer"/> 
+/// Internal enum for indicating the selection cache result when opening panel 
 /// </summary>
 internal enum SelectionCachingResult
 {

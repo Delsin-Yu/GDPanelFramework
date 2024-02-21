@@ -13,6 +13,7 @@ public static class AsyncInterop
     {
         var instance = Pool.Get<AsyncAwaitable>(() => new());
         instance.Init(sourceMethod);
+        _ = instance.IsCompleted;
         return instance;
     }
 
@@ -20,6 +21,7 @@ public static class AsyncInterop
     {
         var instance = Pool.Get<AsyncAwaitable<T>>(() => new());
         instance.Init(sourceMethod);
+        _ = instance.IsCompleted;
         return instance;
     }
 
@@ -167,6 +169,11 @@ internal class AsyncAwaitableBase<T>
     internal void OnCompleted(Action continuation)
     {
         ThrowIfNotActive();
+        if (_isCompleted)
+        {
+            continuation?.Invoke();
+            return;
+        }
         _continuation = continuation;
     }
 

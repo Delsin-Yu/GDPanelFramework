@@ -21,7 +21,7 @@ public abstract partial class _UIPanelBaseCore : Control
         Opened,
         Closed
     }
-
+    
     private Control? _cachedSelection;
     private bool _isShownInternal;
     private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos = new();
@@ -43,7 +43,7 @@ public abstract partial class _UIPanelBaseCore : Control
     internal virtual void InitializePanelInternal(PackedScene sourcePrefab)
     {
         SourcePrefab = sourcePrefab;
-        SetPanelActiveState(false, LayerVisual.Hidden, true);
+        SetPanelActiveState(false, PreviousPanelVisual.Hidden, true);
     }
     
     /// <summary>
@@ -80,25 +80,22 @@ public abstract partial class _UIPanelBaseCore : Control
         return SelectionCachingResult.Successful;
     }
 
-    internal void TryRestoreSelection(ref bool success)
+    internal void TryRestoreSelection()
     {
-        if (success) return;
-
         if (_cachedSelection is null) return;
 
-        success = true;
         _cachedSelection.GrabFocus();
         _cachedSelection = null;
     }
 
-    internal void SetPanelActiveState(bool active, LayerVisual layerVisual, bool useNoneTweener = false)
+    internal void SetPanelActiveState(bool active, PreviousPanelVisual previousPanelVisual, bool useNoneTweener = false)
     {
         if (!active)
         {
             Control? control = null;
             CacheCurrentSelection(ref control);
 
-            if (layerVisual == LayerVisual.Hidden)
+            if (previousPanelVisual == PreviousPanelVisual.Hidden)
             {
                 _isShownInternal = false;
                 HidePanel(useNoneTweener: useNoneTweener);

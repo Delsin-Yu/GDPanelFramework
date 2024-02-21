@@ -18,9 +18,7 @@ public partial class Test2_Panel : UIPanelArg<(int, PackedScene), Empty>
         {
             OpenArg.Item2
                 .CreatePanel<Test2_Panel>(initializeCallback: x => x.Position = Position + _newPanelOffset)
-                .OpenPanel((OpenArg.Item1 + 1, OpenArg.Item2))
-                .InNewLayer(LayerVisual.Visible, ClosePolicy.Delete)
-                .Start();
+                .OpenPanel((OpenArg.Item1 + 1, OpenArg.Item2));
         };
     }
 

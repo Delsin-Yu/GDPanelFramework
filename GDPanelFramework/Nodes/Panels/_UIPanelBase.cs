@@ -10,7 +10,14 @@ namespace GDPanelFramework.Panels;
 /// <typeparam name="TCloseArg">The value returned by the panel after closing.</typeparam>
 public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCore
 {
-    private Action<TCloseArg>? _onPanelCloseCallback;
+    internal record struct PanelOpeningMetadata(
+        PreviousPanelVisual PreviousPanelVisual,
+        ClosePolicy ClosePolicy,
+        Action<TCloseArg>? OnPanelCloseCallback,
+        Action? UntypedOnPanelCloseCallback);
+
+    
+    private PanelOpeningMetadata? _metadata;
 
     private readonly Action _onPanelInitialize;
     private readonly Action<TOpenArg> _onPanelOpen;
@@ -42,9 +49,9 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
         DelegateRunner.RunProtected(_onPanelInitialize, "Initialize Panel", Name);
     }
 
-    internal void OpenPanelInternal(TOpenArg openArg, Action<TCloseArg> onPanelCloseCallback)
+    internal void OpenPanelInternal(TOpenArg openArg, PanelOpeningMetadata panelOpeningMetadata)
     {
-        _onPanelCloseCallback = onPanelCloseCallback;
+        _metadata = panelOpeningMetadata;
         CurrentPanelStatus = PanelStatus.Opened;
         OpenArg = openArg;
 		ShowPanel(() => FinishAndResetTokenSource(ref _panelOpenTweenFinishTokenSource));
@@ -60,9 +67,14 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
         DelegateRunner.RunProtected(_onPanelClose, closeArg, "Close Panel", Name);
         OpenArg = default;
         SetPanelChildAvailability(false);
-        var call = _onPanelCloseCallback!;
-        _onPanelCloseCallback = null;
-        call(closeArg);
+
+        var metadataValue = _metadata!.Value;
+        _metadata = null;
+        
+        PanelManager.HandlePanelClose(this, metadataValue.PreviousPanelVisual, metadataValue.ClosePolicy);
+
+        metadataValue.UntypedOnPanelCloseCallback?.Invoke();
+        metadataValue.OnPanelCloseCallback?.Invoke(closeArg);
 	}
 
     private static void FinishAndResetTokenSource(ref CancellationTokenSource cancellationTokenSource)

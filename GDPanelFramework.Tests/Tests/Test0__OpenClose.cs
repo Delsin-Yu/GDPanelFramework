@@ -12,13 +12,11 @@ public partial class Test0__OpenClose : TestModule
     {
         await _nonParamPanel
             .CreatePanel<Test0_NonParamUIPanel>(CreatePolicy.ForceCreate)
-            .OpenPanel()
-            .InCurrentLayer(ClosePolicy.Delete);
+            .OpenPanelAsync();
 
         var result = await _paramPanel
             .CreatePanel<Test0_ParamUIPanel>()
-            .OpenPanel(5)
-            .InCurrentLayer(ClosePolicy.Delete);
+            .OpenPanelAsync(5);
 
         GD.Print(result);
     }

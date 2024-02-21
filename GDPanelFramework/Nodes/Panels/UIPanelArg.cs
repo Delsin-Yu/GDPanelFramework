@@ -1,5 +1,3 @@
-using GDPanelFramework.Utils.AsyncInterop;
-
 namespace GDPanelFramework.Panels;
 
 /// <summary>
@@ -14,43 +12,5 @@ public abstract partial class UIPanelArg<TOpenArg, TCloseArg> : _UIPanelBase<TOp
     {
         this.ThrowIfNotOpened();
         ClosePanelInternal(closeArg);
-    }
-
-    /// <inheritdoc cref="UIPanel.OpenArgsBuilder"/> 
-    public readonly struct OpenArgsBuilder
-    {
-        private readonly UIPanelArg<TOpenArg, TCloseArg> _panel;
-        private readonly TOpenArg _openArg;
-
-        internal OpenArgsBuilder(UIPanelArg<TOpenArg, TCloseArg> panel, TOpenArg openArg)
-        {
-            _panel = panel;
-            _openArg = openArg;
-        }
-
-        private AsyncAwaitable<TCloseArg> OpenImpl(OpenLayer layer, LayerVisual previousLayerVisual, ClosePolicy closePolicy)
-        {
-            var panel = _panel;
-            var openArg = _openArg;
-            PanelManager.PushPanelToPanelStack(_panel, layer, previousLayerVisual);
-            return AsyncInterop.ToAsync<TCloseArg>(
-                call => panel.OpenPanelInternal(
-                    openArg,
-                    result =>
-                    {
-                        PanelManager.HandlePanelClose(panel, layer, previousLayerVisual, closePolicy);
-                        call(result);
-                    }
-                )
-            );
-        }
-
-        /// <inheritdoc cref="UIPanel.OpenArgsBuilder.InNewLayer"/> 
-        public AsyncAwaitable<TCloseArg> InNewLayer(LayerVisual previousLayerVisual, ClosePolicy closePolicy = ClosePolicy.Cache) => 
-            OpenImpl(OpenLayer.NewLayer, previousLayerVisual, closePolicy);
-
-        /// <inheritdoc cref="UIPanel.OpenArgsBuilder.InCurrentLayer"/> 
-        public AsyncAwaitable<TCloseArg> InCurrentLayer(ClosePolicy closePolicy = ClosePolicy.Cache) =>
-            OpenImpl(OpenLayer.SameLayer, LayerVisual.Visible, closePolicy);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -19,7 +18,7 @@ namespace GDPanelFramework;
 /// 3. Configuring parent for the opening panels through <see cref="PushPanelParent"/> and <see cref="PopPanelParent"/>.<br/>
 /// 4. Dispatches the <see cref="InputEvent"/>s to the active panels and lets you configures the system-wide <see cref="UICancelActionName"/>.
 /// </summary>
-public static class PanelManager
+public static partial class PanelManager
 {
 #pragma warning disable CA2255
     [ModuleInitializer]
@@ -33,7 +32,7 @@ public static class PanelManager
     private record struct PanelRootInfo(Node? Owner, Control Root);
 
     private static readonly Dictionary<PackedScene, Stack<_UIPanelBaseCore>> _bufferedPanels = new();
-    private static readonly Stack<List<_UIPanelBaseCore>> _panelStack = new();
+    private static readonly Stack<_UIPanelBaseCore> _panelStack = new();
     private static readonly Stack<PanelRootInfo> _panelParents = new();
 
     private static bool _panelRootInitialized;
@@ -49,101 +48,37 @@ public static class PanelManager
         return _panelParents.Peek().Root;
     }
 
-    private static List<_UIPanelBaseCore> PushPanelStack()
-    {
-        var newInstance = Pool.Get<List<_UIPanelBaseCore>>(() => new());
-        _panelStack.Push(newInstance);
-        return newInstance;
-    }
 
-    private static void PopPanelStack()
+    private static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, PreviousPanelVisual previousPreviousPanelVisual) where TPanel : _UIPanelBaseCore
     {
-        var instance = _panelStack.Pop();
-        instance.Clear();
-        Pool.Collect(instance);
-    }
-
-    internal static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, OpenLayer openLayer, LayerVisual previousLayerVisual) where TPanel : _UIPanelBaseCore
-    {
-        List<_UIPanelBaseCore> focusingPanelStack;
-
         // Ensure the current panel is at the front most.
         var parent = GetCurrentPanelRoot();
         var oldParent = panelInstance.GetParent();
         if (oldParent == parent) parent.MoveToFront();
         else panelInstance.Reparent(parent);
 
-        // When pushing a panel to the current layer, create an initial panel stack if necessary, and sets the focusingPanelStack to the topmost stack.
-        if (openLayer == OpenLayer.SameLayer)
+        // Pushes a panel to new layer, disables gui handling for the previous panel. 
+        if (_panelStack.TryPeek(out var topmostPanel))
         {
-            if (_panelStack.Count == 0) PushPanelStack();
-
-            focusingPanelStack = _panelStack.Peek();
-            Control? currentFocusingControl = null;
-            foreach (var item in focusingPanelStack)
-            {
-                if (item.CacheCurrentSelection(ref currentFocusingControl) is SelectionCachingResult.Successful or SelectionCachingResult.NoSelections) break;
-            }
-        }
-        // When pushing a panel to new layer, disables gui handling for every panels in the topmost panel stack, creates a new panel stack, and sets the focusingPanelStack to the topmost stack. 
-        else
-        {
-            if (_panelStack.TryPeek(out var topmostPanelStack))
-                foreach (var item in topmostPanelStack)
-                {
-                    item.SetPanelActiveState(false, previousLayerVisual);
-                }
-
-            focusingPanelStack = PushPanelStack();
+            topmostPanel.SetPanelActiveState(false, previousPreviousPanelVisual);
         }
 
-        focusingPanelStack.Add(panelInstance);
+        _panelStack.Push(panelInstance);
     }
 
-    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, OpenLayer openLayer, LayerVisual previousLayerVisual, ClosePolicy closePolicy) where TPanel : _UIPanelBaseCore
+    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, PreviousPanelVisual previousPreviousPanelVisual, ClosePolicy closePolicy) where TPanel : _UIPanelBaseCore
     {
-        if (openLayer == OpenLayer.SameLayer)
+
+        var topPanel = _panelStack.Peek();
+
+        ExceptionUtils.ThrowIfClosingPanelIsNotTopPanel(closingPanel, topPanel);
+
+        _panelStack.Pop();
+
+        if (_panelStack.TryPeek(out topPanel))
         {
-            var operatingLayer = _panelStack.Peek();
-            var topPanel = operatingLayer[^1];
-
-            ExceptionUtils.ThrowIfClosingPanelIsNotTopPanel(closingPanel, topPanel);
-
-            operatingLayer.RemoveAt(operatingLayer.Count - 1);
-
-            if (operatingLayer.Count == 0)
-            {
-                PopPanelStack();
-            }
-
-            if (_panelStack.TryPeek(out operatingLayer))
-            {
-                topPanel = operatingLayer[^1];
-                var _ = false;
-                topPanel.TryRestoreSelection(ref _);
-            }
-        }
-        else
-        {
-            var operatingLayer = _panelStack.Peek();
-            ExceptionUtils.ThrowIfPanelLayerIsGreaterThanOne(operatingLayer);
-            var topPanel = operatingLayer[^1];
-
-            ExceptionUtils.ThrowIfClosingPanelIsNotTopPanel(closingPanel, topPanel);
-
-            PopPanelStack();
-
-            if (_panelStack.TryPeek(out operatingLayer))
-            {
-                var selectionRestoreResult = false;
-                var span = CollectionsMarshal.AsSpan(operatingLayer);
-                for (var i = span.Length - 1; i >= 0; i--)
-                {
-                    ref var panel = ref span[i];
-                    panel.SetPanelActiveState(true, previousLayerVisual);
-                    panel.TryRestoreSelection(ref selectionRestoreResult);
-                }
-            }
+            topPanel.SetPanelActiveState(true, previousPreviousPanelVisual);
+            topPanel.TryRestoreSelection();
         }
 
         if (closePolicy == ClosePolicy.Delete)
@@ -165,23 +100,11 @@ public static class PanelManager
 
     internal static bool ProcessInputEvent(InputEvent inputEvent)
     {
-        if (!_panelStack.TryPeek(out var topmostPanelStack)) return false;
+        if (!_panelStack.TryPeek(out var topPanel)) return false;
 
         var cachedWrapper = new CachedInputEvent(inputEvent);
 
-        var span = CollectionsMarshal.AsSpan(topmostPanelStack);
-
-        for (var i = span.Length - 1; i >= 0; i--)
-        {
-            if (span[i].ProcessPanelInput(ref cachedWrapper))
-            {
-                return true;
-            }
-        }
-
-        cachedWrapper.Dispose();
-
-        return false;
+        return topPanel.ProcessPanelInput(ref cachedWrapper);
     }
 
     internal readonly struct CachedInputEvent
@@ -293,30 +216,5 @@ public static class PanelManager
         initializeCallback?.Invoke(panelInstance);
         panelInstance.InitializePanelInternal(packedPanel);
         return panelInstance;
-    }
-
-    /// <summary>
-    /// Initiates an opening action on the specified panel.
-    /// </summary>
-    /// <param name="panel">The panel for performing the opening action on.</param>
-    /// <returns>A builder that handles the subsequent procedures for opening this panel.</returns>
-    public static UIPanel.OpenArgsBuilder OpenPanel(this UIPanel panel)
-    {
-        panel.ThrowIfUninitialized();
-        return new(panel);
-    }
-
-    /// <summary>
-    /// Initiates an opening action on the specified panel with args.
-    /// </summary>
-    /// <param name="panel">The panel for performing the opening action on.</param>
-    /// <param name="openArg">The argument passes to the panel.</param>
-    /// <typeparam name="TOpenArg">The argument passed to the panel when opening.</typeparam>
-    /// <typeparam name="TCloseArg">The value returned by the panel after closing.</typeparam>
-    /// <returns>A builder that handles the subsequent procedures for opening this panel.</returns>
-    public static UIPanelArg<TOpenArg, TCloseArg>.OpenArgsBuilder OpenPanel<TOpenArg, TCloseArg>(this UIPanelArg<TOpenArg, TCloseArg> panel, TOpenArg openArg)
-    {
-        panel.ThrowIfUninitialized();
-        return new(panel, openArg);
     }
 }

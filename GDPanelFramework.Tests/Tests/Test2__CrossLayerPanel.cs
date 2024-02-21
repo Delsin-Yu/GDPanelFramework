@@ -1,4 +1,3 @@
-using GDPanelFramework;
 using Godot;
 using GodotTask.Tasks;
 
@@ -11,7 +10,6 @@ public partial class Test2__CrossLayerPanel : TestModule
     public override async GDTask Run()
     {
         await _panel.CreatePanel<Test2_Panel>()
-            .OpenPanel((0, _panel))
-            .InCurrentLayer();
+            .OpenPanelAsync((0, _panel));
     }
 }

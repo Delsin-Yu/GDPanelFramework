@@ -27,12 +27,6 @@ internal static class ExceptionUtils
         throw new InvalidOperationException($"Attempting to close a panel that is not on top of the current panel layer, this is not supported. {PanelClosingOrderNotification}");
     }
 
-    internal static void ThrowIfPanelLayerIsGreaterThanOne(IReadOnlyCollection<_UIPanelBaseCore> panelLayer)
-    {
-        if (panelLayer.Count == 1) return;
-        throw new InvalidOperationException($"Attempting to close a panel layer while there are other active panels inside the current layer, this is not supported. {PanelClosingOrderNotification}");
-    }
-
     public static void ThrowIfUnauthorizedPanelRootOwner(Node requester, Node? owner)
     {
         if(ReferenceEquals(requester, owner)) return;
