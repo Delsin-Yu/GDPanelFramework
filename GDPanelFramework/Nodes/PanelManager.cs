@@ -13,7 +13,7 @@ namespace GDPanelFramework;
 /// <summary>
 /// <see cref="PanelManager"/> is the core module of GDPanelFramework, it manages panel opening and closing as well as communicates between panel layers, and activates/deactivates them at appropriate times.<br/>
 /// This module provides you access to public APIs that responsible for:<br/>
-/// 1. Creating panels from PackedScene (<see cref="CreatePanel{TPanel}"/>) and initiating panel opening behavior (<see cref="OpenPanel"/>).<br/>
+/// 1. Creating panels from PackedScene (<see cref="CreatePanel{TPanel}"/>) and initiating panel opening behavior.<br/>
 /// 2. Exposes the system-wide <see cref="DefaultPanelTweener"/>.<br/>
 /// 3. Configuring parent for the opening panels through <see cref="PushPanelParent"/> and <see cref="PopPanelParent"/>.<br/>
 /// 4. Dispatches the <see cref="InputEvent"/>s to the active panels and lets you configures the system-wide <see cref="UICancelActionName"/>.
