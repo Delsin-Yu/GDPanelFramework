@@ -5,12 +5,12 @@ namespace GDPanelFramework.Panels;
 /// <summary>
 /// Inherit this panel to create a panel that does not require opening / closing arguments
 /// </summary>
-public abstract partial class UIPanel : _UIPanelBase<Empty, Empty>
+public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
 {
     private readonly Action _closePanel;
     private InputActionPhase? _registeredInputActionPhase;
 
-    /// <inheritdoc cref="_UIPanelBase{T1, T2}()"/>
+    /// <inheritdoc cref="UIPanelBase{TOpenArg,TCloseArg}()"/>
     protected UIPanel()
     {
         _closePanel = ClosePanel;

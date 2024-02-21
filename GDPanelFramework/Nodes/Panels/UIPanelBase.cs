@@ -8,7 +8,7 @@ namespace GDPanelFramework.Panels;
 /// </summary>
 /// <typeparam name="TOpenArg">The argument passed to the panel when opening.</typeparam>
 /// <typeparam name="TCloseArg">The value returned by the panel after closing.</typeparam>
-public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCore
+public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
 {
     internal record struct PanelOpeningMetadata(
         PreviousPanelVisual PreviousPanelVisual,
@@ -33,7 +33,7 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
     /// <summary>
     /// Construct an instance of this panel and make necessary caching on certain event functions. 
     /// </summary>
-    internal _UIPanelBase()
+    internal UIPanelBase()
     {
         _onPanelInitialize = _OnPanelInitialize;
         _onPanelOpen = _OnPanelOpen;
@@ -55,7 +55,7 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
         _metadata = panelOpeningMetadata;
         CurrentPanelStatus = PanelStatus.Opened;
         OpenArg = openArg;
-		ShowPanel(() => FinishAndResetTokenSource(ref _panelOpenTweenFinishTokenSource));
+		ShowPanel(() => FinishAndResetTokenSource(ref PanelOpenTweenFinishTokenSource));
         SetPanelChildAvailability(true);
         DelegateRunner.RunProtected(_onPanelOpen, openArg, "Open Panel", Name);
 	}
@@ -64,8 +64,8 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
     {
         if(CurrentPanelStatus != PanelStatus.Opened) return;
         CurrentPanelStatus = PanelStatus.Closed;
-        FinishAndResetTokenSource(ref _panelCloseTokenSource);
-        HidePanel(() => FinishAndResetTokenSource(ref _panelCloseTweenFinishTokenSource));
+        FinishAndResetTokenSource(ref PanelCloseTokenSource);
+        HidePanel(() => FinishAndResetTokenSource(ref PanelCloseTweenFinishTokenSource));
         DelegateRunner.RunProtected(_onPanelClose, closeArg, "Close Panel", Name);
         OpenArg = default;
         SetPanelChildAvailability(false);

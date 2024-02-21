@@ -11,7 +11,7 @@ public class FadePanelTweener : IPanelTweener
 {
     private readonly Dictionary<Control, Tween> _activeTween = new();
 
-    private static readonly NodePath _modulatePath = new(Control.PropertyName.Modulate);
+    private static readonly NodePath ModulatePath = new(Control.PropertyName.Modulate);
 
     /// <summary>
     /// The duration for fading.
@@ -28,7 +28,7 @@ public class FadePanelTweener : IPanelTweener
         runningTween = panel.CreateTween();
         _activeTween[panel] = runningTween;
         
-        runningTween.TweenProperty(panel, _modulatePath, color, FadeTime);
+        runningTween.TweenProperty(panel, ModulatePath, color, FadeTime);
         runningTween.TweenCallback(
             Callable.From(
                 () =>

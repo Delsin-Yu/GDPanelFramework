@@ -12,7 +12,7 @@ namespace GDPanelFramework.Panels;
 /// The fundamental type for all panels, do not inherit this type.
 /// </summary>
 [GlobalClass]
-public abstract partial class _UIPanelBaseCore : Control
+public abstract partial class UIPanelBaseCore : Control
 {
     internal enum PanelStatus
     {
@@ -26,9 +26,9 @@ public abstract partial class _UIPanelBaseCore : Control
     private bool _isShownInternal;
     private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos = new();
     private IPanelTweener? _panelTweener;
-    internal CancellationTokenSource _panelCloseTokenSource = new();
-    internal CancellationTokenSource _panelOpenTweenFinishTokenSource = new();
-    internal CancellationTokenSource _panelCloseTweenFinishTokenSource = new();
+    internal CancellationTokenSource PanelCloseTokenSource = new();
+    internal CancellationTokenSource PanelOpenTweenFinishTokenSource = new();
+    internal CancellationTokenSource PanelCloseTweenFinishTokenSource = new();
 
     private readonly List<string> _registeredInputEventNames = [];
     private readonly Dictionary<string, RegisteredInputEvent> _registeredInputEvent = new();
@@ -49,17 +49,17 @@ public abstract partial class _UIPanelBaseCore : Control
     /// <summary>
     /// A <see cref="CancellationToken"/> that gets canceled when the <see cref="UIPanel.ClosePanel"/> / <see cref="UIPanelArg{TOpenArg,TCloseArg}.ClosePanel"/> calls.
     /// </summary>
-    public CancellationToken? PanelCloseToken => _panelCloseTokenSource?.Token;
+    public CancellationToken? PanelCloseToken => PanelCloseTokenSource?.Token;
 
     /// <summary>
     /// A <see cref="CancellationToken"/> that gets canceled when the opening animation finishes.
     /// </summary>
-    public CancellationToken? PanelOpenTweenFinishToken => _panelOpenTweenFinishTokenSource?.Token;
+    public CancellationToken? PanelOpenTweenFinishToken => PanelOpenTweenFinishTokenSource?.Token;
 
     /// <summary>
     /// A <see cref="CancellationToken"/> that gets canceled when the opening animation finishes.
     /// </summary>
-    public CancellationToken? PanelCloseTweenFinishToken => _panelCloseTweenFinishTokenSource?.Token;
+    public CancellationToken? PanelCloseTweenFinishToken => PanelCloseTweenFinishTokenSource?.Token;
 
     /// <summary>
     /// The <see cref="IPanelTweener"/> assigned to this panel, assigning null will cause this panel fallbacks to the <see cref="PanelManager.DefaultPanelTweener"/>.

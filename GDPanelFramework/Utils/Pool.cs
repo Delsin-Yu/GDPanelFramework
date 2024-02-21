@@ -8,9 +8,9 @@ internal static class Pool
 {
     private static class BackingPool<T>
     {
-        private static readonly Stack<T> _pool = new();
-        public static bool TryPop([MaybeNullWhen(false)] out T result) => _pool.TryPop(out result);
-        public static void Push(T item) => _pool.Push(item);
+        private static readonly Stack<T> Pool = new();
+        public static bool TryPop([MaybeNullWhen(false)] out T result) => Pool.TryPop(out result);
+        public static void Push(T item) => Pool.Push(item);
     }
 
     internal static T Get<T>(Func<T> creationHandler)

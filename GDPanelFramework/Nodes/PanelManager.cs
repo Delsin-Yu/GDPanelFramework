@@ -31,25 +31,25 @@ public static partial class PanelManager
 
     private record struct PanelRootInfo(Node? Owner, Control Root);
 
-    private static readonly Dictionary<PackedScene, Stack<_UIPanelBaseCore>> _bufferedPanels = new();
-    private static readonly Stack<_UIPanelBaseCore> _panelStack = new();
-    private static readonly Stack<PanelRootInfo> _panelParents = new();
+    private static readonly Dictionary<PackedScene, Stack<UIPanelBaseCore>> BufferedPanels = new();
+    private static readonly Stack<UIPanelBaseCore> PanelStack = new();
+    private static readonly Stack<PanelRootInfo> PanelParents = new();
 
     private static bool _panelRootInitialized;
     private static IPanelTweener _defaultPanelTweener = NonePanelTweener.Instance;
 
     private static Control GetCurrentPanelRoot()
     {
-        if (_panelRootInitialized) return _panelParents.Peek().Root;
+        if (_panelRootInitialized) return PanelParents.Peek().Root;
 
-        _panelParents.Push(new(null, RootPanelContainer.PanelRoot));
+        PanelParents.Push(new(null, RootPanelContainer.PanelRoot));
         _panelRootInitialized = true;
 
-        return _panelParents.Peek().Root;
+        return PanelParents.Peek().Root;
     }
 
 
-    private static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, PreviousPanelVisual previousPreviousPanelVisual) where TPanel : _UIPanelBaseCore
+    private static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, PreviousPanelVisual previousPreviousPanelVisual) where TPanel : UIPanelBaseCore
     {
         // Ensure the current panel is at the front most.
         var parent = GetCurrentPanelRoot();
@@ -58,24 +58,24 @@ public static partial class PanelManager
         else panelInstance.Reparent(parent);
 
         // Pushes a panel to new layer, disables gui handling for the previous panel. 
-        if (_panelStack.TryPeek(out var topmostPanel))
+        if (PanelStack.TryPeek(out var topmostPanel))
         {
             topmostPanel.SetPanelActiveState(false, previousPreviousPanelVisual);
         }
 
-        _panelStack.Push(panelInstance);
+        PanelStack.Push(panelInstance);
     }
 
-    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, PreviousPanelVisual previousPreviousPanelVisual, ClosePolicy closePolicy) where TPanel : _UIPanelBaseCore
+    internal static void HandlePanelClose<TPanel>(TPanel closingPanel, PreviousPanelVisual previousPreviousPanelVisual, ClosePolicy closePolicy) where TPanel : UIPanelBaseCore
     {
 
-        var topPanel = _panelStack.Peek();
+        var topPanel = PanelStack.Peek();
 
         ExceptionUtils.ThrowIfClosingPanelIsNotTopPanel(closingPanel, topPanel);
 
-        _panelStack.Pop();
+        PanelStack.Pop();
 
-        if (_panelStack.TryPeek(out topPanel))
+        if (PanelStack.TryPeek(out topPanel))
         {
             topPanel.SetPanelActiveState(true, previousPreviousPanelVisual);
             topPanel.TryRestoreSelection();
@@ -89,10 +89,10 @@ public static partial class PanelManager
 
         var sourcePrefab = closingPanel.SourcePrefab!;
 
-        if (!_bufferedPanels.TryGetValue(sourcePrefab, out var cacheStack))
+        if (!BufferedPanels.TryGetValue(sourcePrefab, out var cacheStack))
         {
-            cacheStack = Pool.Get<Stack<_UIPanelBaseCore>>(() => new());
-            _bufferedPanels.Add(sourcePrefab, cacheStack);
+            cacheStack = Pool.Get<Stack<UIPanelBaseCore>>(() => new());
+            BufferedPanels.Add(sourcePrefab, cacheStack);
         }
 
         cacheStack.Push(closingPanel);
@@ -100,7 +100,7 @@ public static partial class PanelManager
 
     internal static bool ProcessInputEvent(InputEvent inputEvent)
     {
-        if (!_panelStack.TryPeek(out var topPanel)) return false;
+        if (!PanelStack.TryPeek(out var topPanel)) return false;
 
         var cachedWrapper = new CachedInputEvent(inputEvent);
 
@@ -160,7 +160,7 @@ public static partial class PanelManager
     /// <param name="newRoot">The <see cref="Control"/> that is becoming the parent for subsequent opening panels.</param>
     public static void PushPanelParent(Node owner, Control newRoot)
     {
-        _panelParents.Push(new(owner, newRoot));
+        PanelParents.Push(new(owner, newRoot));
     }
 
     /// <summary>
@@ -175,8 +175,8 @@ public static partial class PanelManager
     public static void PopPanelParent(Node requester)
     {
         ArgumentNullException.ThrowIfNull(requester);
-        ExceptionUtils.ThrowIfUnauthorizedPanelRootOwner(requester, _panelParents.Peek().Owner);
-        _panelParents.Pop();
+        ExceptionUtils.ThrowIfUnauthorizedPanelRootOwner(requester, PanelParents.Peek().Owner);
+        PanelParents.Pop();
     }
 
     /// <summary>
@@ -189,18 +189,18 @@ public static partial class PanelManager
     /// <returns>The instance of the specified panel.</returns>
     /// <exception cref="InvalidOperationException">Throws when the system is unable to cast the instance of the <paramref name="packedPanel"/> to desired <typeparamref name="TPanel"/> type.</exception>
     public static TPanel CreatePanel<TPanel>(this PackedScene packedPanel, CreatePolicy createPolicy = CreatePolicy.TryReuse,
-        Action<TPanel>? initializeCallback = null) where TPanel : _UIPanelBaseCore
+        Action<TPanel>? initializeCallback = null) where TPanel : UIPanelBaseCore
     {
         TPanel panelInstance;
 
-        if (createPolicy == CreatePolicy.TryReuse && _bufferedPanels.TryGetValue(packedPanel, out var cacheStack))
+        if (createPolicy == CreatePolicy.TryReuse && BufferedPanels.TryGetValue(packedPanel, out var cacheStack))
         {
             panelInstance = (TPanel)cacheStack.Pop()!;
             initializeCallback?.Invoke(panelInstance);
             if (cacheStack.Count == 0)
             {
                 Pool.Collect(cacheStack);
-                _bufferedPanels.Remove(packedPanel);
+                BufferedPanels.Remove(packedPanel);
             }
 
             return panelInstance;

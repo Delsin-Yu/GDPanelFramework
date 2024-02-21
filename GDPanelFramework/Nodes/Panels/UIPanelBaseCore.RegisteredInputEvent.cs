@@ -3,15 +3,15 @@ using Godot;
 
 namespace GDPanelFramework.Panels;
 
-public abstract partial class _UIPanelBaseCore
+public abstract partial class UIPanelBaseCore
 {
     private class RegisteredInputEvent
     {
-        private Action<InputEvent>? m_PressedCall;
-        private Action<InputEvent>? m_ReleasedCall;
+        private Action<InputEvent>? _pressedCall;
+        private Action<InputEvent>? _releasedCall;
         private Action<InputEvent>? _anyCall;
 
-        public bool Empty => m_PressedCall is null && m_ReleasedCall is null && _anyCall is null;
+        public bool Empty => _pressedCall is null && _releasedCall is null && _anyCall is null;
 
         public void RegisterCall(Action<InputEvent> call, InputActionPhase inputActionPhase) => GetCall(inputActionPhase) += call;
 
@@ -41,9 +41,9 @@ public abstract partial class _UIPanelBaseCore
             switch (inputActionPhase)
             {
                 case InputActionPhase.Pressed:
-                    return ref m_PressedCall;
+                    return ref _pressedCall;
                 case InputActionPhase.Released:
-                    return ref m_ReleasedCall;
+                    return ref _releasedCall;
                 case InputActionPhase.Any:
                     return ref _anyCall;
                 default:

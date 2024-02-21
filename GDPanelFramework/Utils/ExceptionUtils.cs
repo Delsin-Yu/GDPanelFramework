@@ -9,19 +9,19 @@ internal static class ExceptionUtils
 {
     private const string PanelClosingOrderNotification = "When closing panels, it is mandatory to ensure the order of closing these panels is symmetrical to how they are opened.";
 
-    internal static void ThrowIfUninitialized(this _UIPanelBaseCore panel)
+    internal static void ThrowIfUninitialized(this UIPanelBaseCore panel)
     {
-        if (panel.CurrentPanelStatus != _UIPanelBaseCore.PanelStatus.Uninitialized) return;
+        if (panel.CurrentPanelStatus != UIPanelBaseCore.PanelStatus.Uninitialized) return;
         throw new InvalidOperationException($"Attempting to open an uninitialized panel, please use {nameof(PanelManager.CreatePanel)} to properly get an initialized panel.");
     }
 
-    internal static void ThrowIfAlreadyOpened(this _UIPanelBaseCore panel)
+    internal static void ThrowIfAlreadyOpened(this UIPanelBaseCore panel)
     {
-        if (panel.CurrentPanelStatus != _UIPanelBaseCore.PanelStatus.Opened) return;
+        if (panel.CurrentPanelStatus != UIPanelBaseCore.PanelStatus.Opened) return;
         throw new InvalidOperationException("Attempting to open a panel that's already opened.");
     }
 
-    public static void ThrowIfClosingPanelIsNotTopPanel<TPanel>(TPanel closingPanel, _UIPanelBaseCore topPanel) where TPanel : _UIPanelBaseCore
+    public static void ThrowIfClosingPanelIsNotTopPanel<TPanel>(TPanel closingPanel, UIPanelBaseCore topPanel) where TPanel : UIPanelBaseCore
     {
         if (ReferenceEquals(closingPanel, topPanel)) return;
         throw new InvalidOperationException($"Attempting to close a panel that is not on top of the current panel layer, this is not supported. {PanelClosingOrderNotification}");
