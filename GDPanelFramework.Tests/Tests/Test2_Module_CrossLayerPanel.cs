@@ -3,7 +3,7 @@ using GodotTask.Tasks;
 
 namespace GDPanelFramework.Tests;
 
-public partial class Test2__CrossLayerPanel : TestModule
+public partial class Test2_Module_CrossLayerPanel : TestModule
 {
     [Export] private PackedScene _panel;
 

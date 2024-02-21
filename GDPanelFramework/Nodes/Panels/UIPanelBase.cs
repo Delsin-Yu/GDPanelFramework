@@ -99,9 +99,12 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     public sealed override void _Notification(int what)
     {
         base._Notification(what);
-        if(what == NotificationPredelete) DelegateRunner.RunProtected(_onPanelPredelete, "Delete Panel", Name);
+        if (what == NotificationPredelete)
+        {
+            DelegateRunner.RunProtected(_onPanelPredelete, "Delete Panel", Name);
+            Cleanup();
+        }
         DelegateRunner.RunProtected(_onPanelNotification, what, "Panel Notification", Name);
-        Cleanup();
     }
 
     /// <summary>

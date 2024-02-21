@@ -3,7 +3,7 @@ using GodotTask.Tasks;
 
 namespace GDPanelFramework.Tests;
 
-public partial class Test0__OpenClose : TestModule
+public partial class Test0_Module_OpenClose : TestModule
 {
     [Export(hintString: "*.tscn")] private PackedScene _nonParamPanel;
     [Export(hintString: "*.tscn")] private PackedScene _paramPanel;

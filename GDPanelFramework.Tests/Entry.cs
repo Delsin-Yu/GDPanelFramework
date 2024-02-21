@@ -21,6 +21,8 @@ public partial class Entry : Control
             await testModule.Run();
         }
 
+        await GDTask.NextFrame();
+
         ((SceneTree)Engine.GetMainLoop()).Quit();
     }
 }
