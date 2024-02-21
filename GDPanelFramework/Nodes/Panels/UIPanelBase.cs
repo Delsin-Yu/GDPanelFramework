@@ -79,12 +79,20 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         metadataValue.OnPanelCloseCallback?.Invoke(closeArg);
 	}
 
-    private static void FinishAndResetTokenSource(ref CancellationTokenSource cancellationTokenSource)
+    private static void FinishAndResetTokenSource(ref CancellationTokenSource? cancellationTokenSource)
     {
+        if(cancellationTokenSource == null) return;
         cancellationTokenSource.Cancel();
-        cancellationTokenSource = new();
+        cancellationTokenSource.Dispose();
     }
-    
+
+    internal sealed override void Cleanup()
+    {
+        base.Cleanup();
+        _metadata = null;
+        OpenArg = default;
+    }
+
     /// <summary>
     /// Override <see cref="_OnPanelNotification"/> instead, this method is used for raising <see cref="_OnPanelPredelete"/> at the appropriate time.
     /// </summary>
@@ -93,6 +101,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         base._Notification(what);
         if(what == NotificationPredelete) DelegateRunner.RunProtected(_onPanelPredelete, "Delete Panel", Name);
         DelegateRunner.RunProtected(_onPanelNotification, what, "Panel Notification", Name);
+        Cleanup();
     }
 
     /// <summary>

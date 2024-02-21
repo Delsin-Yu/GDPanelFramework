@@ -50,5 +50,12 @@ public abstract partial class UIPanelBaseCore
                     throw new ArgumentOutOfRangeException(nameof(inputActionPhase), inputActionPhase, null);
             }
         }
+
+        public void Reset()
+        {
+            _pressedCall = null;
+            _releasedCall = null;
+            _anyCall = null;
+        }
     }
 }

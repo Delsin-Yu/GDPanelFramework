@@ -26,9 +26,9 @@ public abstract partial class UIPanelBaseCore : Control
     private bool _isShownInternal;
     private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos = new();
     private IPanelTweener? _panelTweener;
-    internal CancellationTokenSource PanelCloseTokenSource = new();
-    internal CancellationTokenSource PanelOpenTweenFinishTokenSource = new();
-    internal CancellationTokenSource PanelCloseTweenFinishTokenSource = new();
+    internal CancellationTokenSource? PanelCloseTokenSource;
+    internal CancellationTokenSource? PanelOpenTweenFinishTokenSource;
+    internal CancellationTokenSource? PanelCloseTweenFinishTokenSource;
 
     private readonly List<string> _registeredInputEventNames = [];
     private readonly Dictionary<string, RegisteredInputEvent> _registeredInputEvent = new();
@@ -45,21 +45,21 @@ public abstract partial class UIPanelBaseCore : Control
         SourcePrefab = sourcePrefab;
         SetPanelActiveState(false, PreviousPanelVisual.Hidden, true);
     }
-    
+
     /// <summary>
     /// A <see cref="CancellationToken"/> that gets canceled when the <see cref="UIPanel.ClosePanel"/> / <see cref="UIPanelArg{TOpenArg,TCloseArg}.ClosePanel"/> calls.
     /// </summary>
-    public CancellationToken? PanelCloseToken => PanelCloseTokenSource?.Token;
+    public CancellationToken? PanelCloseToken => (PanelCloseTokenSource ??= new()).Token;
 
     /// <summary>
     /// A <see cref="CancellationToken"/> that gets canceled when the opening animation finishes.
     /// </summary>
-    public CancellationToken? PanelOpenTweenFinishToken => PanelOpenTweenFinishTokenSource?.Token;
+    public CancellationToken? PanelOpenTweenFinishToken => (PanelOpenTweenFinishTokenSource ??= new()).Token;
 
     /// <summary>
     /// A <see cref="CancellationToken"/> that gets canceled when the opening animation finishes.
     /// </summary>
-    public CancellationToken? PanelCloseTweenFinishToken => PanelCloseTweenFinishTokenSource?.Token;
+    public CancellationToken? PanelCloseTweenFinishToken => (PanelCloseTweenFinishTokenSource ??= new()).Token;
 
     /// <summary>
     /// The <see cref="IPanelTweener"/> assigned to this panel, assigning null will cause this panel fallbacks to the <see cref="PanelManager.DefaultPanelTweener"/>.
@@ -166,6 +166,30 @@ public abstract partial class UIPanelBaseCore : Control
             onFinish();
         });
     }
+
+    internal virtual void Cleanup()
+    {
+        PanelCloseTokenSource?.Dispose();
+        PanelOpenTweenFinishTokenSource?.Dispose();
+        PanelCloseTweenFinishTokenSource?.Dispose();
+        
+        SourcePrefab = null;
+        
+        _cachedSelection = null;
+        _panelTweener = null;
+        
+        _cachedChildrenControlInfos.Clear();
+        _registeredInputEventNames.Clear();
+        
+        foreach (var registeredInputEvent in _registeredInputEvent.Values)
+        {
+            registeredInputEvent.Reset();
+            Pool.Collect(registeredInputEvent);
+        }
+        _registeredInputEvent.Clear();
+
+        _mappedCancelEvent.Clear();
+    }
     
     /// <summary>
     /// Using the <see cref="PanelTweener"/> to hide this panel.
@@ -179,7 +203,6 @@ public abstract partial class UIPanelBaseCore : Control
         if (onFinish == null) TweenHide(tweener);
         else TweenHide(tweener, onFinish);
     }
-
 
     /// <summary>
     /// Using the <see cref="PanelTweener"/> to show this panel.
