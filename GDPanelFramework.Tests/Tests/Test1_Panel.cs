@@ -3,7 +3,7 @@ using Godot;
 
 namespace GDPanelFramework.Tests;
 
-public partial class Test2_Panel : UIPanelArg<(int, PackedScene), Empty>
+public partial class Test1_Panel : UIPanelArg<(int, PackedScene), Empty>
 {
     [Export] private Button _openNewButton;
     [Export] private Button _closeSelfButton;
@@ -15,7 +15,7 @@ public partial class Test2_Panel : UIPanelArg<(int, PackedScene), Empty>
         base._OnPanelInitialize();
         _closeSelfButton.Pressed += Close;
         _openNewButton.Pressed += () => OpenArg.Item2
-            .CreatePanel<Test2_Panel>(initializeCallback: x => x.Position = Position + _newPanelOffset)
+            .CreatePanel<Test1_Panel>(initializeCallback: x => x.Position = Position + _newPanelOffset)
             .OpenPanel((OpenArg.Item1 + 1, OpenArg.Item2));
     }
 

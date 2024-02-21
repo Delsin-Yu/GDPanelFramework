@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b63105ae1lbwp"]
 
-[ext_resource type="Script" path="res://Tests/Test2_Panel.cs" id="1_enqed"]
+[ext_resource type="Script" path="res://Tests/Test1_Panel.cs" id="1_enqed"]
 
 [node name="Control" type="PanelContainer" node_paths=PackedStringArray("_openNewButton", "_closeSelfButton", "_label")]
 custom_minimum_size = Vector2(0, 100)
