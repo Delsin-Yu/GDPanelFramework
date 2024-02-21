@@ -14,12 +14,9 @@ public partial class Test2_Panel : UIPanelArg<(int, PackedScene), Empty>
     {
         base._OnPanelInitialize();
         _closeSelfButton.Pressed += Close;
-        _openNewButton.Pressed += () =>
-        {
-            OpenArg.Item2
-                .CreatePanel<Test2_Panel>(initializeCallback: x => x.Position = Position + _newPanelOffset)
-                .OpenPanel((OpenArg.Item1 + 1, OpenArg.Item2));
-        };
+        _openNewButton.Pressed += () => OpenArg.Item2
+            .CreatePanel<Test2_Panel>(initializeCallback: x => x.Position = Position + _newPanelOffset)
+            .OpenPanel((OpenArg.Item1 + 1, OpenArg.Item2));
     }
 
     private void Close() => ClosePanel(Empty.Default);

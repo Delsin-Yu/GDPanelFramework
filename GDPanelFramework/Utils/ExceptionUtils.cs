@@ -12,13 +12,13 @@ internal static class ExceptionUtils
     internal static void ThrowIfUninitialized(this _UIPanelBaseCore panel)
     {
         if (panel.CurrentPanelStatus != _UIPanelBaseCore.PanelStatus.Uninitialized) return;
-        throw new InvalidOperationException("Attempting to open an uninitialized panel, this is not supported, please use CreateOrGetPanel to properly get an initialized panel.");
+        throw new InvalidOperationException($"Attempting to open an uninitialized panel, please use {nameof(PanelManager.CreatePanel)} to properly get an initialized panel.");
     }
 
-    internal static void ThrowIfNotOpened(this _UIPanelBaseCore panel)
+    internal static void ThrowIfAlreadyOpened(this _UIPanelBaseCore panel)
     {
-        if (panel.CurrentPanelStatus == _UIPanelBaseCore.PanelStatus.Opened) return;
-        throw new InvalidOperationException("Attempting to close a not opened panel, this is not supported.");
+        if (panel.CurrentPanelStatus != _UIPanelBaseCore.PanelStatus.Opened) return;
+        throw new InvalidOperationException("Attempting to open a panel that's already opened.");
     }
 
     public static void ThrowIfClosingPanelIsNotTopPanel<TPanel>(TPanel closingPanel, _UIPanelBaseCore topPanel) where TPanel : _UIPanelBaseCore

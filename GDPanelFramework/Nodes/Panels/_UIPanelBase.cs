@@ -51,6 +51,7 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
 
     internal void OpenPanelInternal(TOpenArg openArg, PanelOpeningMetadata panelOpeningMetadata)
     {
+        this.ThrowIfAlreadyOpened();
         _metadata = panelOpeningMetadata;
         CurrentPanelStatus = PanelStatus.Opened;
         OpenArg = openArg;
@@ -61,6 +62,7 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
 
     internal void ClosePanelInternal(TCloseArg closeArg)
     {
+        if(CurrentPanelStatus != PanelStatus.Opened) return;
         CurrentPanelStatus = PanelStatus.Closed;
         FinishAndResetTokenSource(ref _panelCloseTokenSource);
         HidePanel(() => FinishAndResetTokenSource(ref _panelCloseTweenFinishTokenSource));
@@ -139,6 +141,5 @@ public abstract partial class _UIPanelBase<TOpenArg, TCloseArg> : _UIPanelBaseCo
     /// </remarks>
     protected virtual void _OnPanelNotification(int what)
     {
-        
     }
 }

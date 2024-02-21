@@ -8,9 +8,9 @@ public abstract partial class UIPanelArg<TOpenArg, TCloseArg> : _UIPanelBase<TOp
     /// <summary>
     /// Close this panel.
     /// </summary>
-    protected void ClosePanel(TCloseArg closeArg)
-    {
-        this.ThrowIfNotOpened();
-        ClosePanelInternal(closeArg);
-    }
+    /// <param name="closeArg">The argument passes to the caller after the panel has closed.</param>
+    /// <remarks>
+    /// The call to this method is ignored if the current panel is not opened.
+    /// </remarks>
+    protected void ClosePanel(TCloseArg closeArg) => ClosePanelInternal(closeArg);
 }

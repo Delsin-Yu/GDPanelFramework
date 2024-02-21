@@ -19,11 +19,10 @@ public abstract partial class UIPanel : _UIPanelBase<Empty, Empty>
     /// <summary>
     /// Close this panel.
     /// </summary>
-    protected void ClosePanel()
-    {
-        this.ThrowIfNotOpened();
-        ClosePanelInternal(Empty.Default);
-    }
+    /// <remarks>
+    /// The call to this method is ignored if the current panel is not opened.
+    /// </remarks>
+    protected void ClosePanel() => ClosePanelInternal(Empty.Default);
 
     /// <summary>
     /// Override the parameterless version <see cref="_OnPanelClose()"/> instead.

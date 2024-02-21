@@ -70,14 +70,13 @@ public abstract partial class _UIPanelBaseCore : Control
         set => _panelTweener = value;
     }
 
-    internal SelectionCachingResult CacheCurrentSelection(ref Control? currentSelection)
+    internal void CacheCurrentSelection(ref Control? currentSelection)
     {
         _cachedSelection = null;
         currentSelection ??= GetViewport().GuiGetFocusOwner();
-        if (currentSelection == null) return SelectionCachingResult.NoSelections;
-        if (!IsAncestorOf(currentSelection)) return SelectionCachingResult.NotAChild;
+        if (currentSelection == null) return;
+        if (!IsAncestorOf(currentSelection)) return;
         _cachedSelection = currentSelection;
-        return SelectionCachingResult.Successful;
     }
 
     internal void TryRestoreSelection()
@@ -259,4 +258,15 @@ public abstract partial class _UIPanelBaseCore : Control
         if (!_mappedCancelEvent.Remove(callback, out var mappedCallback)) return;
         RemoveInput(PanelManager.UICancelActionName, mappedCallback, actionPhase);
     }
+
+    /// <summary>
+    /// Create a delegate that wraps around the specified <paramref name="call"/> to make it only get invoked when the panel is opened.
+    /// </summary>
+    /// <param name="call">The delegate to wraps around to.</param>
+    /// <returns>A delegate that, when invoked, only invokes the underlying <see cref="call"/> when the panel is opened.</returns>
+    protected Action CreateScoped(Action call) => () =>
+    {
+        if (CurrentPanelStatus != PanelStatus.Opened) return;
+        call();
+    };
 }

@@ -49,25 +49,6 @@ public enum PreviousPanelVisual
 }
 
 /// <summary>
-/// Internal enum for indicating the selection cache result when opening panel 
-/// </summary>
-internal enum SelectionCachingResult
-{
-    /// <summary>
-    /// Nothing is currently selected system wise, the caching enumeration should stop
-    /// </summary>
-    NoSelections,
-    /// <summary>
-    /// Currently focusing control is not a child of the specified panel, the caching enumeration should continues
-    /// </summary>
-    NotAChild,
-    /// <summary>
-    /// Currently focusing control is a child of the specified panel, and is cached successfully, the caching enumeration should stop
-    /// </summary>
-    Successful
-}
-
-/// <summary>
 /// Define the input phase of a specific <see cref="Godot.InputEvent"/>
 /// </summary>
 public enum InputActionPhase
