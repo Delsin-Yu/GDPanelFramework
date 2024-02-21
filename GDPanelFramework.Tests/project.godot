@@ -23,6 +23,10 @@ window/size/initial_position_type=3
 
 project/assembly_name="GDPanelFramework.Tests"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
+
 [input]
 
 ui_accept={

@@ -1,27 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://ddlcuueu4kjsy"]
+[gd_scene format=3 uid="uid://bs4rw7jpn7isv"]
 
-[ext_resource type="Script" path="res://Entry.cs" id="1_iyefa"]
-[ext_resource type="Script" path="res://Tests/Test0_Module_OpenClose.cs" id="2_1jdtm"]
-[ext_resource type="PackedScene" uid="uid://d38tyxath4yx5" path="res://Prefabs/Test0_NonParamUIPanel.tscn" id="3_wldha"]
-[ext_resource type="PackedScene" uid="uid://dbju2bpfd3dks" path="res://Prefabs/Test0_ParamUIPanel.tscn" id="4_b1sxv"]
-[ext_resource type="Script" path="res://Tests/Test1_Module_CrossLayerPanel.cs" id="5_fearo"]
-[ext_resource type="PackedScene" uid="uid://b63105ae1lbwp" path="res://Prefabs/Test1_Panel.tscn" id="8_vjsq0"]
-
-[node name="TestEntry" type="Control" node_paths=PackedStringArray("_testModules")]
+[node name="Control" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_iyefa")
-_testModules = [NodePath("Test_0"), NodePath("Test_1")]
-
-[node name="Test_0" type="Node" parent="."]
-script = ExtResource("2_1jdtm")
-_nonParamPanel = ExtResource("3_wldha")
-_paramPanel = ExtResource("4_b1sxv")
-
-[node name="Test_1" type="Node" parent="."]
-script = ExtResource("5_fearo")
-_panel = ExtResource("8_vjsq0")
