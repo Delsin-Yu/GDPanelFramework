@@ -24,61 +24,61 @@ These `user interactions` are `panel-scoped`, which means they only stay active 
 
 ### Panel Instantiation and Caching
 
-WIP: Introduction to creating panel instance from packed scene
-WIP: Introduction to framework level panel caching
+> WIP: Introduction to creating panel instance from packed scene
+> WIP: Introduction to framework-level panel caching
 
 ### Panel Lifetime Explained
 
-WIP: Introduction to the control flow: `The caller opens a panel and transfer the control flow to it; the panel closes itself and returns the control flow to the caller`
-WIP: Ways of opening a panel: `async/await` style api, `delegate/callback` style api, and `forget` style api
-WIP: The `PreviousPanelVisual` enum argument, ability to configures the visual behaviour of the previous panel
-WIP: The `ClosePolicy` enum argument, choose to cache or delete the closing panel
-WIP: Invalid operations and error reporting
+> WIP: Introduction to the control flow: `The caller opens a panel and transfers the control flow to it; the panel closes itself and returns the control flow to the caller`
+> WIP: Ways of opening a panel: `async/await` style API, `delegate/callback` style API, and `forget` style API
+> WIP: The `PreviousPanelVisual` enum argument, the ability to configure the visual behavior of the previous panel
+> WIP: The `ClosePolicy` enum argument, choose to cache or delete the closing panel
+> WIP: Invalid operations and error reporting
 
 ### API Documentation
 
 #### Panel vs PanelArg
 
-WIP: Introduction to passing/returning arguments to/from a panel
-WIP: The `Empty` Struct
+> WIP: Introduction to passing/returning arguments to/from a panel
+> WIP: The `Empty` Struct
 
 #### Panel Parent Container Management
 
-WIP: Introduction to configuring the parent container for the opening panels
-WIP: The `RootPanelContainer` Node
-WIP: The `PushPanelParent` Method
-WIP: The `PopPanelParent` Method
+> WIP: Introduction to configuring the parent container for the opening panels
+> WIP: The `RootPanelContainer` Node
+> WIP: The `PushPanelParent` Method
+> WIP: The `PopPanelParent` Method
 
 #### Input Binding / Routing
 
-WIP: Introduction to the framework level Input Routing
-WIP: The `RegisterInput` Method
-WIP: The `RemoveInput` Method
-WIP: The `GodotBuiltinActionNames` Static Class
-WIP: The `PanelManager.UICancelActionName` Property
-WIP: The `RegisterCancelInput` Method
-WIP: The `RemoveCancelInput` Method
-WIP: The `EnableCloseWithCancelKey` Method
-WIP: The `DisableCloseWithCancelKey` Method
+> WIP: Introduction to the framework level Input Routing
+> WIP: The `RegisterInput` Method
+> WIP: The `RemoveInput` Method
+> WIP: The `GodotBuiltinActionNames` Static Class
+> WIP: The `PanelManager.UICancelActionName` Property
+> WIP: The `RegisterCancelInput` Method
+> WIP: The `RemoveCancelInput` Method
+> WIP: The `EnableCloseWithCancelKey` Method
+> WIP: The `DisableCloseWithCancelKey` Method
 
 #### Lifetime Methods
 
-WIP: Introduction to the `Protected` panel lifetime methods
-WIP: The `_OnPanelInitialize` Method
-WIP: The `_OnPanelOpen` Method
-WIP: The `_OnPanelClose` Method
-WIP: The `_OnPanelPredelete` Method
-WIP: The `_OnPanelNotification` Method
-WIP: The `ClosePanel` Method
+> WIP: Introduction to the `Protected` panel lifetime methods
+> WIP: The `_OnPanelInitialize` Method
+> WIP: The `_OnPanelOpen` Method
+> WIP: The `_OnPanelClose` Method
+> WIP: The `_OnPanelPredelete` Method
+> WIP: The `_OnPanelNotification` Method
+> WIP: The `ClosePanel` Method
 
 #### Panel Visual Behavior
 
-WIP: Introduction to the `PanelTweener` and `IPanelTweener` interface
-WIP: The `PanelManager.IPanelTweener` Property
-WIP: The `IPanelTweener` Property in Panel
-WIP: The Built-in `NonePanelTweener`
-WIP: The Built-in `FadePanelTweener`
+> WIP: Introduction to the `PanelTweener` and `IPanelTweener` interface
+> WIP: The `PanelManager.IPanelTweener` Property
+> WIP: The `IPanelTweener` Property in Panel
+> WIP: The Built-in `NonePanelTweener`
+> WIP: The Built-in `FadePanelTweener`
 
 #### AsyncInterop Class
 
-WIP: Introduction to converting a `delegate/callback` style api into `async/await` style api
+> WIP: Introduction to converting a `delegate/callback` style api into `async/await` style api
