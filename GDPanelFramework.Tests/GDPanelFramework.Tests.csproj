@@ -7,8 +7,8 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="gdUnit4.api" Version="4.2.0-rc.*" />
+    <PackageReference Include="gdUnit4.api" Version="4.2.0-rc.202402212033" />
     <ProjectReference Include="..\GDPanelFramework\GDPanelFramework.csproj" />
-    <PackageReference Include="GDTask" Version="*" />
+    <PackageReference Include="GDTask" Version="1.0.0" />
   </ItemGroup>
 </Project>

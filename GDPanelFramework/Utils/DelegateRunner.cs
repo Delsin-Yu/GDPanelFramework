@@ -5,11 +5,11 @@ namespace GDPanelFramework;
 
 internal static class DelegateRunner
 {
-    internal static void RunProtected<T>(Action<T> call, T arg, string actionName, string targetName, [CallerArgumentExpression(nameof(call))] string? methodName = null)
+    internal static void RunProtected<T>(Action<T>? call, T arg, string actionName, string targetName, [CallerArgumentExpression(nameof(call))] string? methodName = null)
     {
         try
         {
-            call(arg);
+            call?.Invoke(arg);
         }
         catch (Exception e)
         {
@@ -17,11 +17,11 @@ internal static class DelegateRunner
         }
     }
 
-    internal static void RunProtected(Action call, string actionName, string targetName, [CallerArgumentExpression(nameof(call))] string? methodName = null)
+    internal static void RunProtected(Action? call, string actionName, string targetName, [CallerArgumentExpression(nameof(call))] string? methodName = null)
     {
         try
         {
-            call();
+            call?.Invoke();
         }
         catch (Exception e)
         {
@@ -33,6 +33,7 @@ internal static class DelegateRunner
     {
         LoggingUtils.LogError(
             $"""
+             
              ┌┈┈┈┈ {actionName} Error ┈┈┈┈
              │ {e.GetType().Name} on {targetName}.{methodName ?? "UnknownFunction"}
              │ Message:

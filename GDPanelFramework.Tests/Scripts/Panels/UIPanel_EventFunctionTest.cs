@@ -1,5 +1,5 @@
 using GDPanelFramework.Panels;
-using GodotTask.Tasks;
+using GodotTask;
 
 namespace GDPanelFramework.Tests;
 

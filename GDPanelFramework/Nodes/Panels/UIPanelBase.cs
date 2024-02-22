@@ -65,7 +65,6 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         if(CurrentPanelStatus != PanelStatus.Opened) return;
         CurrentPanelStatus = PanelStatus.Closed;
         FinishAndResetTokenSource(ref PanelCloseTokenSource);
-        HidePanel(() => FinishAndResetTokenSource(ref PanelCloseTweenFinishTokenSource));
         DelegateRunner.RunProtected(_onPanelClose, closeArg, "Close Panel", Name);
         OpenArg = default;
         SetPanelChildAvailability(false);
@@ -74,6 +73,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         _metadata = null;
         
         PanelManager.HandlePanelClose(this, metadataValue.PreviousPanelVisual, metadataValue.ClosePolicy);
+        HidePanel(() => FinishAndResetTokenSource(ref PanelCloseTweenFinishTokenSource));
 
         metadataValue.UntypedOnPanelCloseCallback?.Invoke();
         metadataValue.OnPanelCloseCallback?.Invoke(closeArg);

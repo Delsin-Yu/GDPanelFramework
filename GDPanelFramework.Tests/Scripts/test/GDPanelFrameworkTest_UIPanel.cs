@@ -1,7 +1,10 @@
+using System;
+using System.Diagnostics;
 using GdUnit4;
 using System.Threading.Tasks;
+using GdUnit4.Exceptions;
 using Godot;
-using GodotTask.Tasks;
+using GodotTask;
 
 namespace GDPanelFramework.Tests;
 
@@ -20,6 +23,8 @@ public class GDPanelFrameworkTest_UIPanel
         await resource
             .CreatePanel<UIPanel_EventFunctionTest>(initializeCallback: panel => panel.Monitor = monitor)
             .OpenPanelAsync(closePolicy: ClosePolicy.Delete);
+
+        await GDTask.NextFrame();
         
         Assertions.AssertThat(monitor.Initialized).IsTrue();
         Assertions.AssertThat(monitor.Opened).IsTrue();
