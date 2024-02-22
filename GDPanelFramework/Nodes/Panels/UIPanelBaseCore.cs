@@ -281,15 +281,4 @@ public abstract partial class UIPanelBaseCore : Control
         if (!_mappedCancelEvent.Remove(callback, out var mappedCallback)) return;
         RemoveInput(PanelManager.UICancelActionName, mappedCallback, actionPhase);
     }
-
-    /// <summary>
-    /// Create a delegate that wraps around the specified <paramref name="call"/> to make it only get invoked when the panel is opened.
-    /// </summary>
-    /// <param name="call">The delegate to wraps around to.</param>
-    /// <returns>A delegate that, when invoked, only invokes the underlying <paramref name="call"/> when the panel is opened.</returns>
-    protected Action CreateScoped(Action call) => () =>
-    {
-        if (CurrentPanelStatus != PanelStatus.Opened) return;
-        call();
-    };
 }
