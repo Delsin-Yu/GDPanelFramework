@@ -1,0 +1,4 @@
+[submodule "GDPanelFramework.Test"]
+	path = GDPanelFramework.Test
+	url = https://github.com/Delsin-Yu/GDPanelFramework.Test
+	branch = main
