@@ -23,22 +23,27 @@ public class FadePanelTweener : IPanelTweener
         if (_activeTween.TryGetValue(panel, out var runningTween))
         {
             runningTween.Kill();
+            runningTween.Dispose();
         }
 
         runningTween = panel.CreateTween();
         _activeTween[panel] = runningTween;
-        
-        runningTween.TweenProperty(panel, ModulatePath, color, FadeTime);
-        runningTween.TweenCallback(
-            Callable.From(
-                () =>
-                {
-                    if(onFinish != null) DelegateRunner.RunProtected(onFinish, "OnFinish", panel.Name, methodName);
-                    if (!_activeTween.Remove(panel, out var tween)) return;
-                    tween.Kill();
-                }
+
+        runningTween
+            .TweenProperty(panel, ModulatePath, color, FadeTime)
+            .Dispose();
+        runningTween
+            .TweenCallback(
+                Callable.From(
+                    () =>
+                    {
+                        if (onFinish != null) DelegateRunner.RunProtected(onFinish, "OnFinish", panel.Name, methodName);
+                        if (!_activeTween.Remove(panel, out var tween)) return;
+                        tween.Kill();
+                    }
+                )
             )
-        );
+            .Dispose();
     }
 
     /// <inheritdoc/>

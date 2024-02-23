@@ -83,7 +83,7 @@ public static partial class PanelManager
 
         if (closePolicy == ClosePolicy.Delete)
         {
-            closingPanel.PanelCloseTweenFinishToken!.Value.Register(closingPanel.QueueFree);
+            closingPanel.PanelCloseTweenFinishToken!.Value.Register(closingPanel.QueueForDeletion);
             return;
         }
 

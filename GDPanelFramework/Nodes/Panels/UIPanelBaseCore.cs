@@ -190,6 +190,12 @@ public abstract partial class UIPanelBaseCore : Control
 
         _mappedCancelEvent.Clear();
     }
+
+    internal void QueueForDeletion()
+    {
+        QueueFree();
+        Dispose();
+    }
     
     /// <summary>
     /// Using the <see cref="PanelTweener"/> to hide this panel.
