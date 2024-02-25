@@ -19,34 +19,17 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     
     private PanelOpeningMetadata? _metadata;
 
-    private readonly Action _onPanelInitialize;
-    private readonly Action<TOpenArg> _onPanelOpen;
-    private readonly Action<TCloseArg> _onPanelClose;
-    private readonly Action _onPanelPredelete;
-    private readonly Action<int> _onPanelNotification;
     
     /// <summary>
     /// The argument passed to the panel when opening.
     /// </summary>
     protected TOpenArg? OpenArg { get; private set; }
 
-    /// <summary>
-    /// Construct an instance of this panel and make necessary caching on certain event functions. 
-    /// </summary>
-    internal UIPanelBase()
-    {
-        _onPanelInitialize = _OnPanelInitialize;
-        _onPanelOpen = _OnPanelOpen;
-        _onPanelClose = _OnPanelClose;
-        _onPanelPredelete = _OnPanelPredelete;
-        _onPanelNotification = _OnPanelNotification;
-    }
-
     internal sealed override void InitializePanelInternal(PackedScene sourcePrefab)
     {
         base.InitializePanelInternal(sourcePrefab);
         CurrentPanelStatus = PanelStatus.Initialized;
-        DelegateRunner.RunProtected(_onPanelInitialize, "Initialize Panel", Name);
+        DelegateRunner.RunProtected(_OnPanelInitialize, "Initialize Panel", LocalName);
     }
 
     internal void OpenPanelInternal(TOpenArg openArg, PanelOpeningMetadata panelOpeningMetadata)
@@ -57,7 +40,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         OpenArg = openArg;
 		ShowPanel(() => FinishAndResetTokenSource(ref PanelOpenTweenFinishTokenSource));
         SetPanelChildAvailability(true);
-        DelegateRunner.RunProtected(_onPanelOpen, openArg, "Open Panel", Name);
+        DelegateRunner.RunProtected(_OnPanelOpen, openArg, "Open Panel", LocalName);
 	}
 
     internal void ClosePanelInternal(TCloseArg closeArg)
@@ -65,7 +48,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         if(CurrentPanelStatus != PanelStatus.Opened) return;
         CurrentPanelStatus = PanelStatus.Closed;
         FinishAndResetTokenSource(ref PanelCloseTokenSource);
-        DelegateRunner.RunProtected(_onPanelClose, closeArg, "Close Panel", Name);
+        DelegateRunner.RunProtected(_OnPanelClose, closeArg, "Close Panel", LocalName);
         OpenArg = default;
         SetPanelChildAvailability(false);
 
@@ -99,12 +82,13 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     public sealed override void _Notification(int what)
     {
         base._Notification(what);
-        if (what == NotificationPredelete)
-        {
-            DelegateRunner.RunProtected(_onPanelPredelete, "Delete Panel", Name);
-            Cleanup();
-        }
-        DelegateRunner.RunProtected(_onPanelNotification, what, "Panel Notification", Name);
+        
+        DelegateRunner.RunProtected(_OnPanelNotification, what, "Panel Notification", LocalName);
+        
+        if (what != NotificationPredelete) return;
+        
+        DelegateRunner.RunProtected(_OnPanelPredelete, "Delete Panel", LocalName);
+        Cleanup();
     }
 
     /// <summary>

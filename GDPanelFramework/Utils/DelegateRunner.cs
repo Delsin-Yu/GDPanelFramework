@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using Godot;
 
 namespace GDPanelFramework;
 
@@ -39,6 +40,7 @@ internal static class DelegateRunner
              │ Message:
              │   {e.Message}
              └┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+             {e.StackTrace}
              """
         );
     }

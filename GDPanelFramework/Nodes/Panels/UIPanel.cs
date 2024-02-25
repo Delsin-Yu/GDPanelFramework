@@ -7,15 +7,10 @@ namespace GDPanelFramework.Panels;
 /// </summary>
 public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
 {
-    private readonly Action _closePanel;
     private InputActionPhase? _registeredInputActionPhase;
 
     /// <inheritdoc cref="UIPanelBase{TOpenArg,TCloseArg}()"/>
-    protected UIPanel()
-    {
-        _closePanel = ClosePanel;
-    }
-    
+
     /// <summary>
     /// Close this panel.
     /// </summary>
@@ -63,7 +58,7 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
     {
         if(_registeredInputActionPhase != null) return;
         _registeredInputActionPhase = actionPhase;
-        RegisterCancelInput(_closePanel, actionPhase);
+        RegisterCancelInput(ClosePanel, actionPhase);
     }
 
     /// <summary>
@@ -75,7 +70,7 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
     protected void DisableCloseWithCancelKey()
     {
         if(_registeredInputActionPhase == null) return;
-        RemoveCancelInput(_closePanel, _registeredInputActionPhase!.Value);
+        RemoveCancelInput(ClosePanel, _registeredInputActionPhase!.Value);
         _registeredInputActionPhase = null;
     }
 }

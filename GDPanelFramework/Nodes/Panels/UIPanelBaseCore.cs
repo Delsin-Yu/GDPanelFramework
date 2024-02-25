@@ -26,6 +26,7 @@ public abstract partial class UIPanelBaseCore : Control
     private bool _isShownInternal;
     private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos = new();
     private IPanelTweener? _panelTweener;
+    private string? _cachedName;
     internal CancellationTokenSource? PanelCloseTokenSource;
     internal CancellationTokenSource? PanelOpenTweenFinishTokenSource;
     internal CancellationTokenSource? PanelCloseTweenFinishTokenSource;
@@ -35,6 +36,7 @@ public abstract partial class UIPanelBaseCore : Control
     private readonly Dictionary<Action, Action<InputEvent>> _mappedCancelEvent = new();
 
     internal PackedScene? SourcePrefab { get; private set; }
+    internal string LocalName => _cachedName ??= Name;
 
     internal record struct CachedControlInfo(FocusModeEnum FocusMode, MouseFilterEnum MouseFilter);
 
@@ -49,17 +51,17 @@ public abstract partial class UIPanelBaseCore : Control
     /// <summary>
     /// A <see cref="CancellationToken"/> that gets canceled when the <see cref="UIPanel.ClosePanel"/> / <see cref="UIPanelArg{TOpenArg,TCloseArg}.ClosePanel"/> calls.
     /// </summary>
-    public CancellationToken? PanelCloseToken => (PanelCloseTokenSource ??= new()).Token;
+    public CancellationToken PanelCloseToken => (PanelCloseTokenSource ??= new()).Token;
 
     /// <summary>
     /// A <see cref="CancellationToken"/> that gets canceled when the opening animation finishes.
     /// </summary>
-    public CancellationToken? PanelOpenTweenFinishToken => (PanelOpenTweenFinishTokenSource ??= new()).Token;
+    public CancellationToken PanelOpenTweenFinishToken => (PanelOpenTweenFinishTokenSource ??= new()).Token;
 
     /// <summary>
     /// A <see cref="CancellationToken"/> that gets canceled when the opening animation finishes.
     /// </summary>
-    public CancellationToken? PanelCloseTweenFinishToken => (PanelCloseTweenFinishTokenSource ??= new()).Token;
+    public CancellationToken PanelCloseTweenFinishToken => (PanelCloseTweenFinishTokenSource ??= new()).Token;
 
     /// <summary>
     /// The <see cref="IPanelTweener"/> assigned to this panel, assigning null will cause this panel fallbacks to the <see cref="PanelManager.DefaultPanelTweener"/>.
@@ -189,11 +191,7 @@ public abstract partial class UIPanelBaseCore : Control
         _registeredInputEvent.Clear();
 
         _mappedCancelEvent.Clear();
-    }
-
-    internal void QueueForDeletion()
-    {
-        QueueFree();
+        
         Dispose();
     }
     
