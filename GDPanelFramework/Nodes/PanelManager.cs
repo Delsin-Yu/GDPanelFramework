@@ -148,7 +148,7 @@ public static partial class PanelManager
     /// <summary>
     /// Access the system-wide <see cref="InputEvent"/> name that is considered the UI Cancel Action.
     /// </summary>
-    public static string UICancelActionName { get; set; } = GodotBuiltinActionNames.UICancel;
+    public static string UICancelActionName { get; set; } = BuiltinInputNames.UICancel;
 
     /// <summary>
     /// Pushes a new <see cref="Control"/> as the parent for subsequent opening panels to the parent stack.

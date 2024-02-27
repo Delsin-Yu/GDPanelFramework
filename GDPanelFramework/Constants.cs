@@ -3,7 +3,7 @@
 /// <summary>
 /// Stores a list of pre-defined Godot's built-in ui action names. 
 /// </summary>
-public static class GodotBuiltinActionNames
+public static class BuiltinInputNames
 {
     /// <summary>Corresponds to the built-in ui action: ui_accept.</summary>
     public const string UIAccept = "ui_accept";
