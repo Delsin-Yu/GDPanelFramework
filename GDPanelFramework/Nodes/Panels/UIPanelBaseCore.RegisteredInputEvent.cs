@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Godot;
 
 namespace GDPanelFramework.Panels;
@@ -122,6 +123,7 @@ public abstract partial class UIPanelBaseCore
         private bool _isPositivePressed;
         private float _negativeAxisVector;
         private float _positiveAxisVector;
+        private float _cachedValue = float.NaN;
 
         private float GetCurrentValue() => _positiveAxisVector - _negativeAxisVector;
         
@@ -139,12 +141,18 @@ public abstract partial class UIPanelBaseCore
             _target
         );
 
-        private void InvokeUpdate(float currentValue) => DelegateRunner.RunProtected(
-            OnUpdate,
-            currentValue,
-            "Input Axis Composite Update",
-            _target
-        );
+        private void InvokeUpdate(float currentValue)
+        {
+            if(Mathf.IsZeroApprox(currentValue - _cachedValue)) return;
+            _cachedValue = currentValue;
+            
+            DelegateRunner.RunProtected(
+                OnUpdate,
+                _cachedValue,
+                "Input Axis Composite Update",
+                _target
+            );
+        }
     }
 
     private class MappedInputVector2
@@ -160,8 +168,8 @@ public abstract partial class UIPanelBaseCore
                 _horizontalAxisValue = horizontalAxisValue;
                 
                 var currentValue = GetCurrentValue();
-                if(!_isVerticalPressed) InvokeStart(currentValue);
-                InvokeUpdate(currentValue);
+                if(!_isVerticalPressed) InvokeStart(ref currentValue);
+                InvokeUpdate(ref currentValue);
             };
             VerticalAxis.OnStart += verticalAxisValue =>
             {
@@ -169,22 +177,22 @@ public abstract partial class UIPanelBaseCore
                 _verticalAxisValue = verticalAxisValue;
                 
                 var currentValue = GetCurrentValue();
-                if(!_isHorizontalPressed) InvokeStart(currentValue);
-                InvokeUpdate(currentValue);
+                if(!_isHorizontalPressed) InvokeStart(ref currentValue);
+                InvokeUpdate(ref currentValue);
             };    
             
             HorizontalAxis.OnUpdate += horizontalAxisValue =>
             {
                 _horizontalAxisValue = horizontalAxisValue;
                 var currentValue = GetCurrentValue();
-                InvokeUpdate(currentValue);
+                InvokeUpdate(ref currentValue);
             };
             
             VerticalAxis.OnUpdate += verticalAxisValue =>
             {
                 _verticalAxisValue = verticalAxisValue;
                 var currentValue = GetCurrentValue();
-                InvokeUpdate(currentValue);
+                InvokeUpdate(ref currentValue);
             };
             
             HorizontalAxis.OnEnd += horizontalAxisValue =>
@@ -193,8 +201,8 @@ public abstract partial class UIPanelBaseCore
                 _horizontalAxisValue = horizontalAxisValue;
                 
                 var currentValue = GetCurrentValue();
-                InvokeUpdate(currentValue);
-                if(!_isVerticalPressed) InvokeEnd(currentValue);
+                InvokeUpdate(ref currentValue);
+                if(!_isVerticalPressed) InvokeEnd(ref currentValue);
             };
             
             VerticalAxis.OnEnd += horizontalAxisValue =>
@@ -203,8 +211,8 @@ public abstract partial class UIPanelBaseCore
                 _verticalAxisValue = horizontalAxisValue;
                 
                 var currentValue = GetCurrentValue();
-                InvokeUpdate(currentValue);
-                if(!_isHorizontalPressed) InvokeEnd(currentValue);
+                InvokeUpdate(ref currentValue);
+                if(!_isHorizontalPressed) InvokeEnd(ref currentValue);
             };
             
             _target = target;
@@ -217,6 +225,7 @@ public abstract partial class UIPanelBaseCore
         private bool _isVerticalPressed;
         private float _horizontalAxisValue;
         private float _verticalAxisValue;
+        private Vector2 _cachedValue = new(float.NaN, float.NaN);
 
         private readonly string _target;
                 
@@ -228,26 +237,39 @@ public abstract partial class UIPanelBaseCore
 
         private Vector2 GetCurrentValue() => new(_horizontalAxisValue, _verticalAxisValue);
         
-        private void InvokeStart(Vector2 currentValue) => DelegateRunner.RunProtected(
-            OnStart,
-            currentValue,
-            "Input Vector Composite Start",
-            _target
-        );
+        private void InvokeStart(ref readonly Vector2 currentValue)
+        {
+            DelegateRunner.RunProtected(
+                OnStart,
+                currentValue,
+                "Input Vector Composite Start",
+                _target
+            );
+        }
 
-        private void InvokeEnd(Vector2 currentValue) => DelegateRunner.RunProtected(
-            OnEnd,
-            currentValue,
-            "Input Vector Composite End",
-            _target
-        );
+        private void InvokeEnd(ref readonly Vector2 currentValue)
+        {
+            DelegateRunner.RunProtected(
+                OnEnd,
+                currentValue,
+                "Input Vector Composite End",
+                _target
+            );
+        }
 
-        private void InvokeUpdate(Vector2 currentValue) => DelegateRunner.RunProtected(
-            OnUpdate,
-            currentValue,
-            "Input Vector Composite Update",
-            _target
-        );
+        private void InvokeUpdate(ref readonly Vector2 currentValue)
+        {
+            if(Mathf.IsZeroApprox(_cachedValue.X - currentValue.X) && Mathf.IsZeroApprox(_cachedValue.Y - currentValue.Y)) return;
+
+            _cachedValue = currentValue;
+
+            DelegateRunner.RunProtected(
+                OnUpdate,
+                _cachedValue,
+                "Input Vector Composite Update",
+                _target
+            );
+        }
     }
 
     private record struct InputAxisBinding(string NegativeInputName, string PositiveInputName);
