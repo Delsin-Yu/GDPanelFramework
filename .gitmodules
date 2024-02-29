@@ -2,3 +2,7 @@
 	path = GDPanelFramework.Test
 	url = https://github.com/Delsin-Yu/GDPanelFramework.Test
 	branch = main
+[submodule "GDPanelFramework.DodgeTheCreeps"]
+	path = GDPanelFramework.DodgeTheCreeps
+	url = https://github.com/Delsin-Yu/GDPanelFramework.DodgeTheCreeps.git
+	branch = main

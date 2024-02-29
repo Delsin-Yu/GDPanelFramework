@@ -58,7 +58,7 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
     {
         if(_registeredInputActionPhase != null) return;
         _registeredInputActionPhase = actionPhase;
-        RegisterCancelInput(ClosePanel, actionPhase);
+        RegisterInputCancel(ClosePanel, actionPhase);
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
     protected void DisableCloseWithCancelKey()
     {
         if(_registeredInputActionPhase == null) return;
-        RemoveCancelInput(ClosePanel, _registeredInputActionPhase!.Value);
+        RemoveInputCancel(ClosePanel, _registeredInputActionPhase!.Value);
         _registeredInputActionPhase = null;
     }
 }

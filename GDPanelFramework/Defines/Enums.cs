@@ -1,4 +1,5 @@
-﻿using Godot;
+﻿using GDPanelFramework.Panels;
+using Godot;
 
 namespace GDPanelFramework;
 
@@ -49,7 +50,7 @@ public enum PreviousPanelVisual
 }
 
 /// <summary>
-/// Define the input phase of a specific <see cref="Godot.InputEvent"/>
+/// Define the input phase of a specific <see cref="InputEvent"/>
 /// </summary>
 public enum InputActionPhase
 {
@@ -65,4 +66,25 @@ public enum InputActionPhase
     /// Triggers regardless the return value of the <see cref="InputEvent.IsPressed"/>.
     /// </summary>
     Any
+}
+
+/// <summary>
+/// Define the state of a composite input event.
+/// </summary>
+/// <seealso cref="UIPanelBaseCore.RegisterInputAxis"/>
+/// <seealso cref="UIPanelBaseCore.RegisterInputVector"/>
+public enum CompositeInputActionState
+{
+    /// <summary>
+    /// Triggers once when any of the associated input events presses.  
+    /// </summary>
+    Start,
+    /// <summary>
+    /// Triggers after <see cref="Start"/> whenever any of the associated input events presses.
+    /// </summary>
+    Update,
+    /// <summary>
+    /// Triggers when the last associated input event releases.
+    /// </summary>
+    End
 }
