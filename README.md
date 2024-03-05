@@ -16,8 +16,91 @@ These `user interactions` are `panel-scoped`, which means they only stay active 
 
 ## Simple API Usage
 
+### Creating a Simple Panel
+
 ```csharp
-// WIP: API usage should be simple and intuitive
+using GDPanelFramework;
+using Godot;
+using GodotTask;
+
+/// <summary>
+/// The bootstrap script that creates and opens the panel.
+/// </summary>
+public partial class Example00_Main : Node
+{
+    /// <summary>
+    /// The packed panel.
+    /// </summary>
+    [Export] private PackedScene _panelPrefab;
+
+    /// <summary>
+    /// Executes the main logic after one frame since the game starts. 
+    /// This is required by the GDPanelFramework for adding its panel root into the scene tree.
+    /// </summary>
+    public override void _Ready() =>
+        GDTask.NextFrame().ContinueWith(OnReady);
+
+    private void OnReady()
+    {
+        _panelPrefab
+            .CreatePanel<Example00_MyPanel>() // This extension method tells the framework to create or reuse an instance of this panel.
+            .OpenPanel( // This method tells the framework to opens the panel.
+                onPanelCloseCallback: // This delegate gets called when this panel gets closed when the panel itself calls ClosePanel().
+                () => GetTree().Quit() // Terminate the application when this panel gets closed.
+            );
+    }
+}
+```
+
+```csharp
+// Main.cs
+using GDPanelFramework.Panels;
+using Godot;
+
+/// <summary>
+/// Attach this script to a Control to make it a "UIPanel".
+/// </summary>
+public partial class Example00_MyPanel : UIPanel
+{
+    // These three fields are assigned in Godot Editor, through inspector.
+    [Export] private Label _text;
+    [Export] private Button _updateButton;
+    [Export] private Button _closeButton;
+
+    // Stores the click count.
+    private int _clickCount = 0;
+
+    /// <summary>
+    /// Called by the framework when this instance of panel is created,
+    /// an instance can only gets created once.
+    /// </summary>
+    protected override void _OnPanelInitialize()
+    {
+        _updateButton.Pressed += OnClick; // Calls OnClick then the _updateButton gets pressed.
+        _closeButton.Pressed += ClosePanel; // Close this panel when the _closeButton gets pressed.
+    }
+
+    /// <summary>
+    /// Registered to the <see cref="_updateButton"/>.
+    /// </summary>
+    private void OnClick()
+    {
+        _clickCount++;
+        _text.Text = $"Clicked {_clickCount} time(s).";
+    }
+
+    /// <summary>
+    /// Called by the framework when this instance of panel is opened. 
+    /// The framework supports automatic panel caching
+    /// so a panel may gets opened multiple times after it's closed.
+    /// </summary>
+    protected override void _OnPanelOpen()
+    {
+        _text.Text = "Hello World";
+        _updateButton.GrabFocus();
+    }
+}
+}
 ```
 
 ## Framework Documentation
