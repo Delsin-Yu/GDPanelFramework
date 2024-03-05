@@ -138,7 +138,7 @@ internal class AsyncAwaitableBase<T>
     /// <exception cref="InvalidOperationException">Throws when the method is not complete.</exception>
     internal T GetResult()
     {
-        if (!_isCompleted) throw new InvalidOperationException("The associated method has not completed!");
+        var requiresThrow = !_isCompleted;
         _isActive = false;
         _isStarted = false;
         _isCompleted = false;
@@ -146,6 +146,7 @@ internal class AsyncAwaitableBase<T>
         _result = default;
         _continuation = null;
         Pool.Collect(this);
+        if (requiresThrow) throw new InvalidOperationException("The associated method has not completed!");
         return result;
     }
 
@@ -159,7 +160,7 @@ internal class AsyncAwaitableBase<T>
     {
         _isCompleted = true;
         _result = result;
-        _continuation?.Invoke();
+        DelegateRunner.RunProtected(_continuation, "Async Continuation", "Async Interop");
     }
 
     /// <summary>
@@ -200,13 +201,13 @@ internal class AsyncAwaitableBase<T>
     {
         if (IsCompleted)
         {
-            DelegateRunner.RunProtected(onFinish, GetResult(), "Async Continuation", onFinish.Target?.ToString() ?? "Null");
+            DelegateRunner.RunProtected(onFinish, GetResult(), "Async Continuation", "Async Interop");
             return;
         }
         
         OnCompleted(() =>
         {
-            DelegateRunner.RunProtected(onFinish, GetResult(), "Async Continuation", onFinish.Target?.ToString() ?? "Null");
+            DelegateRunner.RunProtected(onFinish, GetResult(), "Async Continuation", "Async Interop");
         });
     }
 }
