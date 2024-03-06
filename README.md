@@ -14,6 +14,41 @@ This framework groups `sets` of `user interactions` into a `UIPanel`, which incl
 
 These `user interactions` are `panel-scoped`, which means they only stay active when the `panel` is active; this simplifies the workflow for maintaining large amounts of discrete `Controls` and `Global Input Actions` and allows developers to focus on programming game logic (*not collecting and toggling `Controls` or adding more `if`s into a global `_Input` method*).
 
+---
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+## Table of Contents
+
+- [Simple API Usage](#simple-api-usage)
+  - [Creating a simple panel](#creating-a-simple-panel)
+  - [Creating a panel with Argument](#creating-a-panel-with-argument)
+- [Framework Documentation](#framework-documentation)
+  - [Panel Instantiation and Caching](#panel-instantiation-and-caching)
+    - [Instantiate a Panel](#instantiate-a-panel)
+    - [Framework-level Caching](#framework-level-caching)
+  - [Framework Overview](#framework-overview)
+    - [The Application Control Flow](#the-application-control-flow)
+      - [Open and Wait for Closing](#open-and-wait-for-closing)
+      - [Open and Forget](#open-and-forget)
+      - [Open and Close Extern](#open-and-close-extern)
+    - [Panel Event Methods Overview](#panel-event-methods-overview)
+      - [Opening a panel](#opening-a-panel)
+        - [Async/Wait Style](#asyncwait-style)
+        - [Delegate/Callback Style](#delegatecallback-style)
+        - [Forget Style](#forget-style)
+      - [Configuring the Previous Panel Visual Behavior](#configuring-the-previous-panel-visual-behavior)
+    - [The UIPanelArg](#the-uipanelarg)
+    - [Panel Parent Container Management](#panel-parent-container-management)
+    - [Input Binding / Routing](#input-binding--routing)
+    - [Panel Tweener](#panel-tweener)
+    - [AsyncInterop Class](#asyncinterop-class)
+    - [Please Note when using this Framework](#please-note-when-using-this-framework)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+---
+
 ## Simple API Usage
 
 ### Creating a simple panel
@@ -106,6 +141,8 @@ public partial class Example00_MyPanel : UIPanel
 
 ### Creating a panel with Argument
 
+> TODO
+
 ## Framework Documentation
 
 ### Panel Instantiation and Caching
@@ -156,7 +193,7 @@ panelInstance
 
 In a typical GUI application such as Games, a `panel/page-based control flow` is a common practice. This framework embraces this practice by implementing the following `singular control flow-based` design.
 
-##### Open and Await
+##### Open and Wait for Closing
 
 Think about an application that starts through a `Main` method, when opening a panel, you may `transfer the control flow` to that panel and do works in that panel, when done, close the panel from inside, and `return the control flow` back to the caller.
 
