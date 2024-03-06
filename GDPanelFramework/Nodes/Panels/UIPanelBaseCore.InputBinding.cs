@@ -139,7 +139,7 @@ public abstract partial class UIPanelBaseCore
     }
     
     /// <summary>
-    /// Register a <paramref name="callback"/> to the composite axis of the <paramref name="negativeInputName"/> and <see cref="positiveInputName"/> for this panel when it's active.
+    /// Register a <paramref name="callback"/> to the composite axis of the <paramref name="negativeInputName"/> and <paramref name="positiveInputName"/> for this panel when it's active.
     /// </summary>
     /// <param name="negativeInputName">The input name that represents the negative axis to associate to.</param>
     /// <param name="positiveInputName">The input name that represents the positive axis to associate to.</param>
@@ -179,7 +179,7 @@ public abstract partial class UIPanelBaseCore
     }
 
     /// <summary>
-    /// Removes a <paramref name="callback"/> registration from the composite axis of the <paramref name="negativeInputName"/> and <see cref="positiveInputName"/> for this panel when it's active.
+    /// Removes a <paramref name="callback"/> registration from the composite axis of the <paramref name="negativeInputName"/> and <paramref name="positiveInputName"/> for this panel when it's active.
     /// </summary>
     /// <param name="negativeInputName">The input name that represents the negative axis to remove from.</param>
     /// <param name="positiveInputName">The input name that represents the positive axis to remove from.</param>
@@ -220,7 +220,7 @@ public abstract partial class UIPanelBaseCore
     }
 
     /// <summary>
-    /// Register or removes a <paramref name="callback"/> registration from the composite axis of the <paramref name="negativeInputName"/> and <see cref="positiveInputName"/> for this panel when it's active.
+    /// Register or removes a <paramref name="callback"/> registration from the composite axis of the <paramref name="negativeInputName"/> and <paramref name="positiveInputName"/> for this panel when it's active.
     /// </summary>
     /// <param name="enable">When setting to true, calls <see cref="RegisterInputAxis"/>, otherwise calls <see cref="RemoveInputAxis"/></param>
     /// <param name="negativeInputName">The input name that represents the negative axis to associate to or remove from.</param>
@@ -234,7 +234,7 @@ public abstract partial class UIPanelBaseCore
     }
 
     /// <summary>
-    /// Register a <paramref name="callback"/> to the composite vector (2 axis) of the <paramref name="upInputName"/>, <see cref="downInputName"/>, <see cref="leftInputName"/>, and <see cref="rightInputName"/> for this panel when it's active.
+    /// Register a <paramref name="callback"/> to the composite vector (2 axis) of the <paramref name="upInputName"/>, <paramref name="downInputName"/>, <paramref name="leftInputName"/>, and <paramref name="rightInputName"/> for this panel when it's active.
     /// </summary>
     /// <param name="upInputName">The input name that represents the positive vertical axis (Y+) to associate to.</param>
     /// <param name="downInputName">The input name that represents the negative vertical axis (Y-) to associate to.</param>
@@ -280,7 +280,7 @@ public abstract partial class UIPanelBaseCore
     }
 
     /// <summary>
-    /// Remove a <paramref name="callback"/> registration from the composite vector (2 axis) of the <paramref name="upInputName"/>, <see cref="downInputName"/>, <see cref="leftInputName"/>, and <see cref="rightInputName"/> for this panel when it's active.
+    /// Remove a <paramref name="callback"/> registration from the composite vector (2 axis) of the <paramref name="upInputName"/>, <paramref name="downInputName"/>, <paramref name="leftInputName"/>, and <paramref name="rightInputName"/> for this panel when it's active.
     /// </summary>
     /// <param name="upInputName">The input name that represents the positive vertical axis (Y+) to remove from.</param>
     /// <param name="downInputName">The input name that represents the negative vertical axis (Y-) to remove from.</param>
@@ -327,7 +327,7 @@ public abstract partial class UIPanelBaseCore
     }
     
     /// <summary>
-    /// Register or removes a <paramref name="callback"/> registration from the composite vector (2 axis) of the <paramref name="upInputName"/>, <see cref="downInputName"/>, <see cref="leftInputName"/>, and <see cref="rightInputName"/> for this panel when it's active.
+    /// Register or removes a <paramref name="callback"/> registration from the composite vector (2 axis) of the <paramref name="upInputName"/>, <paramref name="downInputName"/>, <paramref name="leftInputName"/>, and <paramref name="rightInputName"/> for this panel when it's active.
     /// </summary>
     /// <param name="enable">When setting to true, calls <see cref="RegisterInputVector"/>, otherwise calls <see cref="RemoveInputVector"/></param>
     /// <param name="upInputName">The input name that represents the positive vertical axis (Y+) to associate to or remove from.</param>
