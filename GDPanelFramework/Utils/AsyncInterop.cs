@@ -62,12 +62,6 @@ public sealed class AsyncAwaitable : INotifyCompletion
 
     /// <inheritdoc cref="AsyncAwaitableBase{T}.GetAwaiter{T}"/>
     public AsyncAwaitable GetAwaiter() => _backing.GetAwaiter(this);
-    
-    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start(Action{T})"/>
-    public void Start(Action onFinish) => _backing.Start(_ => onFinish?.Invoke());
-    
-    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start()"/>
-    public void Start() => _backing.Start();
 }
 
 /// <inheritdoc cref="AsyncAwaitableBase{T}"/>
@@ -92,13 +86,6 @@ public sealed class AsyncAwaitable<T> : INotifyCompletion
 
     /// <inheritdoc cref="AsyncAwaitableBase{T}.GetAwaiter{T}"/>
     public AsyncAwaitable<T> GetAwaiter() => _backing.GetAwaiter(this);
-
-    
-    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start(Action{T})"/>
-    public void Start(Action<T> onFinish) => _backing.Start(onFinish);
-    
-    /// <inheritdoc cref="AsyncAwaitableBase{T}.Start()"/>
-    public void Start() => _backing.Start();
 }
 
 /// <summary>
@@ -126,7 +113,15 @@ internal class AsyncAwaitableBase<T>
         get
         {
             ThrowIfNotActive();
-            if (!_isStarted) _sourceMethod!(Complete);
+            if (!_isStarted)
+            {
+                var success = DelegateRunner.RunProtected(_sourceMethod, Complete, "Delegate Execution", "Async Interop");
+                if (!success)
+                {
+                    Collect();
+                    throw new InvalidOperationException("Exception thrown when invoking async backing method.");
+                }
+            }
             _isStarted = true;
             return _isCompleted;
         }
@@ -139,20 +134,15 @@ internal class AsyncAwaitableBase<T>
     internal T GetResult()
     {
         var requiresThrow = !_isCompleted;
-        _isActive = false;
-        _isStarted = false;
-        _isCompleted = false;
         var result = _result!;
-        _result = default;
-        _continuation = null;
-        Pool.Collect(this);
+        Collect();
         if (requiresThrow) throw new InvalidOperationException("The associated method has not completed!");
         return result;
     }
 
     internal void Init(Action<Action<T>> sourceMethod)
     {
-        this._sourceMethod = sourceMethod;
+        _sourceMethod = sourceMethod;
         _isActive = true;
     }
 
@@ -160,9 +150,29 @@ internal class AsyncAwaitableBase<T>
     {
         _isCompleted = true;
         _result = result;
-        DelegateRunner.RunProtected(_continuation, "Async Continuation", "Async Interop");
+        RunContinuation();
     }
 
+    private void RunContinuation()
+    {
+        var success = DelegateRunner.RunProtected(_continuation, "Async Continuation", "Async Interop");
+        if (!success)
+        {
+            Collect();
+            throw new InvalidOperationException("Exception thrown when invoking continuation method.");
+        }
+    }
+
+    private void Collect()
+    {
+        _isActive = false;
+        _isStarted = false;
+        _isCompleted = false;
+        _result = default;
+        _continuation = null;
+        Pool.Collect(this);
+    }
+    
     /// <summary>
     /// Registers a method that gets called when the associated delegate-callback styled method completes.
     /// </summary>
@@ -170,12 +180,8 @@ internal class AsyncAwaitableBase<T>
     internal void OnCompleted(Action continuation)
     {
         ThrowIfNotActive();
-        if (_isCompleted)
-        {
-            continuation?.Invoke();
-            return;
-        }
         _continuation = continuation;
+        if (_isCompleted) RunContinuation();
     }
 
     /// <summary>
@@ -186,28 +192,5 @@ internal class AsyncAwaitableBase<T>
     {
         ThrowIfNotActive();
         return instance;
-    }
-
-    /// <summary>
-    /// Execute this awaitable without using await/async syntax.
-    /// </summary>
-    internal void Start() => _ = IsCompleted;
-
-    /// <summary>
-    /// Execute this awaitable in delegate-callback style without using await/async syntax.
-    /// </summary>
-    /// <param name="onFinish">A delegate that calls when this asynchronous operation completes.</param>
-    internal void Start(Action<T> onFinish)
-    {
-        if (IsCompleted)
-        {
-            DelegateRunner.RunProtected(onFinish, GetResult(), "Async Continuation", "Async Interop");
-            return;
-        }
-        
-        OnCompleted(() =>
-        {
-            DelegateRunner.RunProtected(onFinish, GetResult(), "Async Continuation", "Async Interop");
-        });
     }
 }
