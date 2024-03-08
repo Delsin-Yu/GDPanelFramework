@@ -24,26 +24,21 @@ These `user interactions` are `panel-scoped`, which means they only stay active 
   - [Creating a simple panel](#creating-a-simple-panel)
   - [Creating a panel with Argument](#creating-a-panel-with-argument)
 - [Framework Documentation](#framework-documentation)
-  - [Panel Instantiation and Caching](#panel-instantiation-and-caching)
+  - [Framework Concept](#framework-concept)
+  - [The `UIPanel`](#the-uipanel)
     - [Instantiate a Panel](#instantiate-a-panel)
-    - [Framework-level Caching](#framework-level-caching)
-  - [Framework Overview](#framework-overview)
-    - [The Application Control Flow](#the-application-control-flow)
-      - [Open and Wait for Closing](#open-and-wait-for-closing)
-      - [Open and Forget](#open-and-forget)
-      - [Open and Close Extern](#open-and-close-extern)
-    - [Panel Event Methods Overview](#panel-event-methods-overview)
-      - [Opening a panel](#opening-a-panel)
-        - [Async/Wait Style](#asyncwait-style)
-        - [Delegate/Callback Style](#delegatecallback-style)
-        - [Forget Style](#forget-style)
-      - [Configuring the Previous Panel Visual Behavior](#configuring-the-previous-panel-visual-behavior)
-    - [The UIPanelArg](#the-uipanelarg)
-    - [Panel Parent Container Management](#panel-parent-container-management)
+    - [Open a panel](#open-a-panel)
+    - [Close a panel](#close-a-panel)
     - [Input Binding / Routing](#input-binding--routing)
-    - [Panel Tweener](#panel-tweener)
-    - [AsyncInterop Class](#asyncinterop-class)
-    - [Please Note when using this Framework](#please-note-when-using-this-framework)
+    - [Panel Stack](#panel-stack)
+    - [Framework-level Caching](#framework-level-caching)
+    - [Panel Event Methods Overview](#panel-event-methods-overview)
+    - [Configuring the Previous Panel Visual Behavior](#configuring-the-previous-panel-visual-behavior)
+  - [The `UIPanelArg`](#the-uipanelarg)
+  - [Panel Container Management](#panel-container-management)
+  - [Panel Tweener](#panel-tweener)
+  - [AsyncInterop Class](#asyncinterop-class)
+  - [Please Note when using this Framework](#please-note-when-using-this-framework)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -145,7 +140,23 @@ public partial class Example00_MyPanel : UIPanel
 
 ## Framework Documentation
 
-### Panel Instantiation and Caching
+### Framework Concept
+
+In a typical GUI application such as Games, a `panel/page-based control flow` is a common practice.
+
+When opening a panel from the `main logic`, developer may want the panel executes its own `panel logic` and `self closes` when finish, then continue the `main logic` (such as file dialog or warning).
+
+This design `transfers the control flow from the main logic to the panel, and the panel returns the control flow back to the main logic when finish` simplifies the workflow for programming panels, it handles the requirement for managing ui focuses, and is crucial when designing game pad compatible games.
+
+This framework implementing this practice by the `Panel Stack based Control Management`, `Async/Callback Styled API`, and `Panel Input Binding` design.
+
+### The `UIPanel`
+
+`UIPanel` is the fundamental component of the framework, it provides `Panel Level Input Binding`, `Child Control Access Management` features for simplfying programming workflow, it also supports configurable `Panel Tweener` for animated opening/closing requirements.
+
+- The `Panel Level Input Binding` feature allows developers to register/deregister a set of input bindings for this panel, the registered inputs are sandboxed at the panel level so they don't get in the way when panel is inactive.
+
+- The `Child Control Access Management` feature automatically disables/restores the `FocusMode` and `MouseFilter` property for every child control when the panel activates/deactivates, this prevents unwanted UI Navigation and Mouse Interaction to `leaked behind` the current activated panel.
 
 #### Instantiate a Panel
 
@@ -161,9 +172,86 @@ var panelInstance =
             .CreatePanel<TypeOfScriptAttachedToThePanel>();
 ```
 
+#### Open a panel
+
+There are three OpenPanel Methods for a UIPanel each of which is designed for a certain programming style.
+
+In an async method, a `async/await-styled` opening method returns a `one-time awaitable` that allows the developer to `await` for a panel close, in `PanelArg`, awaiting this awaitable will also get the return value from the panel.
+
+```csharp
+// When opening a panel, in async method.
+await panelInstance.OpenPanelAsync();
+GD.Print("The panel has closed!");
+```
+
+A `callback-styled` opening method allows the developer to supply a delegate to get notified when the panel has closed, in `PanelArg`, the return value will also pass to this delegate.
+
+```csharp
+// When opening a panel.
+panelInstance
+    .OpenPanel(
+        onPanelCloseCallback: // This lambda gets called when the panel is closed.
+           () => GD.Print("The panel has closed!")
+    );
+```
+
+A `forget-styled` opening method only opens the panel, it is useful when the time of a panel closing is not a concern.
+
+```csharp
+// When opening a panel.
+panelInstance.OpenPanel();
+```
+
+#### Close a panel
+
+Calling `ClosePanel()` in a panel script will close the opened panel. This method is `protected` by default, developer may expose this method by wrapping it around by a public one.
+
+Note that a panel must be opened before you can close it; and closing a panel that's not on top of the panel stack is considered an error and will crash the framework.
+
+```csharp
+// Inside a panel script
+protected override void _OnPanelOpen()
+{
+    // Close a panel one frame after it openes.
+    GDTask.NextFrame().ContinueWith(ClosePanel);
+}
+```
+
+#### Input Binding / Routing
+
+All Godot Input Events are intercepted by the `root/RootPanelViewport` and dispatches directly to the active panel. This simplifies the input management process by 
+
+> WIP: Introduction to the framework level Input Routing  
+> WIP: The `RegisterInput` Method  
+> WIP: The `RemoveInput` Method  
+> WIP: The `GodotBuiltinActionNames` Static Class  
+> WIP: The `PanelManager.UICancelActionName` Property  
+> WIP: The `RegisterCancelInput` Method  
+> WIP: The `RemoveCancelInput` Method  
+> WIP: The `EnableCloseWithCancelKey` Method  
+> WIP: The `DisableCloseWithCancelKey` Method  
+
+#### Panel Stack
+
+The `Panel Stack` is designed for maintaining the order of the opened panels, when opening a panel, the framework peeks at the panel stack for the top panel, disable every control under it (their opening statuses are cached), and push this new instance to the stack. When closing the top panel, the framework pops it from the panel stack and reactivates all the control for the panel underneath it, it also set the focus to the last selected item before this panel becomes inactive.
+
+The example below shows the panel stack of the following sequence of operations:
+
+```mermaid
+timeline
+   No Panel
+   Open MainPanel : MainPanel (Active)
+   Open SettingPanel : SettingPanel (Active) : MainPanel (Deactivated)
+   Open SettingConfirmPanel : SettingConfirmPanel (Active) : SettingPanel  (Deactivated): MainPanel (Deactivated)
+   Close SettingConfirmPanel : SettingPanel (Reactivated) : MainPanel (Deactivated)
+   Close SettingPanel : MainPanel (Reactivated)
+   Close MainPanel
+
+```
+
 #### Framework-level Caching
 
-In certain cases where a panel requires `frequent opening and closing by design` *(think about the inventory panel in some games)*, always instantiating a panel can be expensive. To resolve this hot spot issue, this framework does `automatically panel caching` that you can `configure on a per opening/closing basis`.
+In certain cases where a panel requires `frequent opening and closing by design` *(think about the inventory panel in some games)*, instantiating a panel everytime and delete it on close can be expensive. To resolve this performance issue, the framework does `automatically panel caching` that you can `configure on a per opening/closing basis`.
 
 When creating a panel, by specifying the `createPolicy`, you may choose to force the framework `instantiate` a new instance of the panel (`CreatePolicy.ForceCreate`) or let the framework `reuse a cached instance (default)` if possible (`CreatePolicy.TryReuse`), of course, if there is no existing cache, a new instance is created anyway.
 
@@ -187,96 +275,9 @@ panelInstance
 
 ```
 
-### Framework Overview
-
-#### The Application Control Flow
-
-In a typical GUI application such as Games, a `panel/page-based control flow` is a common practice. This framework embraces this practice by implementing the following `singular control flow-based` design.
-
-##### Open and Wait for Closing
-
-Think about an application that starts through a `Main` method, when opening a panel, you may `transfer the control flow` to that panel and do works in that panel, when done, close the panel from inside, and `return the control flow` back to the caller.
-
-```mermaid
----
-title: Typical Panel Based Control Flow Design
----
-gitGraph
-   commit id: "main work 1"
-   commit id: "main work 2"
-   commit id: "open panel and wait" type: HIGHLIGHT
-   branch panel
-   checkout panel
-   commit id: "panel work 1"
-   commit id: "panel work 2"
-   commit id: "close panel" type: HIGHLIGHT
-   checkout main
-   merge panel
-   commit id: "main work 3"
-   commit id: "main work 4"
-```
-
-##### Open and Forget
-
-There are cases where `the time of a panel closing is not a concern`. In the following example, you open a panel and `let that panel manage its own business (forget it)` and make it close itself when it finishes.
-
-```mermaid
----
-title: Open and Forget Based Control Flow Design
----
-gitGraph
-   commit id: "main work 1"
-   commit id: "main work 2"
-   commit id: "open panel and forget" type: HIGHLIGHT
-   branch panel
-   checkout panel
-   commit id: "panel work 1"
-   checkout main
-   commit id: "main work 3"
-   checkout panel
-   commit id: "panel work 2"
-   checkout main
-   commit id: "main work 4"
-   checkout panel
-   commit id: "close panel" type: HIGHLIGHT
-   checkout main
-   commit id: "main work 5"
-   commit id: "main work 6"
-```
-
-##### Open and Close Extern
-
-There are also cases where you open the panel and, `close it from the caller when required`. In the following example, you `open a panel and close it from the caller (close extern)`.
-
-```mermaid
----
-title: Open and Close Extern Based Control Flow Design
----
-gitGraph
-   commit id: "main work 1"
-   commit id: "main work 2"
-   commit id: "open panel and forget" type: HIGHLIGHT
-   branch panel
-   checkout panel
-   commit id: "panel work 1"
-   checkout main
-   commit id: "main work 3"
-   checkout panel
-   commit id: "panel work 2"
-   checkout main
-   commit id: "close panel extern" type: HIGHLIGHT
-   checkout panel
-   merge main
-   checkout main
-   commit id: "main work 4"
-   commit id: "main work 5"
-```
-
-This framework provides feature support for the above three practices.
-
 #### Panel Event Methods Overview
 
-While using the framework and `UIPanel`s certain methods get called at a certain lifetime of a panel, a brief diagram of the panel can be summarised as follows.
+While working with `UIPanel`s, certain methods get called at a certain lifetime of a panel, a brief diagram of the panel can be summarised as follows.
 
 ```mermaid
 ---
@@ -291,11 +292,15 @@ id4["_OnPanelClose()"]
 id5["_OnPanelPredelete()"]
 id6["_OnPanelNotification()"]
 
+
 id0[["Framework Calls"]] -.-> id1
 id1 -.->|Framework Calls|id2
+
+subgraph Called Multiple Times before the Panel gets Freed
 id2 --> id3
 id3 -.->|Framework Calls|id4
 id4 -.->|Framework Calls|id2
+end
 id6 -.->|Framework Calls|id5
 id7[["Godot Calls"]] -.-> id6
 ```
@@ -305,43 +310,7 @@ id7[["Godot Calls"]] -.-> id6
 3. When calling the `ClosePanel`, after the framework has done preparations for closing this panel, the `_OnPanelClose` method gets invoked. For a panel that gets cached, `_OnPanelClose` will get re-invoked when the panel gets reopened and closed.
 4. A `UIPanel` delegates the `_Notification` engine call to `_OnPanelNotification`, and calls `_OnPanelPredelete` when necessary.
 
-##### Opening a panel
-
-There are three OpenPanel Methods for a UIPanel each of which is designed for a certain programming style.
-
-###### Async/Wait Style
-
-In an async method, this `async/await-styled` opening method returns a `one-time awaitable` that allows the developer to `await` for a panel close, in `PanelArg`, awaiting this awaitable will also get the return value from the panel.
-
-```csharp
-// When opening a panel, in async method.
-await panelInstance.OpenPanelAsync();
-GD.Print("The panel has closed!");
-```
-
-###### Delegate/Callback Style
-
-This `callback-styled` opening method allows the developer to supply a delegate to get notified when the panel has closed, in `PanelArg`, the return value will also pass to this delegate.
-
-```csharp
-// When opening a panel.
-panelInstance
-    .OpenPanel(
-        onPanelCloseCallback: // This lambda gets called when the panel is closed.
-           () => GD.Print("The panel has closed!")
-    );
-```
-
-###### Forget Style
-
-This `forget-styled` opening method only opens the panel, it is useful when the time of a panel closing is not a concern.
-
-```csharp
-// When opening a panel.
-panelInstance.OpenPanel();
-```
-
-##### Configuring the Previous Panel Visual Behavior
+#### Configuring the Previous Panel Visual Behavior
 
 When opening a new panel, the currently active panel becomes `unavailable (such as buttons will no longer be clickable or focusable)`, you may also control whether the current panel should stay visible or hidden.
 
@@ -355,7 +324,7 @@ panelInstance
     );
 ```
 
-#### The UIPanelArg
+### The `UIPanelArg`
 
 precautionsIt is a common practice for passing the argument to/receiving return value from a panel, `UIPanelArg<TOpenArg, TCloseArg>` is here to achieve this requirement.
 
@@ -416,26 +385,30 @@ public partial class MyArgumentPanel : UIPanelArg<int, Empty>
 }
 ```
 
-#### Panel Parent Container Management
+### Panel Container Management
 
-> WIP: Introduction to configuring the parent container for the opening panels  
-> WIP: The `RootPanelContainer` Node  
-> WIP: The `PushPanelParent` Method  
-> WIP: The `PopPanelParent` Method  
+All panels in are instantiated under `root/RootPanelViewport/PanelRoot` by default, developers may configure the container for the opening panel through a series of APIs.
 
-#### Input Binding / Routing
+Similar to the `Panel Stack`, `Panel Container Stack` is design for managing the `panel container`s, developer may use push a control to the panel container stack using `PanelManager.PushPanelContainer`, and pop the topmost container by `PanelManager.PopPanelContainer`. Same as the restrictions of opening and closing panel, developers are only allowed to pop the topmost container before they are allowed to pop the other containers.
 
-> WIP: Introduction to the framework level Input Routing  
-> WIP: The `RegisterInput` Method  
-> WIP: The `RemoveInput` Method  
-> WIP: The `GodotBuiltinActionNames` Static Class  
-> WIP: The `PanelManager.UICancelActionName` Property  
-> WIP: The `RegisterCancelInput` Method  
-> WIP: The `RemoveCancelInput` Method  
-> WIP: The `EnableCloseWithCancelKey` Method  
-> WIP: The `DisableCloseWithCancelKey` Method  
+To preventing unexpected poping of containers, each `PushPanelContainer` operation is `authorised` by a Node, that is, you need to provide a `key` when pushing a new container, and popping the container with the same `key`.
 
-#### Panel Tweener
+```csharp
+// In class
+[Export] private Control _myContainer;
+
+// In method
+
+// Every opened panel after this line will get instantiating/reparenting under _myContainer.
+PanelManager.PushPanelContainer(this, _myContainer);
+
+// Every opened panel after this line will get instantiating/reparenting under the default panel container.
+PanelManager.PopPanelContainer(this);
+```
+
+> Please note that, when working with customized panel containers, be careful when `spawning panels under a panel/custom container` that's `getting deleted in the future`, while the framework is trying its best to handle deleted panels, it is possible to `delete custom panel containers that have active panels lives under`, such behavior will possibly crash the framework, developers are recommended to e`nsure every panel under a custom container has closed` before `poping/deleting that container`.
+
+### Panel Tweener
 
 > WIP: Introduction to the `PanelTweener` and `IPanelTweener` interface  
 > WIP: The `PanelManager.IPanelTweener` Property  
@@ -443,11 +416,11 @@ public partial class MyArgumentPanel : UIPanelArg<int, Empty>
 > WIP: The Built-in `NonePanelTweener`  
 > WIP: The Built-in `FadePanelTweener`  
 
-#### AsyncInterop Class
+### AsyncInterop Class
 
 > WIP: Introduction to converting a `delegate/callback` style api into `async/await` style api  
 
-#### Please Note when using this Framework
+### Please Note when using this Framework
 
 While there are precautions taken in order to prevent framework crashes, there are still certain
 
