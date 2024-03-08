@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using GDPanelFramework.Panels;
 using GDPanelFramework.Panels.Tweener;
 using GDPanelFramework.Utils.Pooling;
 using Godot;
+using Godot.Collections;
 using GodotPanelFramework;
 
 namespace GDPanelFramework;
@@ -14,7 +16,7 @@ namespace GDPanelFramework;
 /// This module provides you access to public APIs that responsible for:<br/>
 /// 1. Creating panels from PackedScene (<see cref="CreatePanel{TPanel}"/>) and initiating panel opening behavior.<br/>
 /// 2. Exposes the system-wide <see cref="DefaultPanelTweener"/>.<br/>
-/// 3. Configuring parent for the opening panels through <see cref="PushPanelParent"/> and <see cref="PopPanelParent"/>.<br/>
+/// 3. Configuring parent for the opening panels through <see cref="PushPanelContainer"/> and <see cref="PopPanelContainer"/>.<br/>
 /// 4. Dispatches the <see cref="InputEvent"/>s to the active panels and lets you configures the system-wide <see cref="UICancelActionName"/>.
 /// </summary>
 public static partial class PanelManager
@@ -30,21 +32,21 @@ public static partial class PanelManager
 
     private record struct PanelRootInfo(Node? Owner, Control Root);
 
-    private static readonly Dictionary<PackedScene, Stack<UIPanelBaseCore>> BufferedPanels = new();
+    private static readonly System.Collections.Generic.Dictionary<PackedScene, Stack<UIPanelBaseCore>> BufferedPanels = new();
     private static readonly Stack<UIPanelBaseCore> PanelStack = new();
-    private static readonly Stack<PanelRootInfo> PanelParents = new();
+    private static readonly Stack<PanelRootInfo> PanelContainers = new();
 
     private static bool _panelRootInitialized;
     private static IPanelTweener _defaultPanelTweener = NonePanelTweener.Instance;
 
     private static Control GetCurrentPanelRoot()
     {
-        if (_panelRootInitialized) return PanelParents.Peek().Root;
+        if (_panelRootInitialized) return PanelContainers.Peek().Root;
 
-        PanelParents.Push(new(null, RootPanelContainer.PanelRoot));
+        PanelContainers.Push(new(null, RootPanelContainer.PanelRoot));
         _panelRootInitialized = true;
 
-        return PanelParents.Peek().Root;
+        return PanelContainers.Peek().Root;
     }
 
 
@@ -95,6 +97,9 @@ public static partial class PanelManager
         }
 
         cacheStack.Push(closingPanel);
+        var currentParent = closingPanel.GetParent();
+        var defaultPanelRoot = RootPanelContainer.PanelRoot;
+        if (currentParent != defaultPanelRoot) closingPanel.Reparent(defaultPanelRoot, false);
     }
 
     internal static bool ProcessInputEvent(InputEvent inputEvent)
@@ -103,17 +108,21 @@ public static partial class PanelManager
 
         var cachedWrapper = new CachedInputEvent(inputEvent);
 
-        return topPanel.ProcessPanelInput(ref cachedWrapper);
+        var hasAccepted = topPanel.ProcessPanelInput(ref cachedWrapper);
+        
+        cachedWrapper.Dispose();
+
+        return hasAccepted;
     }
 
     internal readonly struct CachedInputEvent
     {
-        private readonly Dictionary<StringName, bool> _actionHasEvent;
+        private readonly System.Collections.Generic.Dictionary<StringName, bool> _actionHasEvent;
 
         public CachedInputEvent(InputEvent @event)
         {
             Event = @event;
-            _actionHasEvent = Pool.Get<Dictionary<StringName, bool>>(() => []);
+            _actionHasEvent = Pool.Get<System.Collections.Generic.Dictionary<StringName, bool>>(() => []);
             Phase = Event.IsPressed() ? InputActionPhase.Pressed : InputActionPhase.Released;
         }
 
@@ -150,32 +159,36 @@ public static partial class PanelManager
     public static string UICancelActionName { get; set; } = BuiltinInputNames.UICancel;
 
     /// <summary>
-    /// Pushes a new <see cref="Control"/> as the parent for subsequent opening panels to the parent stack.
+    /// Pushes a new <see cref="Control"/> as the container for subsequent opening panels to the container stack.
     /// </summary>
     /// <remarks>
-    /// Pushing and popping actions must be parallel, that is, the topmost parent must be popped before you can pop the other parents.
+    /// Pushing and popping actions must be parallel, that is, the topmost container must be popped before you can pop the other containers.
     /// </remarks>
     /// <param name="owner">The owner that perform this action.</param>
-    /// <param name="newRoot">The <see cref="Control"/> that is becoming the parent for subsequent opening panels.</param>
-    public static void PushPanelParent(Node owner, Control newRoot)
+    /// <param name="newRoot">The <see cref="Control"/> that is becoming the container for subsequent opening panels.</param>
+    public static void PushPanelContainer(Node owner, Control newRoot)
     {
-        PanelParents.Push(new(owner, newRoot));
+        PanelContainers.Push(new(owner, newRoot));
     }
 
     /// <summary>
-    /// Pops the topmost parent from the parent stack, which makes the next topmost <see cref="Control"/> become the parent for subsequent opening panels.
+    /// Pops the topmost container from the container stack, which makes the next topmost <see cref="Control"/> become the container for subsequent opening panels.
     /// </summary>
     /// <remarks>
-    /// Pushing and popping actions must be parallel, that is, the topmost parent must be popped before you can pop the other parents.
+    /// Pushing and popping actions must be parallel, that is, the topmost container must be popped before you can pop the other containers.
     /// </remarks>
     /// <param name="requester">The owner that performs this action.</param>
     /// <exception cref="ArgumentNullException">The requester is null.</exception>
-    /// <exception cref="InvalidOperationException">The requester is not the owner of the topmost parent of the parent stack.</exception>
-    public static void PopPanelParent(Node requester)
+    /// <exception cref="InvalidOperationException">The requester is not the owner of the topmost container of the container stack.</exception>
+    public static void PopPanelContainer(Node requester)
     {
         ArgumentNullException.ThrowIfNull(requester);
-        ExceptionUtils.ThrowIfUnauthorizedPanelRootOwner(requester, PanelParents.Peek().Owner);
-        PanelParents.Pop();
+        ExceptionUtils.ThrowIfUnauthorizedPanelRootOwner(requester, PanelContainers.Peek().Owner);
+        var (_, control) = PanelContainers.Pop();
+        foreach (var panel in control.GetChildren().OfType<UIPanelBaseCore>())
+        {
+            panel.Reparent(RootPanelContainer.PanelRoot);
+        }
     }
 
     /// <summary>
