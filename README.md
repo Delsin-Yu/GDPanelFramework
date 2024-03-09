@@ -1,6 +1,6 @@
-# GD Panel Framework [Work In Progress]
+# GD Panel Framework
 
-[![GitHub Release](https://img.shields.io/github/v/release/Delsin-Yu/GDPanelFramework)](https://github.com/Delsin-Yu/GDPanelFramework/releases/Latest) [![NuGet Version](https://img.shields.io/nuget/v/GDPanelFramework)](https://www.nuget.org/packages/GDPanelFramework) ![NuGet Downloads](https://img.shields.io/nuget/dt/GDPanelFramework) [![Stars](https://img.shields.io/github/stars/Delsin-Yu/GDPanelFramework?color=brightgreen)](https://github.com/Delsin-Yu/GDPanelFramework/stargazers) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Delsin-Yu/GDPanelFramework/blob/main/LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/Delsin-Yu/GDPanelFramework)](https://github.com/Delsin-Yu/GDPanelFramework/releases/latest) [![NuGet Version](https://img.shields.io/nuget/v/GDPanelFramework)](https://www.nuget.org/packages/GDPanelFramework) ![NuGet Downloads](https://img.shields.io/nuget/dt/GDPanelFramework) [![Stars](https://img.shields.io/github/stars/Delsin-Yu/GDPanelFramework?color=brightgreen)](https://github.com/Delsin-Yu/GDPanelFramework/stargazers) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Delsin-Yu/GDPanelFramework/blob/main/LICENSE)
 
 ## Introduction
 
@@ -13,6 +13,10 @@ This framework groups `sets` of `user interactions` into a `UIPanel`, which incl
 2. `Inputs`, which is a set of developer-defined input actions binds with this panel.
 
 These `user interactions` are `panel-scoped`, which means they only stay active when the `panel` is active; this simplifies the workflow for maintaining large amounts of discrete `Controls` and `Global Input Actions` and allows developers to focus on programming game logic (*not collecting and toggling `Controls` or adding more `if`s into a global `_Input` method*).
+
+## Installation
+
+> WIP: Nuget
 
 ---
 
@@ -30,15 +34,24 @@ These `user interactions` are `panel-scoped`, which means they only stay active 
     - [Open a panel](#open-a-panel)
     - [Close a panel](#close-a-panel)
     - [Input Binding / Routing](#input-binding--routing)
+      - [Input Registration](#input-registration)
+        - [Basic Usage](#basic-usage)
+        - [Variation: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`](#variation-registerinputcancelremoveinputcanceltoggleinputcancel)
+        - [Variation: `EnableCloseWithCancelKey` and `DisableCloseWithCancelKey`](#variation-enableclosewithcancelkey-and-disableclosewithcancelkey)
+        - [Variation: `RegisterInputAxis`/`RemoveInputAxis`/`ToggleInputAxis`](#variation-registerinputaxisremoveinputaxistoggleinputaxis)
+        - [Variation: `RegisterInputVector`/`RemoveInputVector`/`ToggleInputVector`](#variation-registerinputvectorremoveinputvectortoggleinputvector)
+      - [the BuiltinInputNames Class](#the-builtininputnames-class)
     - [Panel Stack](#panel-stack)
     - [Framework-level Caching](#framework-level-caching)
     - [Panel Event Methods Overview](#panel-event-methods-overview)
     - [Configuring the Previous Panel Visual Behavior](#configuring-the-previous-panel-visual-behavior)
   - [The `UIPanelArg`](#the-uipanelarg)
   - [Panel Container Management](#panel-container-management)
-  - [Panel Tweener](#panel-tweener)
-  - [AsyncInterop Class](#asyncinterop-class)
-  - [Please Note when using this Framework](#please-note-when-using-this-framework)
+  - [The `Panel Tweener`](#the-panel-tweener)
+    - [Built-in Tweeners](#built-in-tweeners)
+    - [Customized Tweenrs](#customized-tweenrs)
+  - [Note when using `async/await` Styled API](#note-when-using-asyncawait-styled-api)
+  - [Note when using this Framework](#note-when-using-this-framework)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -51,9 +64,10 @@ These `user interactions` are `panel-scoped`, which means they only stay active 
 You can run ***[RunMe_Example00.tscn](https://github.com/Delsin-Yu/GDPanelFramework.Test/blob/main/Examples/00/RunMe_Example00.tscn)*** in Godot Editor.
 
 ```csharp
-using GDPanelFramework;
 using Godot;
 using GodotTask;
+
+namespace GDPanelFramework.Examples;
 
 /// <summary>
 /// The bootstrap script that creates and opens the panel.
@@ -85,9 +99,10 @@ public partial class Example00_Main : Node
 ```
 
 ```csharp
-// Main.cs
 using GDPanelFramework.Panels;
 using Godot;
+
+namespace GDPanelFramework.Examples;
 
 /// <summary>
 /// Attach this script to a Control to make it a "UIPanel".
@@ -124,7 +139,7 @@ public partial class Example00_MyPanel : UIPanel
     /// <summary>
     /// Called by the framework when this instance of panel is opened. 
     /// The framework supports automatic panel caching
-    /// so a panel may gets opened multiple times after it's closed.
+    /// so you may reopen a panel after it's closed and cached.
     /// </summary>
     protected override void _OnPanelOpen()
     {
@@ -136,7 +151,98 @@ public partial class Example00_MyPanel : UIPanel
 
 ### Creating a panel with Argument
 
-> TODO
+You can run ***[RunMe_Example01.tscn](https://github.com/Delsin-Yu/GDPanelFramework.Test/blob/main/Examples/00/RunMe_Example01.tscn)*** in Godot Editor.
+
+```csharp
+using Godot;
+using GodotTask;
+
+namespace GDPanelFramework.Examples;
+
+/// <summary>
+/// The bootstrap script that creates and opens the panel.
+/// </summary>
+public partial class Example01_Main : Node
+{
+    /// <summary>
+    /// The packed panel.
+    /// </summary>
+    [Export] private PackedScene _panelPrefab;
+
+    /// <summary>
+    /// Executes the main logic after one frame since the game starts. 
+    /// This is required by the GDPanelFramework for adding its panel root into the scene tree.
+    /// </summary>
+    public override void _Ready() =>
+        GDTask.NextFrame().ContinueWith(OnReady);
+
+    private void OnReady()
+    {
+        _panelPrefab
+            .CreatePanel<Example01_MyPanel>() // This extension method tells the framework to create or reuse an instance of this panel.
+            .OpenPanel( // This method tells the framework to opens the panel.
+                "Hello World!", // Passes the argument to the panel.
+                onPanelCloseCallback: // This delegate gets called when this panel gets closed when the panel itself calls ClosePanel().
+                result => // Prints the result and terminate the application when this panel gets closed.
+                {
+                    GD.Print($"Clicked {result} time(s) before closed.");
+                    GetTree().Quit();
+                }
+            );
+    }
+}
+```
+
+```csharp
+using GDPanelFramework.Panels;
+using Godot;
+
+namespace GDPanelFramework.Examples;
+
+/// <summary>
+/// Attach this script to a Control to make it a "UIPanel".
+/// </summary>
+public partial class Example01_MyPanel : UIPanelArg<string, string>
+{
+    // These three fields are assigned in Godot Editor, through inspector.
+    [Export] private Label _text;
+    [Export] private Button _updateButton;
+    [Export] private Button _closeButton;
+
+    // Stores the click count.
+    private int _clickCount = 0;
+
+    /// <summary>
+    /// Called by the framework when this instance of panel is created,
+    /// an instance can only gets created once.
+    /// </summary>
+    protected override void _OnPanelInitialize()
+    {
+        _updateButton.Pressed += OnClick; // Calls OnClick then the _updateButton gets pressed.
+        _closeButton.Pressed += () => ClosePanel(_clickCount.ToString()); // Close this panel when the _closeButton gets pressed.
+    }
+
+    /// <summary>
+    /// Registered to the <see cref="_updateButton"/>.
+    /// </summary>
+    private void OnClick()
+    {
+        _clickCount++;
+        _text.Text = $"Clicked {_clickCount} time(s).";
+    }
+
+    /// <summary>
+    /// Called by the framework when this instance of panel is opened. 
+    /// The framework supports automatic panel caching
+    /// so you may reopen a panel after it's closed and cached.
+    /// </summary>
+    protected override void _OnPanelOpen(string openArg)
+    {
+        _text.Text = openArg;
+        _updateButton.GrabFocus();
+    }
+}
+```
 
 ## Framework Documentation
 
@@ -206,7 +312,7 @@ panelInstance.OpenPanel();
 
 Calling `ClosePanel()` in a panel script will close the opened panel. This method is `protected` by default, developer may expose this method by wrapping it around by a public one.
 
-Note that a panel must be opened before you can close it; and closing a panel that's not on top of the panel stack is considered an error and will crash the framework.
+> Please note that a panel must be opened before you can close it; and closing a panel that's not on top of the panel stack is considered an error and will crash the framework.
 
 ```csharp
 // Inside a panel script
@@ -219,17 +325,148 @@ protected override void _OnPanelOpen()
 
 #### Input Binding / Routing
 
-All Godot Input Events are intercepted by the `root/RootPanelViewport` and dispatches directly to the active panel. This simplifies the input management process by 
+All Godot Input Events are intercepted by the `root/RootPanelViewport` and dispatched directly to the active panel. A set of inputs bound to the panel are `automatically switched off or on` when the panel `deactivates/activates`.
 
-> WIP: Introduction to the framework level Input Routing  
-> WIP: The `RegisterInput` Method  
-> WIP: The `RemoveInput` Method  
-> WIP: The `GodotBuiltinActionNames` Static Class  
-> WIP: The `PanelManager.UICancelActionName` Property  
-> WIP: The `RegisterCancelInput` Method  
-> WIP: The `RemoveCancelInput` Method  
-> WIP: The `EnableCloseWithCancelKey` Method  
-> WIP: The `DisableCloseWithCancelKey` Method  
+##### Input Registration
+
+###### Basic Usage
+
+Calling `RegisterInput` in a panel can bind a delegate to a specific input event, the registered delegates are freed automatically when the panel gets freed.
+
+```csharp
+// In panel
+RegisterInput( // Register a callback to the associated inputName
+    BuiltinInputNames.UIAccept, // The input name to associate to, this name should Corresponds to the name in InputManager.
+    inputEvent => GD.Print(inputEvent.AsText()), // The delegate to associate to.
+    InputActionPhase.Pressed // The input state to focus on.
+);
+```
+
+In certain cases where unbinding a delegate is required, calling `RemoveInput` with the corresponding registration.
+
+> Note that when working with input deregisteration, to correctly deregisters a `lambda expression`, it is mandatory to `assign the lambda expression to a variable` and `pass that variable to the APIs`.
+
+```csharp
+// Assign this lambda expression to a variable.
+Action<InputEvent> myDelegate = inputEvent => GD.Print(inputEvent.AsText());
+
+// Register this callback to the associated inputName.
+RegisterInput(BuiltinInputNames.UIAccept, myDelegate);
+// Remove this registration.
+RemoveInput(BuiltinInputNames.UIAccept, myDelegate);
+```
+
+Alternatively, you may uses the `ToggleInput` API.
+
+```csharp
+ToggleInput( // This api support change input registration base on the first bool.
+    true, // set to false to deregister.
+    BuiltinInputNames.UIAccept,
+    inputEvent => GD.Print(inputEvent.AsText()) // this lambda expression are cached by the compiler.
+);
+```
+
+For achieving certain purposes there are several other variations of input registration APIs.
+
+###### Variation: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`
+
+Associate a delegate directly to the `ui_cancel` input event, developer may configure the value in `PanelManager.UICancelActionName`.
+
+```csharp
+RegisterInputCancel(() => GD.Print("Canceled!"));
+
+Action myDelegate = () => GD.Print("Canceled!");
+RegisterInputCancel(myDelegate);
+RemoveInputCancel(myDelegate);
+
+ToggleInputCancel(true, () => GD.Print("Canceled!"));
+```
+
+###### Variation: `EnableCloseWithCancelKey` and `DisableCloseWithCancelKey`
+
+`UIPanel` comes with two extra input binding APIs: `EnableCloseWithCancelKey` and `DisableCloseWithCancelKey`, Calling `EnableCloseWithCancelKey` allows the player to close the current panel with `ui_cancel` (`PanelManager.UICancelActionName`), and `DisableCloseWithCancelKey` revert this behavior.
+
+###### Variation: `RegisterInputAxis`/`RemoveInputAxis`/`ToggleInputAxis`
+
+Associate a delegate to the composites of two input, similar to what `Input.GetAxis` does.
+
+```csharp
+RegisterInputAxis(
+    BuiltinInputNames.UILeft,
+    BuiltinInputNames.UIRight,
+    value => GD.Print(value),
+    CompositeInputActionState.Update // Start, End
+);
+
+Action<float> myDelegate = value => GD.Print(value);
+RegisterInputAxis(
+    BuiltinInputNames.UILeft,
+    BuiltinInputNames.UIRight,
+    myDelegate,
+    CompositeInputActionState.Update
+);
+RemoveInputAxis(
+    BuiltinInputNames.UILeft,
+    BuiltinInputNames.UIRight,
+    myDelegate,
+    CompositeInputActionState.Update
+);
+
+ToggleInputAxis(
+    true,
+    BuiltinInputNames.UILeft,
+    BuiltinInputNames.UIRight,
+    value => GD.Print(value),
+    CompositeInputActionState.Update
+);
+```
+
+###### Variation: `RegisterInputVector`/`RemoveInputVector`/`ToggleInputVector`
+
+Associate a delegate to the composites of four input, similar to what `Input.GetVector` does.
+
+```csharp
+RegisterInputVector(
+    BuiltinInputNames.UIUp,
+    BuiltinInputNames.UIDown,
+    BuiltinInputNames.UILeft,
+    BuiltinInputNames.UIRight,
+    value => GD.Print(value),
+    CompositeInputActionState.Update // Start, End
+);
+
+Action<Vector2> myDelegate = value => GD.Print(value);
+RegisterInputVector(
+    BuiltinInputNames.UIUp,
+    BuiltinInputNames.UIDown,
+    BuiltinInputNames.UILeft,
+    BuiltinInputNames.UIRight,
+    myDelegate,
+    CompositeInputActionState.Update
+);
+RemoveInputVector(
+    BuiltinInputNames.UIUp,
+    BuiltinInputNames.UIDown,
+    BuiltinInputNames.UILeft,
+    BuiltinInputNames.UIRight,
+    myDelegate,
+    CompositeInputActionState.Update
+);
+
+ToggleInputVector(
+    true,
+    BuiltinInputNames.UIUp,
+    BuiltinInputNames.UIDown,
+    BuiltinInputNames.UILeft,
+    BuiltinInputNames.UIRight,
+    value => GD.Print(value),
+    CompositeInputActionState.Update
+);
+```
+
+##### the BuiltinInputNames Class
+
+Godot provides a list of builtin ui input event names, developer may access these input names from the `BuiltinInputNames` class.
 
 #### Panel Stack
 
@@ -408,19 +645,74 @@ PanelManager.PopPanelContainer(this);
 
 > Please note that, when working with customized panel containers, be careful when `spawning panels under a panel/custom container` that's `getting deleted in the future`, while the framework is trying its best to handle deleted panels, it is possible to `delete custom panel containers that have active panels lives under`, such behavior will possibly crash the framework, developers are recommended to e`nsure every panel under a custom container has closed` before `poping/deleting that container`.
 
-### Panel Tweener
+### The `Panel Tweener`
 
-> WIP: Introduction to the `PanelTweener` and `IPanelTweener` interface  
-> WIP: The `PanelManager.IPanelTweener` Property  
-> WIP: The `IPanelTweener` Property in Panel  
-> WIP: The Built-in `NonePanelTweener`  
-> WIP: The Built-in `FadePanelTweener`  
+Developers may customize a panel's `visual transition behavior when opening/closing` by accessing its `PanelTweener` property, or modifying the `PanelManager.DefaultPanelTweener` to set the default tweener for all panels globally.
 
-### AsyncInterop Class
+#### Built-in Tweeners
 
-> WIP: Introduction to converting a `delegate/callback` style api into `async/await` style api  
+There are two preconfigured Tweenrs provided with the framework.
 
-### Please Note when using this Framework
+1. NonePanelTweener: This tweener simply hides and shows the panel instantly on open and close, it is also the default value of `PanelManager.DefaultPanelTweener`, you may access the global instance of this tweener from `NonPanelTweener.Instance`.
+2. FadePanelTweener: This tweener performs fade transition for the panel opening and closing, after instansiating the tweener, you may configure the transition time by accessing its `FadeTime` property.
+
+#### Customized Tweenrs
+
+By inheriting the `IPanelTweenr` interface, developer may customize their own transition effects.
+
+```csharp
+/// <summary>
+/// Defines the behavior for panel transitions.
+/// </summary>
+public interface IPanelTweener
+{
+    /// <summary>
+    /// This sets the default visual appearance for a panel.
+    /// </summary>
+    /// <param name="panel">The target panel.</param>
+    void Init(Control panel);
+    
+    /// <summary>
+    /// This async method manages the behavior when the panel is showing up.
+    /// </summary>
+    /// <param name="panel">The target panel.</param>
+    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behaviour is interrupted</param>
+    void Show(Control panel, Action? onFinish);
+    
+    /// <summary>
+    /// This async method manages the behavior when the panel is hiding out.
+    /// </summary>
+    /// <param name="panel">The target panel.</param>
+    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behaviour is interrupted</param>
+    void Hide(Control panel, Action? onFinish);
+}
+```
+
+### Note when using `async/await` Styled API
+
+Most asynchronous methods in the framework are written in `callback/delegate` style, that is, have a `Action onFinish` argument in their method signature.
+
+In order to provide an `async/await` styled programming experience, the `AsyncInterop` utiliy class is used for convert a `callback/delegate` styled API into `async/await` styled one.
+
+The returned `AsyncAwaitable` can be used with the `await` keyword, similar to ValueTask, developers may only await for this value once.
+
+```csharp
+public void CallbackStyledMethod(Action onFinish);
+
+public AsyncAwaitable AsyncAwaitStyledMethodAsync()
+{
+    return AsyncInterop.ToAsync(CallbackStyledMethod);
+}
+
+public void CallbackStyledMethodWithReturn(Action<int> onFinish);
+
+public AsyncAwaitable<int> AsyncAwaitStyledMethodWithReturnAsync()
+{
+    return AsyncInterop.ToAsync<int>(CallbackStyledMethodWithReturn);
+}
+```
+
+### Note when using this Framework
 
 While there are precautions taken in order to prevent framework crashes, there are still certain
 
@@ -435,6 +727,11 @@ The following panel event methods are execute in under `try ... catch bloack`, t
 
 The following usage ***WILL*** crash the framework:
 
+- Creating a panel by specifying a type that's not equal to the type of the `Script`.
 - Openning a panel that's not initialized, which probably means the instance of this panel is not obtained through `CreatePanel` API.
 - Openning a panel that's already opened.
 - Closing a panel that's not the last opened panel.
+- Providing an invalid `CompositeInputActionState` enum.
+- Authorising a `panel container popping` with a `node` which is pushed by a different `node`.
+- Awaiting an `AsyncAwaitable` that has already awaited.
+- Calling `GetResult()` on an `AsyncAwaitable` that has not completed yet.

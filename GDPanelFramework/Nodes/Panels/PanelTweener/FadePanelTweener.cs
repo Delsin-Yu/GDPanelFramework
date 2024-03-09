@@ -16,7 +16,7 @@ public class FadePanelTweener : IPanelTweener
     /// <summary>
     /// The duration for fading.
     /// </summary>
-    public float FadeTime { get; set; }
+    public float FadeTime { get; set; } = 0.1f;
 
     private void KillAndCreateNewTween(Control panel, in Color color, Action? onFinish, string methodName)
     {

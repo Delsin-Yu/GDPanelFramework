@@ -6,7 +6,6 @@ using GDPanelFramework.Panels;
 using GDPanelFramework.Panels.Tweener;
 using GDPanelFramework.Utils.Pooling;
 using Godot;
-using Godot.Collections;
 using GodotPanelFramework;
 
 namespace GDPanelFramework;
