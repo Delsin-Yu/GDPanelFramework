@@ -16,7 +16,20 @@ These `user interactions` are `panel-scoped`, which means they only stay active 
 
 ## Installation
 
-> WIP: Nuget
+For .Net CLI
+```
+dotnet add package GDTask
+```
+
+For Package Manager Console
+```
+NuGet\Install-Package GDTask
+```
+
+For `csproj` PackageReference
+```xml
+<PackageReference Include="GDPanelFramework" Version="*" />
+```
 
 ---
 

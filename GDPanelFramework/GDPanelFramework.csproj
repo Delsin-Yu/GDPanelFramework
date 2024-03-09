@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>12</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -16,24 +16,24 @@
         <PackageId>GDPanelFramework</PackageId>
         <PackageVersion>0.0.1</PackageVersion>
         <Authors>DE-YU</Authors>
-        <Description>A framework for creating and managing complex, layered panels for Godot 4.x</Description>
+        <Description>Based on DotNet, GD Panel Framework is a Godot 4 UI management framework designed to provide a flexible, panel-based UI programming experience.</Description>
         <PackageProjectUrl>https://www.nuget.org/packages/GDPanelFramework</PackageProjectUrl>
-<!--        <PackageIcon>Logo.png</PackageIcon>-->
-<!--        <PackageReadmeFile>README.md</PackageReadmeFile>-->
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/Delsin-Yu/GDPanelFramework</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>Godot Async Panel</PackageTags>
         <PackageReleaseNotes>The initial release of the GDPanelFramework nuget package.</PackageReleaseNotes>
-<!--        <PackageLicenseFile>LICENSE.md</PackageLicenseFile>-->
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-
 
         <IsGodotToolsProject>true</IsGodotToolsProject>
     </PropertyGroup>
 
     <ItemGroup>
+        <None Include="../README.md" Pack="true" PackagePath="\" />
+        
         <PackageReference Include="GodotSharp" Version="4.1.0"/>
         <PackageReference Include="Godot.SourceGenerators" Version="4.1.0"/>
     </ItemGroup>
