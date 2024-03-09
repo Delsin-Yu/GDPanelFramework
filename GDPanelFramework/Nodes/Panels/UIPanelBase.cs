@@ -30,6 +30,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         base.InitializePanelInternal(sourcePrefab);
         CurrentPanelStatus = PanelStatus.Initialized;
         DelegateRunner.RunProtected(_OnPanelInitialize, "Initialize Panel", LocalName);
+        PanelTweener.Init(this);
     }
 
     internal void OpenPanelInternal(TOpenArg openArg, PanelOpeningMetadata panelOpeningMetadata)
