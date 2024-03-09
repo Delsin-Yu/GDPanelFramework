@@ -18,12 +18,12 @@ These `user interactions` are `panel-scoped`, which means they only stay active 
 
 For .Net CLI
 ```
-dotnet add package GDTask
+dotnet add package GDPanelFramework
 ```
 
 For Package Manager Console
 ```
-NuGet\Install-Package GDTask
+NuGet\Install-Package GDPanelFramework
 ```
 
 For `csproj` PackageReference
@@ -164,7 +164,7 @@ public partial class Example00_MyPanel : UIPanel
 
 ### Creating a panel with Argument
 
-You can run ***[RunMe_Example01.tscn](https://github.com/Delsin-Yu/GDPanelFramework.Test/blob/main/Examples/00/RunMe_Example01.tscn)*** in Godot Editor.
+You can run ***[RunMe_Example01.tscn](https://github.com/Delsin-Yu/GDPanelFramework.Test/blob/main/Examples/01/RunMe_Example01.tscn)*** in Godot Editor.
 
 ```csharp
 using Godot;
