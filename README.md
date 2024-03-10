@@ -17,16 +17,19 @@ These `user interactions` are `panel-scoped`, which means they only stay active 
 ## Installation
 
 For .Net CLI
-```
+
+```txt
 dotnet add package GDPanelFramework
 ```
 
 For Package Manager Console
-```
+
+```txt
 NuGet\Install-Package GDPanelFramework
 ```
 
 For `csproj` PackageReference
+
 ```xml
 <PackageReference Include="GDPanelFramework" Version="*" />
 ```
