@@ -325,13 +325,13 @@ panelInstance.OpenPanel();
 
 Calling `ClosePanel()` in a panel script will close the opened panel. This method is `protected` by default, developer may expose this method by wrapping it around by a public one.
 
-> Please note that a panel must be opened before you can close it; and closing a panel that's not on top of the panel stack is considered an error and will crash the framework.
+> Please note that a panel must be opened before you can close it, and closing a panel that's not on top of the panel stack is considered an error and will crash the framework.
 
 ```csharp
 // Inside a panel script
 protected override void _OnPanelOpen()
 {
-    // Close a panel one frame after it openes.
+    // Close a panel one frame after it opens.
     GDTask.NextFrame().ContinueWith(ClosePanel);
 }
 ```
@@ -349,15 +349,15 @@ Calling `RegisterInput` in a panel can bind a delegate to a specific input event
 ```csharp
 // In panel
 RegisterInput( // Register a callback to the associated inputName
-    BuiltinInputNames.UIAccept, // The input name to associate to, this name should Corresponds to the name in InputManager.
+    BuiltinInputNames.UIAccept, // The input name to associate with, this name should Correspond to the name in InputManager.
     inputEvent => GD.Print(inputEvent.AsText()), // The delegate to associate to.
     InputActionPhase.Pressed // The input state to focus on.
 );
 ```
 
-In certain cases where unbinding a delegate is required, calling `RemoveInput` with the corresponding registration.
+In certain cases where unbinding a delegate is required, call `RemoveInput` with the corresponding registration.
 
-> Note that when working with input deregisteration, to correctly deregisters a `lambda expression`, it is mandatory to `assign the lambda expression to a variable` and `pass that variable to the APIs`.
+> Note that when working with input deregistration, to correctly deregisters a `lambda expression`, it is mandatory to `assign the lambda expression to a variable` and `pass that variable to the APIs`.
 
 ```csharp
 // Assign this lambda expression to a variable.
@@ -369,13 +369,13 @@ RegisterInput(BuiltinInputNames.UIAccept, myDelegate);
 RemoveInput(BuiltinInputNames.UIAccept, myDelegate);
 ```
 
-Alternatively, you may uses the `ToggleInput` API.
+Alternatively, you may use the `ToggleInput` API.
 
 ```csharp
-ToggleInput( // This api support change input registration base on the first bool.
+ToggleInput( // This API supports change input registration based on the first bool.
     true, // set to false to deregister.
     BuiltinInputNames.UIAccept,
-    inputEvent => GD.Print(inputEvent.AsText()) // this lambda expression are cached by the compiler.
+    inputEvent => GD.Print(inputEvent.AsText()) // This lambda expression is cached by the compiler.
 );
 ```
 
@@ -401,7 +401,7 @@ ToggleInputCancel(true, () => GD.Print("Canceled!"));
 
 ###### Variation: `RegisterInputAxis`/`RemoveInputAxis`/`ToggleInputAxis`
 
-Associate a delegate to the composites of two input, similar to what `Input.GetAxis` does.
+Associate a delegate to the composites of two inputs, similar to what `Input.GetAxis` does.
 
 ```csharp
 RegisterInputAxis(
@@ -479,11 +479,11 @@ ToggleInputVector(
 
 ##### the BuiltinInputNames Class
 
-Godot provides a list of builtin ui input event names, developer may access these input names from the `BuiltinInputNames` class.
+Godot provides a list of builtin UI input event names, developer may access these input names from the `BuiltinInputNames` class.
 
 #### Panel Stack
 
-The `Panel Stack` is designed for maintaining the order of the opened panels, when opening a panel, the framework peeks at the panel stack for the top panel, disable every control under it (their opening statuses are cached), and push this new instance to the stack. When closing the top panel, the framework pops it from the panel stack and reactivates all the control for the panel underneath it, it also set the focus to the last selected item before this panel becomes inactive.
+The `Panel Stack` is designed to maintain the order of the opened panels, when opening a panel, the framework peeks at the panel stack for the top panel, disables every control under it (their opening statuses are cached), and pushes this new instance to the stack. When closing the top panel, the framework pops it from the panel stack and reactivates all the control for the panel underneath it, it also sets the focus to the last selected item before this panel becomes inactive.
 
 The example below shows the panel stack of the following sequence of operations:
 
@@ -501,7 +501,7 @@ timeline
 
 #### Framework-level Caching
 
-In certain cases where a panel requires `frequent opening and closing by design` *(think about the inventory panel in some games)*, instantiating a panel everytime and delete it on close can be expensive. To resolve this performance issue, the framework does `automatically panel caching` that you can `configure on a per opening/closing basis`.
+In certain cases where a panel requires `frequent opening and closing by design` *(think about the inventory panel in some games)*, instantiating a panel and deleting it on close every time can be expensive. To resolve this performance issue, the framework does `automatically panel caching` that you can `configure on a per opening/closing basis`.
 
 When creating a panel, by specifying the `createPolicy`, you may choose to force the framework `instantiate` a new instance of the panel (`CreatePolicy.ForceCreate`) or let the framework `reuse a cached instance (default)` if possible (`CreatePolicy.TryReuse`), of course, if there is no existing cache, a new instance is created anyway.
 
@@ -527,11 +527,11 @@ panelInstance
 
 #### Panel Event Methods Overview
 
-While working with `UIPanel`s, certain methods get called at a certain lifetime of a panel, a brief diagram of the panel can be summarised as follows.
+While working with `UIPanel, certain methods get called at a certain lifetime of a panel, a brief diagram of the panel can be summarised as follows.
 
 ```mermaid
 ---
-title: The Summary for Event Methods throughout the lifetime of UIPanel
+title: The Summary of Event Methods throughout the lifetime of UIPanel
 ---
 flowchart TD
 
@@ -610,7 +610,7 @@ argPanelInstance.OpenPanel(10, onPanelCloseCallback: value => GD.Print(value == 
 The `UIPanelArg` supports both `passing an argument` and `returning a value`, if one of the features is not needed, you may use the `Empty` struct to serve as a placeholder.
 
 ```csharp
-// The definition for a panel that does't requires opening argument.
+// The definition for a panel that doesn't require an opening argument.
 public partial class MyArgumentPanel : UIPanelArg<Empty, string>
 {
     protected override void _OnPanelOpen(Empty _)
@@ -639,9 +639,9 @@ public partial class MyArgumentPanel : UIPanelArg<int, Empty>
 
 All panels in are instantiated under `root/RootPanelViewport/PanelRoot` by default, developers may configure the container for the opening panel through a series of APIs.
 
-Similar to the `Panel Stack`, `Panel Container Stack` is design for managing the `panel container`s, developer may use push a control to the panel container stack using `PanelManager.PushPanelContainer`, and pop the topmost container by `PanelManager.PopPanelContainer`. Same as the restrictions of opening and closing panel, developers are only allowed to pop the topmost container before they are allowed to pop the other containers.
+Similar to the `Panel Stack`, `Panel Container Stack` is designed for managing the `panel containers, the developer may push a control to the panel container stack using `PanelManager.PushPanelContainer`, and pop the topmost container by `PanelManager.PopPanelContainer`. Similar to the restrictions of opening and closing panels, developers are only allowed to pop the topmost container before they are allowed to pop the other containers.
 
-To preventing unexpected poping of containers, each `PushPanelContainer` operation is `authorised` by a Node, that is, you need to provide a `key` when pushing a new container, and popping the container with the same `key`.
+To prevent unexpected poping of containers, each `PushPanelContainer` operation is `authorized` by a Node, that is, you need to provide a `key` when pushing a new container, and popping the container with the same `key`.
 
 ```csharp
 // In class
@@ -656,7 +656,7 @@ PanelManager.PushPanelContainer(this, _myContainer);
 PanelManager.PopPanelContainer(this);
 ```
 
-> Please note that, when working with customized panel containers, be careful when `spawning panels under a panel/custom container` that's `getting deleted in the future`, while the framework is trying its best to handle deleted panels, it is possible to `delete custom panel containers that have active panels lives under`, such behavior will possibly crash the framework, developers are recommended to e`nsure every panel under a custom container has closed` before `poping/deleting that container`.
+> Please note that, when working with customized panel containers, be careful when `spawning panels under a panel/custom container` that's `getting deleted in the future`, while the framework is trying its best to handle deleted panels, it is possible to `delete custom panel containers that have active panels live under`, such behavior will possibly crash the framework, developers are recommended to `ensure every panel under a custom container has closed` before `popping/deleting that container`.
 
 ### The `Panel Tweener`
 
@@ -667,11 +667,11 @@ Developers may customize a panel's `visual transition behavior when opening/clos
 There are two preconfigured Tweenrs provided with the framework.
 
 1. NonePanelTweener: This tweener simply hides and shows the panel instantly on open and close, it is also the default value of `PanelManager.DefaultPanelTweener`, you may access the global instance of this tweener from `NonPanelTweener.Instance`.
-2. FadePanelTweener: This tweener performs fade transition for the panel opening and closing, after instansiating the tweener, you may configure the transition time by accessing its `FadeTime` property.
+2. FadePanelTweener: This tweener performs fade transition for the panel opening and closing, after instantiating the tweener, you may configure the transition time by accessing its `FadeTime` property.
 
 #### Customized Tweenrs
 
-By inheriting the `IPanelTweenr` interface, developer may customize their own transition effects.
+By inheriting the `IPanelTweenr` interface, the developer may customize their transition effects.
 
 ```csharp
 /// <summary>
@@ -689,14 +689,14 @@ public interface IPanelTweener
     /// This async method manages the behavior when the panel is showing up.
     /// </summary>
     /// <param name="panel">The target panel.</param>
-    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behaviour is interrupted</param>
+    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behavior is interrupted</param>
     void Show(Control panel, Action? onFinish);
     
     /// <summary>
     /// This async method manages the behavior when the panel is hiding out.
     /// </summary>
     /// <param name="panel">The target panel.</param>
-    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behaviour is interrupted</param>
+    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behavior is interrupted</param>
     void Hide(Control panel, Action? onFinish);
 }
 ```
@@ -705,7 +705,7 @@ public interface IPanelTweener
 
 Most asynchronous methods in the framework are written in `callback/delegate` style, that is, have a `Action onFinish` argument in their method signature.
 
-In order to provide an `async/await` styled programming experience, the `AsyncInterop` utiliy class is used for convert a `callback/delegate` styled API into `async/await` styled one.
+To provide an `async/await` styled programming experience, the `AsyncInterop` utility class is used to convert a `callback/delegate` styled API into an `async/await` styled one.
 
 The returned `AsyncAwaitable` can be used with the `await` keyword, similar to ValueTask, developers may only await for this value once.
 
@@ -727,9 +727,9 @@ public AsyncAwaitable<int> AsyncAwaitStyledMethodWithReturnAsync()
 
 ### Note when using this Framework
 
-While there are precautions taken in order to prevent framework crashes, there are still certain
+While there are precautions taken to prevent framework crashes, there are still certain
 
-The following panel event methods are execute in under `try ... catch bloack`, throwing exceptions in the overrides of these methods will not crash the framework.
+The following panel event methods are executed in under `try ... catch block`, throwing exceptions in the overrides of these methods will not crash the framework.
 
 - `_OnPanelInitialize`
 - `_OnPanelOpen`
@@ -741,10 +741,10 @@ The following panel event methods are execute in under `try ... catch bloack`, t
 The following usage ***WILL*** crash the framework:
 
 - Creating a panel by specifying a type that's not equal to the type of the `Script`.
-- Openning a panel that's not initialized, which probably means the instance of this panel is not obtained through `CreatePanel` API.
-- Openning a panel that's already opened.
+- Opening a panel that's not initialized, which probably means the instance of this panel is not obtained through the `CreatePanel` API.
+- Opening a panel that's already opened.
 - Closing a panel that's not the last opened panel.
 - Providing an invalid `CompositeInputActionState` enum.
 - Authorising a `panel container popping` with a `node` which is pushed by a different `node`.
-- Awaiting an `AsyncAwaitable` that has already awaited.
-- Calling `GetResult()` on an `AsyncAwaitable` that has not completed yet.
+- Awaiting an `AsyncAwaitable` that has already been awaited.
+- Calling `GetResult()` on an `AsyncAwaitable` that has not been completed yet.
