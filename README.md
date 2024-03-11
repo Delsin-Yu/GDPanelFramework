@@ -642,7 +642,7 @@ public partial class MyArgumentPanel : UIPanelArg<int, Empty>
 
 All panels in are instantiated under `root/RootPanelViewport/PanelRoot` by default, developers may configure the container for the opening panel through a series of APIs.
 
-Similar to the `Panel Stack`, `Panel Container Stack` is designed for managing the `panel containers, the developer may push a control to the panel container stack using `PanelManager.PushPanelContainer`, and pop the topmost container by `PanelManager.PopPanelContainer`. Similar to the restrictions of opening and closing panels, developers are only allowed to pop the topmost container before they are allowed to pop the other containers.
+Similar to the `Panel Stack`, `Panel Container Stack` is designed for managing the `panel containers`, the developer may push a control to the panel container stack using `PanelManager.PushPanelContainer`, and pop the topmost container by `PanelManager.PopPanelContainer`. Similar to the restrictions of opening and closing panels, developers are only allowed to pop the topmost container before they are allowed to pop the other containers.
 
 To prevent unexpected poping of containers, each `PushPanelContainer` operation is `authorized` by a Node, that is, you need to provide a `key` when pushing a new container, and popping the container with the same `key`.
 
@@ -730,7 +730,7 @@ public AsyncAwaitable<int> AsyncAwaitStyledMethodWithReturnAsync()
 
 ### Note when using this Framework
 
-While there are precautions taken to prevent framework crashes, there are still certain
+While there are precautions taken, there are still cases where certain uses of APIs could inevitably crash the framework.
 
 The following panel event methods are executed in under `try ... catch block`, throwing exceptions in the overrides of these methods will not crash the framework.
 
@@ -749,5 +749,5 @@ The following usage ***WILL*** crash the framework:
 - Closing a panel that's not the last opened panel.
 - Providing an invalid `CompositeInputActionState` enum.
 - Authorising a `panel container popping` with a `node` which is pushed by a different `node`.
-- Awaiting an `AsyncAwaitable` that has already been awaited.
+- Reuse the `await` keyword on an AsyncAwaitable that has already awaited, or access any of its parameters.
 - Calling `GetResult()` on an `AsyncAwaitable` that has not been completed yet.
