@@ -26,7 +26,7 @@ internal partial class RootPanelContainer : CanvasLayer
     {
         _root = ((SceneTree)Engine.GetMainLoop()).Root;
         
-        FollowViewportEnabled = true;
+        FollowViewportEnabled = false;
         
         Name = "RootPanelViewport";
         _container = new() { Name = "PanelRoot" };

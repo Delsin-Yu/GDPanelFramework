@@ -532,7 +532,7 @@ panelInstance
 
 #### Panel Event Methods Overview
 
-While working with `UIPanel, certain methods get called at a certain lifetime of a panel, a brief diagram of the panel can be summarised as follows.
+While working with `UIPanel`, certain methods get called at a certain lifetime of a panel, a brief diagram of the panel can be summarised as follows.
 
 ```mermaid
 ---
