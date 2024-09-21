@@ -22,7 +22,7 @@
         <RepositoryUrl>https://github.com/Delsin-Yu/GDPanelFramework</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>Godot Async Panel</PackageTags>
-        <PackageReleaseNotes>The initial release of the GDPanelFramework nuget package.</PackageReleaseNotes>
+        <PackageReleaseNotes>Fix an issue that causes panels not to follow the camera.</PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
         <IncludeSymbols>true</IncludeSymbols>
