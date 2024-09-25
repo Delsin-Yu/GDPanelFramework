@@ -120,7 +120,7 @@ public abstract partial class UIPanelBaseCore : Control
 
     private void TweenHide(IPanelTweener tweener)
     {
-        tweener.Hide(this, () => Visible = true);
+        tweener.Hide(this, () => Visible = false);
     }
 
     private void TweenHide(IPanelTweener tweener, Action onFinish)
