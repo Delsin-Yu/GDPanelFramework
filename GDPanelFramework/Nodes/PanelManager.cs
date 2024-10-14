@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using GDPanelFramework.Panels;
@@ -31,7 +32,48 @@ public static partial class PanelManager
 
     private record struct PanelRootInfo(Node? Owner, Control Root);
 
-    private static readonly System.Collections.Generic.Dictionary<PackedScene, Stack<UIPanelBaseCore>> BufferedPanels = new();
+
+    private class PanelBuffer
+    {
+        private readonly Dictionary<PackedScene, Stack<UIPanelBaseCore>> BufferedPanels = new();
+
+        public bool TryGetPanel(PackedScene prefab, [NotNullWhen(true)] out UIPanelBaseCore? instance)
+        {
+            instance = null;
+            if (!BufferedPanels.Remove(prefab, out var panelInstanceStack))
+            {
+                return false;
+            }
+            if (!panelInstanceStack.TryPop(out var panelInstance))
+            {
+                BufferedPanels.Remove(prefab);
+                return false;
+            }
+            if (panelInstanceStack.Count == 0)
+            {
+                BufferedPanels.Remove(prefab);
+            }
+            if (!GodotObject.IsInstanceValid(panelInstance))
+            {
+                panelInstance.Dispose();
+                return false;
+            }
+            instance = panelInstance;
+            return true;
+        }
+
+        public void BufferPanel(PackedScene prefab, UIPanelBaseCore instance)
+        {
+            if (!BufferedPanels.TryGetValue(prefab, out var panelInstanceStack))
+            {
+                panelInstanceStack = [];
+                BufferedPanels.Add(prefab, panelInstanceStack);
+            }
+            panelInstanceStack.Push(instance);
+        }
+    }
+
+    private static readonly PanelBuffer Buffer = new();
     private static readonly Stack<UIPanelBaseCore> PanelStack = new();
     private static readonly Stack<PanelRootInfo> PanelContainers = new();
 
@@ -89,13 +131,8 @@ public static partial class PanelManager
 
         var sourcePrefab = closingPanel.SourcePrefab!;
 
-        if (!BufferedPanels.TryGetValue(sourcePrefab, out var cacheStack))
-        {
-            cacheStack = Pool.Get<Stack<UIPanelBaseCore>>(() => new());
-            BufferedPanels.Add(sourcePrefab, cacheStack);
-        }
-
-        cacheStack.Push(closingPanel);
+        Buffer.BufferPanel(sourcePrefab, closingPanel);
+        
         var currentParent = closingPanel.GetParent();
         var defaultPanelRoot = RootPanelContainer.PanelRoot;
         if (currentParent != defaultPanelRoot) closingPanel.Reparent(defaultPanelRoot, false);
@@ -204,16 +241,10 @@ public static partial class PanelManager
     {
         TPanel panelInstance;
 
-        if (createPolicy == CreatePolicy.TryReuse && BufferedPanels.TryGetValue(packedPanel, out var cacheStack))
+        if (createPolicy == CreatePolicy.TryReuse && Buffer.TryGetPanel(packedPanel, out var untypedPanelInstance))
         {
-            panelInstance = (TPanel)cacheStack.Pop()!;
+            panelInstance = (TPanel)untypedPanelInstance;
             initializeCallback?.Invoke(panelInstance);
-            if (cacheStack.Count == 0)
-            {
-                Pool.Collect(cacheStack);
-                BufferedPanels.Remove(packedPanel);
-            }
-
             return panelInstance;
         }
 
