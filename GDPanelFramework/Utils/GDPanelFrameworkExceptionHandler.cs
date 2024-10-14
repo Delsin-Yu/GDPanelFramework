@@ -9,7 +9,7 @@ namespace GDPanelFramework;
 public static class GDPanelFrameworkExceptionHandler
 {
     /// <summary>
-    /// Occurs when an exception is thrown in protected methods will output to default Godot output via <see cref="GD.PushError(string)"/> if left unassigned.
+    /// Occurs when an exception is thrown in protected methods, exceptions will output to the default Godot output via <see cref="GD.PushError(string)"/> if left unassigned.
     /// </summary>
     public static event Action<Exception>? OnProtectedException;
 

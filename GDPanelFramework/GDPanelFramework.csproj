@@ -14,7 +14,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
         <PackageId>GDPanelFramework</PackageId>
-        <PackageVersion>0.0.3</PackageVersion>
+        <PackageVersion>0.1.0</PackageVersion>
         <Authors>DE-YU</Authors>
         <Description>Based on DotNet, GD Panel Framework is a Godot 4 UI management framework designed to provide a flexible, panel-based UI programming experience.</Description>
         <PackageProjectUrl>https://www.nuget.org/packages/GDPanelFramework</PackageProjectUrl>
@@ -22,7 +22,7 @@
         <RepositoryUrl>https://github.com/Delsin-Yu/GDPanelFramework</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>Godot Async Panel</PackageTags>
-        <PackageReleaseNotes>Fix Tween Hide does not hide the panel.</PackageReleaseNotes>
+        <PackageReleaseNotes>[Breaking] Implement better mouse only panel control handling; Allow customizable protected exception handling; Automatically cancel input when the game window losess focus; Fix incorrectly mark invalid InputEvent as handled</PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
         <IncludeSymbols>true</IncludeSymbols>
