@@ -40,6 +40,6 @@ internal partial class RootPanelContainer : CanvasLayer
     public override void _Input(InputEvent inputEvent)
     {
         var accept = PanelManager.ProcessInputEvent(inputEvent);
-        if (accept) _root.SetInputAsHandled();
+        if (accept && IsInstanceValid(_root)) _root.SetInputAsHandled();
     }
 }
