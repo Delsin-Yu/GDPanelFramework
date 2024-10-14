@@ -13,7 +13,16 @@ public abstract partial class UIPanelBaseCore
     private readonly Dictionary<Action, Action<InputEvent>> _mappedCancelEvent = new();
     private readonly Dictionary<InputAxisBinding, MappedInputAxis> _mappedInputAxis = new();
     private readonly Dictionary<InputVectorBinding, MappedInputVector2> _mappedInputVector = new();
- 
+    private readonly HashSet<RegisteredInputEvent> _pressedInputEvents = new();
+
+    private protected void CancelPressedInput()
+    {
+        var name = Name;
+        var inputEventAction = new InputEventAction();
+        foreach (var inputEvent in _pressedInputEvents) 
+            inputEvent.Call(inputEventAction, InputActionPhase.Released, name);
+    }
+    
     internal bool ProcessPanelInput(ref readonly PanelManager.CachedInputEvent inputEvent)
     {
         var name = Name;
@@ -32,10 +41,36 @@ public abstract partial class UIPanelBaseCore
 
             var called = false;
 
-            while (executionQueue.TryDequeue(out var call))
+            switch (currentPhase)
             {
-                var localCalled = call.Call(inputEvent.Event, currentPhase, name);
-                if (localCalled) called = true;
+                case InputActionPhase.Pressed:
+                    while (executionQueue.TryDequeue(out var call))
+                    {
+                        var localCalled = call.Call(inputEvent.Event, currentPhase, name);
+                        if (!localCalled) continue;
+                        called = true;
+                        _pressedInputEvents.Add(call);
+                    }
+                    break;
+                case InputActionPhase.Released:
+                    while (executionQueue.TryDequeue(out var call))
+                    {
+                        var localCalled = call.Call(inputEvent.Event, currentPhase, name);
+                        if (!localCalled) continue;
+                        called = true;
+                        _pressedInputEvents.Remove(call);
+                    }
+                    break;
+                case InputActionPhase.Any:
+                    while (executionQueue.TryDequeue(out var call))
+                    {
+                        var localCalled = call.Call(inputEvent.Event, currentPhase, name);
+                        if (!localCalled) continue;
+                        called = true;
+                    }
+                    break;
+                default:
+                    throw new InvalidOperationException();
             }
 
             return called;

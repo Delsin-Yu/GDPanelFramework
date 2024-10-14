@@ -90,6 +90,7 @@ public abstract partial class UIPanelBaseCore : Control
         {
             Control? control = null;
             CacheCurrentSelection(ref control);
+            CancelPressedInput();
 
             if (previousPanelVisual == PreviousPanelVisual.Hidden)
             {

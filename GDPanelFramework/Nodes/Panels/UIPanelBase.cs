@@ -85,11 +85,17 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         base._Notification(what);
         
         DelegateRunner.RunProtected(_OnPanelNotification, what, "Panel Notification", LocalName);
-        
-        if (what != NotificationPredelete) return;
-        
-        DelegateRunner.RunProtected(_OnPanelPredelete, "Delete Panel", LocalName);
-        Cleanup();
+
+        if (what == NotificationPredelete)
+        {
+            DelegateRunner.RunProtected(_OnPanelPredelete, "Delete Panel", LocalName);
+            Cleanup();
+        }
+
+        if (what == NotificationApplicationFocusOut)
+        {
+            CancelPressedInput();
+        }
     }
 
     /// <summary>
