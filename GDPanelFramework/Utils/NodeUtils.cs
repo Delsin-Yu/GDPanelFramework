@@ -6,63 +6,88 @@ namespace GDPanelFramework;
 
 internal static class NodeUtils
 {
-    internal static void SetNodeChildAvailability(Node node, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool enabled)
+    internal static void SetNodeChildAvailability(
+        Node node,
+        HashSet<Control> mouseOnlyControls,
+        Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedChildrenControlInfos,
+        bool enabled)
     {
-        ToggleFocusModeRecursive(node, enabled, cachedControlInfo);
+        ToggleFocusModeRecursive(node, enabled, mouseOnlyControls, cachedChildrenControlInfos);
     }
 
-    private static void ToggleFocusModeRecursive(Node root, bool enable, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedNodeFocusMode, bool includeInternal = false)
+    private static void ToggleFocusModeRecursive(
+        Node root,
+        bool enable,
+        HashSet<Control> mouseOnlyControls,
+        Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedChildrenControlInfos,
+        bool includeInternal = false)
     {
         if (!enable)
         {
-            cachedNodeFocusMode.Clear();
-            DisableFocusModeRecursive(root, cachedNodeFocusMode, includeInternal);
+            cachedChildrenControlInfos.Clear();
+            DisableFocusModeRecursive(root, mouseOnlyControls, cachedChildrenControlInfos, includeInternal);
         }
         else
         {
-            EnableFocusModeRecursive(root, cachedNodeFocusMode, includeInternal);
-            cachedNodeFocusMode.Clear();
+            EnableFocusModeRecursive(root, mouseOnlyControls, cachedChildrenControlInfos, includeInternal);
         }
     }
 
-    private static void DisableFocusModeRecursive(Node root, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool includeInternal = false)
+    private static void DisableFocusModeRecursive(
+        Node root,
+        HashSet<Control> mouseOnlyControls,
+        Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedChildrenControlInfos,
+        bool includeInternal = false)
     {
-        if (root is Control control)
-        {
-            var controlFocusMode = control.FocusMode;
-            var controlMouseFilter = control.MouseFilter;
-            // Only cache the control when it is in any form of focusable
-            if (controlFocusMode != Control.FocusModeEnum.None || controlMouseFilter != Control.MouseFilterEnum.Ignore)
-            {
-                cachedControlInfo[control] = new(controlFocusMode, controlMouseFilter);
-                control.FocusMode = Control.FocusModeEnum.None;
-                control.MouseFilter = Control.MouseFilterEnum.Ignore;
-            }
-        }
+        if (root is not Control control) goto Children;
 
+        var focusMode = control.FocusMode;
+        var mouseFilter = control.MouseFilter;
+        var isMouseOnly = mouseOnlyControls.Contains(control);
+
+        if (!isMouseOnly && focusMode is Control.FocusModeEnum.None && mouseFilter is Control.MouseFilterEnum.Ignore) goto Children;
+
+        control.FocusMode = Control.FocusModeEnum.None;
+        control.MouseFilter = Control.MouseFilterEnum.Ignore;
+
+        if (isMouseOnly) goto Children;
+        
+        cachedChildrenControlInfos[control] = new(focusMode, mouseFilter);
+
+        Children:
+        
         foreach (var child in root.GetChildren(includeInternal))
         {
             if (child is UIPanelBaseCore) continue;
-            DisableFocusModeRecursive(child, cachedControlInfo, includeInternal);
+            DisableFocusModeRecursive(child, mouseOnlyControls, cachedChildrenControlInfos, includeInternal);
         }
     }
 
-    private static void EnableFocusModeRecursive(Node root, Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedControlInfo, bool includeInternal = false)
+    private static void EnableFocusModeRecursive(
+        Node root,
+        HashSet<Control> mouseOnlyControls,
+        Dictionary<Control, UIPanelBaseCore.CachedControlInfo> cachedChildrenControlInfos,
+        bool includeInternal = false)
     {
-        if (root is Control control)
+        if (root is not Control control) goto Children;
+
+        if (mouseOnlyControls.Contains(control))
         {
-            // Only enable if the node is present in the cache
-            if (cachedControlInfo.Remove(control, out var cachedFocusMode))
-            {
-                control.FocusMode = cachedFocusMode.FocusMode;
-                control.MouseFilter = cachedFocusMode.MouseFilter;
-            }
+            control.FocusMode = Control.FocusModeEnum.None;
+            control.MouseFilter = Control.MouseFilterEnum.Stop;
+        }
+        else if (cachedChildrenControlInfos.Remove(control, out var cached))
+        {
+            control.FocusMode = cached.FocusMode;
+            control.MouseFilter = cached.MouseFilter;
         }
 
+        Children:
+        
         foreach (var child in root.GetChildren(includeInternal))
         {
             if (child is UIPanelBaseCore) continue;
-            EnableFocusModeRecursive(child, cachedControlInfo, includeInternal);
+            EnableFocusModeRecursive(child, mouseOnlyControls, cachedChildrenControlInfos, includeInternal);
         }
     }
 }

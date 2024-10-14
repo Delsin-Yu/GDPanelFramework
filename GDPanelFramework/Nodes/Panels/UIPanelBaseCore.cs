@@ -24,6 +24,7 @@ public abstract partial class UIPanelBaseCore : Control
     private Control? _cachedSelection;
     private bool _isShownInternal;
     private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos = new();
+    private readonly HashSet<Control> _mouseOnlyControls = new();
     private IPanelTweener? _panelTweener;
     private string? _cachedName;
     internal CancellationTokenSource? PanelCloseTokenSource;
@@ -67,6 +68,16 @@ public abstract partial class UIPanelBaseCore : Control
         set => _panelTweener = value;
     }
 
+    /// <summary>
+    /// Sets a <see cref="Control"/> under the current panel to only react with mouse interaction and does not grab focus when pressed. 
+    /// </summary>
+    protected void SetMouseOnly(Control control)
+    {
+        _mouseOnlyControls.Add(control);
+        if (control.MouseFilter != MouseFilterEnum.Ignore) control.MouseFilter = MouseFilterEnum.Stop;
+        control.FocusMode = FocusModeEnum.None;
+    }
+    
     internal void CacheCurrentSelection(ref Control? currentSelection)
     {
         _cachedSelection = null;
@@ -110,8 +121,8 @@ public abstract partial class UIPanelBaseCore : Control
             ShowPanel(useNoneTweener: useNoneTweener);
         }
     }
-
-    internal void SetPanelChildAvailability(bool enabled) => NodeUtils.SetNodeChildAvailability(this, _cachedChildrenControlInfos, enabled);
+    
+    internal void SetPanelChildAvailability(bool enabled) => NodeUtils.SetNodeChildAvailability(this, _mouseOnlyControls, _cachedChildrenControlInfos, enabled);
 
     private static IPanelTweener GetPanelTweener(IPanelTweener panelTweener, bool useNonTweener)
     {
@@ -147,7 +158,7 @@ public abstract partial class UIPanelBaseCore : Control
         _cachedSelection = null;
         _panelTweener = null;
 
-        _cachedChildrenControlInfos.Clear();
+        _mouseOnlyControls.Clear();
         _registeredInputEventNames.Clear();
 
         foreach (var registeredInputEvent in _registeredInputEvent.Values)
