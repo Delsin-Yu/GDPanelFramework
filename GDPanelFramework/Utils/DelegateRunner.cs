@@ -14,7 +14,7 @@ internal static class DelegateRunner
         }
         catch (Exception e)
         {
-            ReportException(e, actionName, targetName, methodName);
+            GDPanelFrameworkExceptionHandler.PublishProtectedException(e, actionName, targetName, methodName);
             return false;
         }
     }
@@ -28,23 +28,8 @@ internal static class DelegateRunner
         }
         catch (Exception e)
         {
-            ReportException(e, actionName, targetName, methodName);
+            GDPanelFrameworkExceptionHandler.PublishProtectedException(e, actionName, targetName, methodName);
             return false;
         }
-    }
-
-    internal static void ReportException(Exception e, string actionName, string targetName, string? methodName)
-    {
-        LoggingUtils.LogError(
-            $"""
-             
-             ┌┈┈┈┈ {actionName} Error ┈┈┈┈
-             │ {e.GetType().Name} on {targetName}.{methodName ?? "UnknownFunction"}
-             │ Message:
-             │   {e.Message}
-             └┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-             {e.StackTrace}
-             """
-        );
     }
 }
