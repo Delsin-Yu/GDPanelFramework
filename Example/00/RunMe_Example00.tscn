@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://cybici5teg8jw"]
+
+[ext_resource type="Script" path="res://Examples/00/Example00_Main.cs" id="1_1uo08"]
+[ext_resource type="PackedScene" uid="uid://uaxe7sc8ugs6" path="res://Examples/00/Example00_MyPanel.tscn" id="2_trfok"]
+
+[node name="Example00" type="Node"]
+script = ExtResource("1_1uo08")
+_panelPrefab = ExtResource("2_trfok")

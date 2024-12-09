@@ -1,0 +1,53 @@
+[gd_scene load_steps=2 format=3 uid="uid://uaxe7sc8ugs6"]
+
+[ext_resource type="Script" path="res://Examples/00/Example00_MyPanel.cs" id="1_0qdt8"]
+
+[node name="Example00_MyPanel" type="Control" node_paths=PackedStringArray("_text", "_updateButton", "_closeButton")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0qdt8")
+_text = NodePath("Panel/VBoxContainer/Text")
+_updateButton = NodePath("Panel/VBoxContainer/HBoxContainer/UpdateButton")
+_closeButton = NodePath("Panel/VBoxContainer/HBoxContainer/CloseButton")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Text" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Lorem Ipsum Dolor Sit Amet"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="UpdateButton" type="Button" parent="Panel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Click Me!"
+
+[node name="CloseButton" type="Button" parent="Panel/VBoxContainer/HBoxContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "Exit"

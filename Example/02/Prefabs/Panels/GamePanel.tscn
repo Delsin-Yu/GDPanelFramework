@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://cpfwg2nvyprtq"]
+
+[ext_resource type="Script" path="res://Example/02/Scripts/Panels/GamePanel.cs" id="1_uohgm"]
+[ext_resource type="PackedScene" uid="uid://mve5oy5uikqi" path="res://Example/02/Prefabs/Player.tscn" id="2_1ssn5"]
+[ext_resource type="PackedScene" uid="uid://br5fcu0xpiavb" path="res://Example/02/Prefabs/Mob.tscn" id="2_8bdo6"]
+[ext_resource type="FontFile" uid="uid://3yrm3y7tcmp7" path="res://Example/02/Fonts/Xolonium-Regular.ttf" id="2_e5sab"]
+
+[node name="GamePanel" type="Control" node_paths=PackedStringArray("_score")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_uohgm")
+_score = NodePath("ScoreLabel")
+_startNewGameWaitTime = 2.0
+_mobSpawnTime = 0.5
+_mobPrefab = ExtResource("2_8bdo6")
+_playerPrefab = ExtResource("2_1ssn5")
+
+[node name="ScoreLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 81.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_e5sab")
+theme_override_font_sizes/font_size = 64
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1

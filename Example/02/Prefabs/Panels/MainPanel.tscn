@@ -1,0 +1,67 @@
+[gd_scene load_steps=4 format=3 uid="uid://fj2hnbolprch"]
+
+[ext_resource type="Script" path="res://Example/02/Scripts/Panels/MainPanel.cs" id="1_ax1i5"]
+[ext_resource type="FontFile" uid="uid://3yrm3y7tcmp7" path="res://Example/02/Fonts/Xolonium-Regular.ttf" id="1_ia2d4"]
+[ext_resource type="PackedScene" uid="uid://cpfwg2nvyprtq" path="res://Example/02/Prefabs/Panels/GamePanel.tscn" id="2_cqmb1"]
+
+[node name="MainPanel" type="Control" node_paths=PackedStringArray("_startButton", "_quitButton", "_text")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ax1i5")
+_startButton = NodePath("StartButton")
+_quitButton = NodePath("QuitButton")
+_text = NodePath("Message")
+_gamePanel = ExtResource("2_cqmb1")
+
+[node name="Message" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("1_ia2d4")
+theme_override_font_sizes/font_size = 64
+text = "Dodge the creeps!"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="StartButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -171.0
+offset_right = 100.0
+offset_bottom = -109.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("1_ia2d4")
+theme_override_font_sizes/font_size = 40
+text = "Start"
+
+[node name="QuitButton" type="Button" parent="."]
+auto_translate_mode = 1
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -96.0
+offset_right = 100.0
+offset_bottom = -34.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("1_ia2d4")
+theme_override_font_sizes/font_size = 40
+text = "End"

@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3 uid="uid://cq4bphgayn5q5"]
+
+[ext_resource type="Script" path="res://Example/02/Scripts/GameMain.cs" id="1_qt5l3"]
+[ext_resource type="PackedScene" uid="uid://fj2hnbolprch" path="res://Example/02/Prefabs/Panels/MainPanel.tscn" id="2_a0wlh"]
+[ext_resource type="Script" path="res://Example/02/Scripts/SceneObjectsModel.cs" id="3_cvrf1"]
+
+[sub_resource type="Curve2D" id="Curve2D_vk3kr"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1280, 0, 0, 0, 0, 0, 1280, 720, 0, 0, 0, 0, 0, 720, 0, 0, 0, 0, 0, 0)
+}
+point_count = 5
+
+[node name="Main" type="Node2D" node_paths=PackedStringArray("_sceneObjectsModel")]
+script = ExtResource("1_qt5l3")
+_mainPanel = ExtResource("2_a0wlh")
+_sceneObjectsModel = NodePath("SceneObjects")
+
+[node name="SceneObjects" type="Node" parent="." node_paths=PackedStringArray("_mobContainer", "_playerContainer", "_mobSpawnLocation", "_playerSpawn")]
+script = ExtResource("3_cvrf1")
+_mobContainer = NodePath("MobContainer")
+_playerContainer = NodePath("PlayerContainer")
+_mobSpawnLocation = NodePath("MobPath/MobSpawnLocation")
+_playerSpawn = NodePath("StartPosition")
+
+[node name="MobPath" type="Path2D" parent="SceneObjects"]
+curve = SubResource("Curve2D_vk3kr")
+
+[node name="MobSpawnLocation" type="PathFollow2D" parent="SceneObjects/MobPath"]
+
+[node name="PlayerContainer" type="Node" parent="SceneObjects"]
+
+[node name="MobContainer" type="Node" parent="SceneObjects"]
+
+[node name="StartPosition" type="Marker2D" parent="SceneObjects"]
+position = Vector2(640, 360)

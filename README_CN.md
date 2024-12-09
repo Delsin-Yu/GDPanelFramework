@@ -2,12 +2,11 @@
 
 [English](https://github.com/Delsin-Yu/GDPanelFramework/blob/main/README.md)
 
-[![GitHub Release](https://img.shields.io/github/v/release/Delsin-Yu/GDPanelFramework)](https://github.com/Delsin-Yu/GDPanelFramework/releases/latest) [![NuGet Version](https://img.shields.io/nuget/v/GDPanelFramework)](https://www.nuget.org/packages/GDPanelFramework) ![NuGet Downloads](https://img.shields.io/nuget/dt/GDPanelFramework) [![Stars](https://img.shields.io/github/stars/Delsin-Yu/GDPanelFramework?color=brightgreen)](https://github.com/Delsin-Yu/GDPanelFramework/stargazers) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Delsin-Yu/GDPanelFramework/blob/main/LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/Delsin-Yu/GDPanelFramework)](https://github.com/Delsin-Yu/GDPanelFramework/releases/latest) [![Stars](https://img.shields.io/github/stars/Delsin-Yu/GDPanelFramework?color=brightgreen)](https://github.com/Delsin-Yu/GDPanelFramework/stargazers) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Delsin-Yu/GDPanelFramework/blob/main/LICENSE)
 
 ## 引言
 
-支持包括`.Net 模块`的`Godot 4.1+`
-***GD Panel Framework*** is a `Godot 4` UI Management System designed to provide a `flexible`, `panel-based`, `single-focus point`, `Gamepad + Keyboard + Keyboard&Mouse friendly` UI programming experience.
+支持包括 `mono (.Net)` 模块的 `Godot 4.3+`
 ***GD Panel Framework***是为`Godot 4`设计的UI管理系统，旨在提供灵活、基于面板、单焦点、多输入设备兼容的UI编程体验。
 
 该框架将`用户交互`的集合总结为`UIPanel`，其中包括以下内容的组合：
@@ -19,23 +18,14 @@
 
 ## 安装
 
-使用 .Net 控制台
+由于 Godot 对外部程序集的支持不佳，`GD Panel Framework` 现在不再作为 Nuget 程序包，而是使用 `zip/add` 来分发。
 
-```txt
-dotnet add package GDPanelFramework
-```
+1. 确保项目的 C# 语言版本至少为 `<LangVersion>12</LangVersion>`。
+2. 从最新的 [release](https://github.com/Delsin-Yu/GDPanelFramework/releases) 页面下载 `GDPanelFramework.zip`。
+3. 解压下载的文件，并且将其中的 `addons` 目录放置在项目的根目录（`res://`）中。
+4. 在开始使用任何 API 之前，调用 `PanelManager.Initialize()`。
 
-使用 Package Manager 控制台
-
-```txt
-NuGet\Install-Package GDPanelFramework
-```
-
-在 `csproj` 添加PackageReference
-
-```xml
-<PackageReference Include="GDPanelFramework" Version="*" />
-```
+这个插件只包含用于运行时使用的源代码文件；所以你不需要在 `插件` 窗口中启用任何项。
 
 ---
 

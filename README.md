@@ -2,11 +2,11 @@
 
 [中文](https://github.com/Delsin-Yu/GDPanelFramework/blob/main/README_CN.md)
 
-[![GitHub Release](https://img.shields.io/github/v/release/Delsin-Yu/GDPanelFramework)](https://github.com/Delsin-Yu/GDPanelFramework/releases/latest) [![NuGet Version](https://img.shields.io/nuget/v/GDPanelFramework)](https://www.nuget.org/packages/GDPanelFramework) ![NuGet Downloads](https://img.shields.io/nuget/dt/GDPanelFramework) [![Stars](https://img.shields.io/github/stars/Delsin-Yu/GDPanelFramework?color=brightgreen)](https://github.com/Delsin-Yu/GDPanelFramework/stargazers) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Delsin-Yu/GDPanelFramework/blob/main/LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/Delsin-Yu/GDPanelFramework)](https://github.com/Delsin-Yu/GDPanelFramework/releases/latest) [![Stars](https://img.shields.io/github/stars/Delsin-Yu/GDPanelFramework?color=brightgreen)](https://github.com/Delsin-Yu/GDPanelFramework/stargazers) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Delsin-Yu/GDPanelFramework/blob/main/LICENSE)
 
 ## Introduction
 
-Supports in `Godot 4.1+` with .Net module.
+Supports in `Godot 4.3+` with `mono (.Net)` module.
 ***GD Panel Framework*** is a `Godot 4` UI Management System designed to provide a `flexible`, `panel-based`, `single-focus point`, `Gamepad + Keyboard + Keyboard&Mouse friendly` UI programming experience.
 
 This framework groups `sets` of `user interactions` into a `UIPanel`, which includes a combination of the following:
@@ -18,23 +18,14 @@ These `user interactions` are `panel-scoped`, which means they only stay active 
 
 ## Installation
 
-For .Net CLI
+As the Godot doesn't work well with external assemblies, the `GD Panel Framework` is now distributed by `zip/addon` instead of being a Nuget Package.
 
-```txt
-dotnet add package GDPanelFramework
-```
+1. Ensure your project C# language version is at least `<LangVersion>12</LangVersion>`.
+2. Download the `GDPanelFramework.zip` from the latest [release](https://github.com/Delsin-Yu/GDPanelFramework/releases).
+3. Decompress the file and place the `addons` directory into the project root (`res://`).
+4. Call the `PanelManager.Initialize()` method before use any APIs.
 
-For Package Manager Console
-
-```txt
-NuGet\Install-Package GDPanelFramework
-```
-
-For `csproj` PackageReference
-
-```xml
-<PackageReference Include="GDPanelFramework" Version="*" />
-```
+This addon only contains source file for runtime use; so you do not need to enable it from the `Plugin` window.
 
 ---
 
