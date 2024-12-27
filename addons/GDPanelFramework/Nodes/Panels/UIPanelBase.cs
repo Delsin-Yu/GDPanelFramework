@@ -68,6 +68,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         if(cancellationTokenSource == null) return;
         cancellationTokenSource.Cancel();
         cancellationTokenSource.Dispose();
+        cancellationTokenSource = null;
     }
 
     internal sealed override void Cleanup()
