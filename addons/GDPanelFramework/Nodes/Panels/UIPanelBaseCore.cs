@@ -13,11 +13,26 @@ namespace GDPanelFramework.Panels;
 [GlobalClass]
 public abstract partial class UIPanelBaseCore : Control
 {
-    internal enum PanelStatus
+    /// <summary>
+    /// Indicates the current internal state of the panel.
+    /// </summary>
+    public enum PanelStatus
     {
+        /// <summary>
+        /// The panel has not yet been initialized by the PanelManager, this is the state when the panel has exited the constructor.
+        /// </summary>
         Uninitialized,
+        /// <summary>
+        /// The panel has been initialized by the PanelManager and not yet opened, this is the state when the panel instance is created and returned from <see cref="PanelManager.CreatePanel"/>.
+        /// </summary>
         Initialized,
+        /// <summary>   
+        /// The panel has been opened by one of the OpenPanel methods, this is the state when the panel is visible and interactable.
+        /// </summary>
         Opened,
+        /// <summary>
+        /// The panel has been closed and, maybe reopened later or gets freed, this is the state when the panel is not visible and not interactable.
+        /// </summary>
         Closed
     }
 
@@ -36,7 +51,10 @@ public abstract partial class UIPanelBaseCore : Control
 
     internal record struct CachedControlInfo(FocusModeEnum FocusMode, MouseFilterEnum MouseFilter);
 
-    internal PanelStatus CurrentPanelStatus { get; set; } = PanelStatus.Uninitialized;
+    /// <summary>
+    /// The current status of the panel.
+    /// </summary>
+    public PanelStatus CurrentPanelStatus { get; internal set; } = PanelStatus.Uninitialized;
 
     internal virtual void InitializePanelInternal(PackedScene sourcePrefab)
     {
@@ -122,7 +140,17 @@ public abstract partial class UIPanelBaseCore : Control
         }
     }
     
-    internal void SetPanelChildAvailability(bool enabled) => NodeUtils.SetNodeChildAvailability(this, _mouseOnlyControls, _cachedChildrenControlInfos, enabled);
+    internal void SetPanelChildAvailability(bool enabled)
+    {
+        NodeUtils.SetNodeChildAvailability(this, _mouseOnlyControls, _cachedChildrenControlInfos, enabled);
+        _OnPanelAvailabilityChanged(enabled);
+    }
+    
+    /// <summary>
+    /// Called when the panel availability changes.
+    /// </summary>
+    /// <param name="enabled">Indicates the panel is available or not.</param>
+    protected virtual void _OnPanelAvailabilityChanged(bool enabled) { }
 
     private static IPanelTweener GetPanelTweener(IPanelTweener panelTweener, bool useNonTweener)
     {

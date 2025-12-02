@@ -2,3 +2,6 @@
 .godot/
 /android/
 Release
+reports
+.idea
+addons/gdUnit4/GdUnitRunner.cfg

@@ -8,8 +8,8 @@ namespace GDPanelFramework.Panels;
 
 public abstract partial class UIPanelBaseCore
 {
-    private readonly List<string> _registeredInputEventNames = [];
-    private readonly Dictionary<string, RegisteredInputEvent> _registeredInputEvent = new();
+    private readonly List<StringName> _registeredInputEventNames = [];
+    private readonly Dictionary<StringName, RegisteredInputEvent> _registeredInputEvent = new();
     private readonly Dictionary<Action, Action<InputEvent>> _mappedCancelEvent = new();
     private readonly Dictionary<InputAxisBinding, MappedInputAxis> _mappedInputAxis = new();
     private readonly Dictionary<InputVectorBinding, MappedInputVector2> _mappedInputVector = new();
@@ -17,7 +17,7 @@ public abstract partial class UIPanelBaseCore
 
     private protected void CancelPressedInput()
     {
-        var name = Name;
+        var name = LocalName;
         var inputEventAction = new InputEventAction();
         foreach (var inputEvent in _pressedInputEvents) 
             inputEvent.Call(inputEventAction, InputActionPhase.Released, name);
@@ -25,7 +25,7 @@ public abstract partial class UIPanelBaseCore
     
     internal bool ProcessPanelInput(ref readonly PanelManager.CachedInputEvent inputEvent)
     {
-        var name = Name;
+        var name = LocalName;
         var executionQueue = Pool.Get<Queue<RegisteredInputEvent>>(() => new());
         try
         {
@@ -87,7 +87,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="inputName">The input name to associate to.</param>
     /// <param name="callback">The callback for receiving input command.</param>
     /// <param name="actionPhase">The action phase this callback registers to.</param>
-    protected void RegisterInput(string inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void RegisterInput(StringName inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
     {
         ArgumentNullException.ThrowIfNull(inputName);
         ArgumentNullException.ThrowIfNull(callback);
@@ -107,7 +107,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="inputName">The input name to remove from.</param>
     /// <param name="callback">The callback to remove.</param>
     /// <param name="actionPhase">The action phase this callback registered to.</param>
-    protected void RemoveInput(string inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void RemoveInput(StringName inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
     {
         ArgumentNullException.ThrowIfNull(inputName);
         ArgumentNullException.ThrowIfNull(callback);
@@ -126,7 +126,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="inputName">The input name to associate to or remove from.</param>
     /// <param name="callback">The callback for receiving or stops receiving input command.</param>
     /// <param name="actionPhase">The action phase this callback registers to.</param>
-    protected void ToggleInput(bool enable, string inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void ToggleInput(bool enable, StringName inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
     {
         if (enable) RegisterInput(inputName, callback, actionPhase);
         else RegisterInput(inputName, callback, actionPhase);
@@ -180,7 +180,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="positiveInputName">The input name that represents the positive axis to associate to.</param>
     /// <param name="callback">The callback for receiving the composite input command.</param>
     /// <param name="actionState">The action state this callback registers to.</param>
-    protected void RegisterInputAxis(string negativeInputName, string positiveInputName, Action<float> callback, CompositeInputActionState actionState)
+    protected void RegisterInputAxis(StringName negativeInputName, StringName positiveInputName, Action<float> callback, CompositeInputActionState actionState)
     {
         ArgumentNullException.ThrowIfNull(callback);
 
@@ -220,7 +220,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="positiveInputName">The input name that represents the positive axis to remove from.</param>
     /// <param name="callback">The callback to remove.</param>
     /// <param name="actionState">The action state this callback registered to.</param>
-    protected void RemoveInputAxis(string negativeInputName, string positiveInputName, Action<float> callback, CompositeInputActionState actionState)
+    protected void RemoveInputAxis(StringName negativeInputName, StringName positiveInputName, Action<float> callback, CompositeInputActionState actionState)
     {
         ArgumentNullException.ThrowIfNull(callback);
 
@@ -262,7 +262,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="positiveInputName">The input name that represents the positive axis to associate to or remove from.</param>
     /// <param name="callback">The callback for receiving or stops receiving the composite input command.</param>
     /// <param name="actionState">The action state this callback registers to.</param>
-    protected void ToggleInputAxis(bool enable, string negativeInputName, string positiveInputName, Action<float> callback, CompositeInputActionState actionState)
+    protected void ToggleInputAxis(bool enable, StringName negativeInputName, StringName positiveInputName, Action<float> callback, CompositeInputActionState actionState)
     {
         if (enable) RegisterInputAxis(negativeInputName, positiveInputName, callback, actionState);
         else RemoveInputAxis(negativeInputName, positiveInputName, callback, actionState);
@@ -277,7 +277,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="leftInputName">The input name that represents the negative horizontal axis (X-) to associate to.</param>
     /// <param name="callback">The callback for receiving input command.</param>
     /// <param name="actionState">The action state this callback registers to.</param>
-    protected void RegisterInputVector(string upInputName, string downInputName, string leftInputName, string rightInputName, Action<Vector2> callback, CompositeInputActionState actionState)
+    protected void RegisterInputVector(StringName upInputName, StringName downInputName, StringName leftInputName, StringName rightInputName, Action<Vector2> callback, CompositeInputActionState actionState)
     {
         ArgumentNullException.ThrowIfNull(callback);
 
@@ -323,7 +323,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="leftInputName">The input name that represents the negative horizontal axis (X-) to remove from.</param>
     /// <param name="callback">The callback to remove.</param>
     /// <param name="actionState">The action state this callback registered to.</param>
-    protected void RemoveInputVector(string upInputName, string downInputName, string leftInputName, string rightInputName, Action<Vector2> callback, CompositeInputActionState actionState)
+    protected void RemoveInputVector(StringName upInputName, StringName downInputName, StringName leftInputName, StringName rightInputName, Action<Vector2> callback, CompositeInputActionState actionState)
     {
         ArgumentNullException.ThrowIfNull(callback);
         
@@ -371,7 +371,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="leftInputName">The input name that represents the negative horizontal axis (X-) to associate to or remove from.</param>
     /// <param name="callback">The callback for receiving or stops receiving the composite input command.</param>
     /// <param name="actionState">The action state this callback registers to.</param>
-    protected void ToggleInputVector(bool enable, string upInputName, string downInputName, string leftInputName, string rightInputName, Action<Vector2> callback, CompositeInputActionState actionState)
+    protected void ToggleInputVector(bool enable, StringName upInputName, StringName downInputName, StringName leftInputName, StringName rightInputName, Action<Vector2> callback, CompositeInputActionState actionState)
     {
         if (enable) RegisterInputVector(upInputName, downInputName, leftInputName, rightInputName, callback, actionState);
         else RemoveInputVector(upInputName, downInputName, leftInputName, rightInputName, callback, actionState);

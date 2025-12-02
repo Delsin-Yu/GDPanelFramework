@@ -28,7 +28,7 @@ public static partial class PanelManager
         if (Engine.IsEditorHint()) return;
         GetCurrentPanelRoot();
     }
-
+    
     private record struct PanelRootInfo(Node? Owner, Control Root);
 
 
@@ -156,15 +156,25 @@ public static partial class PanelManager
         public CachedInputEvent(InputEvent @event)
         {
             Event = @event;
-            _actionHasEvent = Pool.Get<Dictionary<StringName, bool>>(() => []);
+            _actionHasEvent = Pool.Get<Dictionary<StringName, bool>>(() => new(ReferenceEqualityComparer.Instance));
             Phase = Event.IsPressed() ? InputActionPhase.Pressed : InputActionPhase.Released;
         }
 
+        private class ReferenceEqualityComparer : IEqualityComparer<StringName>
+        {
+            public static readonly ReferenceEqualityComparer Instance = new();
+            
+            public bool Equals(StringName? x, StringName? y) => ReferenceEquals(x, y);
+
+            public int GetHashCode(StringName obj) => obj.IsEmpty.GetHashCode();
+        }
+        
         public InputActionPhase Phase { get; }
         public InputEvent Event { get; }
 
         public bool ActionHasEventCached(StringName action)
         {
+            #warning Perf Hotspot
             if (_actionHasEvent.TryGetValue(action, out var result)) return result;
             result = InputMap.ActionHasEvent(action, Event);
             _actionHasEvent.Add(action, result);
