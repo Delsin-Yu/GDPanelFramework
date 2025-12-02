@@ -21,6 +21,7 @@ public abstract partial class UIPanelBaseCore
         {
             var called = false;
             var call = GetCall(inputActionPhase);
+
             if (call != null)
             {
                 called = true;
@@ -58,59 +59,66 @@ public abstract partial class UIPanelBaseCore
             _anyCall = null;
         }
     }
-    
+
     private class MappedInputAxis
     {
-        public MappedInputAxis(string target)
+        public MappedInputAxis(string target, float deadZone)
         {
+            _deadZoneSquared = deadZone * deadZone;
             _target = target;
-            NegativeInputActionPressed = inputEvent =>
+            NegativeInputActionUpdate = inputEvent =>
             {
-                _isNegativePressed = true;
-                
-                if (inputEvent is InputEventJoypadMotion motion) _negativeAxisVector = motion.AxisValue;
-                else _negativeAxisVector = 1;
-                
-                var currentValue = GetCurrentValue();
-                if(!_isPositivePressed) InvokeStart(currentValue);
-                InvokeUpdate(currentValue);
+                var oldValue = GetCurrentValue();
+
+                if (inputEvent is InputEventJoypadMotion motion)
+                {
+                    _negativeAxisVector = Mathf.Abs(motion.AxisValue);
+                    _negativeAxisVector = Mathf.Max(_negativeAxisVector, _deadZoneSquared);
+                }
+                else _negativeAxisVector = inputEvent.IsPressed() ? 1 : 0;
+
+                ProcessUpdate(oldValue);
             };
-            PositiveInputActionPressed = inputEvent =>
+            PositiveInputActionUpdate = inputEvent =>
             {
-                _isPositivePressed = true;
-                
-                if (inputEvent is InputEventJoypadMotion motion) _positiveAxisVector = motion.AxisValue;
-                else _positiveAxisVector = 1;
-                
-                var currentValue = GetCurrentValue();
-                if(!_isNegativePressed) InvokeStart(currentValue);
-                InvokeUpdate(currentValue);
-            };
-            NegativeInputActionReleased = _ =>
-            {
-                _isNegativePressed = false;
-                _negativeAxisVector = 0;
-                
-                var currentValue = GetCurrentValue();
-                InvokeUpdate(currentValue);
-                if(!_isPositivePressed) InvokeEnd(currentValue);
-            };
-            PositiveInputActionReleased = _ =>
-            {
-                _isPositivePressed = false;
-                _positiveAxisVector = 0;
-                
-                var currentValue = GetCurrentValue();
-                InvokeUpdate(currentValue);
-                if(!_isNegativePressed) InvokeEnd(currentValue);
+                var oldValue = GetCurrentValue();
+
+                if (inputEvent is InputEventJoypadMotion motion)
+                {
+                    _positiveAxisVector = Mathf.Abs(motion.AxisValue);
+                    _positiveAxisVector = Mathf.Max(_negativeAxisVector, _deadZoneSquared);
+                }
+                else _positiveAxisVector = inputEvent.IsPressed() ? 1 : 0;
+
+                ProcessUpdate(oldValue);
             };
         }
 
-        public readonly Action<InputEvent> NegativeInputActionPressed;
-        public readonly Action<InputEvent> PositiveInputActionPressed;
-        public readonly Action<InputEvent> NegativeInputActionReleased;
-        public readonly Action<InputEvent> PositiveInputActionReleased;
-        
+        private void ProcessUpdate(float oldValue)
+        {
+            var currentValue = GetCurrentValue();
+
+            switch (Mathf.IsZeroApprox(oldValue), Mathf.IsZeroApprox(currentValue))
+            {
+                case (true, true):
+                    return;
+                case (true, false):
+                    InvokeUpdate(currentValue);
+                    InvokeEnd(currentValue);
+                    break;
+                case (false, true):
+                    InvokeStart(currentValue);
+                    InvokeUpdate(currentValue);
+                    break;
+                case (false, false):
+                    InvokeUpdate(currentValue);
+                    break;
+            }
+        }
+
+        public readonly Action<InputEvent> NegativeInputActionUpdate;
+        public readonly Action<InputEvent> PositiveInputActionUpdate;
+
         public event Action<float>? OnStart;
         public event Action<float>? OnUpdate;
         public event Action<float>? OnEnd;
@@ -118,11 +126,10 @@ public abstract partial class UIPanelBaseCore
         public bool IsEmpty => OnStart == null && OnUpdate == null && OnEnd == null;
 
         private readonly string _target;
-        private bool _isNegativePressed;
-        private bool _isPositivePressed;
         private float _negativeAxisVector;
         private float _positiveAxisVector;
         private float _cachedValue = float.NaN;
+        private float _deadZoneSquared;
 
         private float GetCurrentValue() => _positiveAxisVector - _negativeAxisVector;
 
@@ -142,7 +149,7 @@ public abstract partial class UIPanelBaseCore
 
         private void InvokeUpdate(float currentValue)
         {
-            if(Mathf.IsZeroApprox(currentValue - _cachedValue)) return;
+            if (Mathf.IsZeroApprox(currentValue - _cachedValue)) return;
             _cachedValue = currentValue;
 
             DelegateRunner.RunProtected(
@@ -154,112 +161,158 @@ public abstract partial class UIPanelBaseCore
         }
     }
 
-    private class MappedInputVector2
+    private class MappedInputVector
     {
-        public MappedInputVector2(string target)
+        public MappedInputVector(string target, float deadZone)
         {
-            HorizontalAxis = new(target);
-            VerticalAxis = new(target);
-
-            HorizontalAxis.OnStart += horizontalAxisValue =>
-            {
-                _isHorizontalPressed = true;
-                _horizontalAxisValue = horizontalAxisValue;
-                
-                var currentValue = GetCurrentValue();
-                if(!_isVerticalPressed) InvokeStart(ref currentValue);
-                InvokeUpdate(ref currentValue);
-            };
-            VerticalAxis.OnStart += verticalAxisValue =>
-            {
-                _isVerticalPressed = true;
-                _verticalAxisValue = verticalAxisValue;
-                
-                var currentValue = GetCurrentValue();
-                if(!_isHorizontalPressed) InvokeStart(ref currentValue);
-                InvokeUpdate(ref currentValue);
-            };    
-            
-            HorizontalAxis.OnUpdate += horizontalAxisValue =>
-            {
-                _horizontalAxisValue = horizontalAxisValue;
-                var currentValue = GetCurrentValue();
-                InvokeUpdate(ref currentValue);
-            };
-            
-            VerticalAxis.OnUpdate += verticalAxisValue =>
-            {
-                _verticalAxisValue = verticalAxisValue;
-                var currentValue = GetCurrentValue();
-                InvokeUpdate(ref currentValue);
-            };
-            
-            HorizontalAxis.OnEnd += horizontalAxisValue =>
-            {
-                _isHorizontalPressed = false;
-                _horizontalAxisValue = horizontalAxisValue;
-                
-                var currentValue = GetCurrentValue();
-                InvokeUpdate(ref currentValue);
-                if(!_isVerticalPressed) InvokeEnd(ref currentValue);
-            };
-            
-            VerticalAxis.OnEnd += horizontalAxisValue =>
-            {
-                _isVerticalPressed = false;
-                _verticalAxisValue = horizontalAxisValue;
-                
-                var currentValue = GetCurrentValue();
-                InvokeUpdate(ref currentValue);
-                if(!_isHorizontalPressed) InvokeEnd(ref currentValue);
-            };
-            
+            _deadZone = deadZone;
             _target = target;
+            var horizontalNegativeKeyPressed = false;
+            var horizontalPositiveKeyPressed = false;
+            var verticalNegativeKeyPressed = false;
+            var verticalPositiveKeyPressed = false;
+            HorizontalNegativeInputActionUpdate = inputEvent =>
+            {
+                var oldValue = GetCurrentValue();
+
+                if (inputEvent is InputEventJoypadMotion motion) _horizontalAxisVector = -Mathf.Abs(motion.AxisValue);
+                else
+                {
+                    horizontalNegativeKeyPressed = inputEvent.IsPressed();
+                    _horizontalAxisVector = (horizontalNegativeKeyPressed, horizontalPositiveKeyPressed) switch
+                    {
+                        (false, false) => 0,
+                        (true, true) => 0,
+                        (true, false) => -1,
+                        (false, true) => 1,
+                    };
+                }
+
+                ProcessUpdate(oldValue);
+            };
+            HorizontalPositiveInputActionUpdate = inputEvent =>
+            {
+                var oldValue = GetCurrentValue();
+
+                if (inputEvent is InputEventJoypadMotion motion) _horizontalAxisVector = Mathf.Abs(motion.AxisValue);
+                else
+                {
+                    horizontalPositiveKeyPressed = inputEvent.IsPressed();
+                    _horizontalAxisVector = (horizontalNegativeKeyPressed, horizontalPositiveKeyPressed) switch
+                    {
+                        (false, false) => 0,
+                        (true, true) => 0,
+                        (true, false) => -1,
+                        (false, true) => 1,
+                    };
+                }
+
+                ProcessUpdate(oldValue);
+            };
+            VerticalNegativeInputActionUpdate = inputEvent =>
+            {
+                var oldValue = GetCurrentValue();
+
+                if (inputEvent is InputEventJoypadMotion motion) _verticalAxisVector = -Mathf.Abs(motion.AxisValue);
+                else
+                {
+                    verticalNegativeKeyPressed = inputEvent.IsPressed();
+                    _verticalAxisVector = (verticalNegativeKeyPressed, verticalPositiveKeyPressed) switch
+                    {
+                        (false, false) => 0,
+                        (true, true) => 0,
+                        (true, false) => -1,
+                        (false, true) => 1,
+                    };
+                }
+
+                ProcessUpdate(oldValue);
+            };
+            VerticalPositiveInputActionUpdate = inputEvent =>
+            {
+                var oldValue = GetCurrentValue();
+
+                if (inputEvent is InputEventJoypadMotion motion) _verticalAxisVector = Mathf.Abs(motion.AxisValue);
+                else
+                {
+                    verticalPositiveKeyPressed = inputEvent.IsPressed();
+                    _verticalAxisVector = (verticalNegativeKeyPressed, verticalPositiveKeyPressed) switch
+                    {
+                        (false, false) => 0,
+                        (true, true) => 0,
+                        (true, false) => -1,
+                        (false, true) => 1,
+                    };
+                }
+
+                ProcessUpdate(oldValue);
+            };
         }
-        
-        public readonly MappedInputAxis HorizontalAxis;
-        public readonly MappedInputAxis VerticalAxis;
 
-        private bool _isHorizontalPressed;
-        private bool _isVerticalPressed;
-        private float _horizontalAxisValue;
-        private float _verticalAxisValue;
-        private Vector2 _cachedValue = new(float.NaN, float.NaN);
+        private void ProcessUpdate(Vector2 oldValue)
+        {
+            var currentValue = GetCurrentValue();
+            if (currentValue.LengthSquared() < _deadZone * _deadZone) currentValue = Vector2.Zero;
 
-        private readonly string _target;
-                
+            switch (Mathf.IsZeroApprox(oldValue.LengthSquared()),
+                Mathf.IsZeroApprox(currentValue.LengthSquared()))
+            {
+                case (true, true):
+                    return;
+                case (true, false):
+                    InvokeUpdate(currentValue);
+                    InvokeEnd(currentValue);
+                    break;
+                case (false, true):
+                    InvokeStart(currentValue);
+                    InvokeUpdate(currentValue);
+                    break;
+                case (false, false):
+                    InvokeUpdate(currentValue);
+                    break;
+            }
+        }
+
+        public readonly Action<InputEvent> HorizontalNegativeInputActionUpdate;
+        public readonly Action<InputEvent> HorizontalPositiveInputActionUpdate;
+        public readonly Action<InputEvent> VerticalNegativeInputActionUpdate;
+        public readonly Action<InputEvent> VerticalPositiveInputActionUpdate;
+
         public event Action<Vector2>? OnStart;
         public event Action<Vector2>? OnUpdate;
         public event Action<Vector2>? OnEnd;
 
         public bool IsEmpty => OnStart == null && OnUpdate == null && OnEnd == null;
 
-        private Vector2 GetCurrentValue() => new(_horizontalAxisValue, _verticalAxisValue);
-        
-        private void InvokeStart(ref readonly Vector2 currentValue)
-        {
-            DelegateRunner.RunProtected(
-                OnStart,
-                currentValue,
-                "Input Vector Composite Start",
-                _target
+        private readonly string _target;
+        private float _horizontalAxisVector;
+        private float _verticalAxisVector;
+        private Vector2 _cachedValue = new(float.NaN, float.NaN);
+        private readonly float _deadZone;
+
+        private Vector2 GetCurrentValue() =>
+            new(
+                _horizontalAxisVector,
+                _verticalAxisVector
             );
-        }
 
-        private void InvokeEnd(ref readonly Vector2 currentValue)
+        private void InvokeStart(Vector2 currentValue) => DelegateRunner.RunProtected(
+            OnStart,
+            currentValue,
+            "Input Vector Composite Start",
+            _target
+        );
+
+        private void InvokeEnd(Vector2 currentValue) => DelegateRunner.RunProtected(
+            OnEnd,
+            currentValue,
+            "Input Vector Composite End",
+            _target
+        );
+
+        private void InvokeUpdate(Vector2 currentValue)
         {
-            DelegateRunner.RunProtected(
-                OnEnd,
-                currentValue,
-                "Input Vector Composite End",
-                _target
-            );
-        }
-
-        private void InvokeUpdate(ref readonly Vector2 currentValue)
-        {
-            if(Mathf.IsZeroApprox(_cachedValue.X - currentValue.X) && Mathf.IsZeroApprox(_cachedValue.Y - currentValue.Y)) return;
-
+            if (Mathf.IsZeroApprox((currentValue - _cachedValue).LengthSquared())) return;
             _cachedValue = currentValue;
 
             DelegateRunner.RunProtected(
@@ -272,5 +325,6 @@ public abstract partial class UIPanelBaseCore
     }
 
     private record struct InputAxisBinding(string NegativeInputName, string PositiveInputName);
+
     private record struct InputVectorBinding(InputAxisBinding HorizontalInputAxis, InputAxisBinding VerticalInputAxis);
 }

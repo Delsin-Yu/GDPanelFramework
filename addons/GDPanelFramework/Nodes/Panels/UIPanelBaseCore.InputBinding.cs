@@ -12,14 +12,14 @@ public abstract partial class UIPanelBaseCore
     private readonly Dictionary<StringName, RegisteredInputEvent> _registeredInputEvent = new();
     private readonly Dictionary<Action, Action<InputEvent>> _mappedCancelEvent = new();
     private readonly Dictionary<InputAxisBinding, MappedInputAxis> _mappedInputAxis = new();
-    private readonly Dictionary<InputVectorBinding, MappedInputVector2> _mappedInputVector = new();
+    private readonly Dictionary<InputVectorBinding, MappedInputVector> _mappedInputVector = new();
     private readonly HashSet<RegisteredInputEvent> _pressedInputEvents = new();
 
     private protected void CancelPressedInput()
     {
         var name = LocalName;
         var inputEventAction = new InputEventAction();
-        foreach (var inputEvent in _pressedInputEvents) 
+        foreach (var inputEvent in _pressedInputEvents)
             inputEvent.Call(inputEventAction, InputActionPhase.Released, name);
     }
 
@@ -62,14 +62,7 @@ public abstract partial class UIPanelBaseCore
                         called = true;
                         _pressedInputEvents.Remove(call);
                     }
-                    break;
-                case InputActionPhase.Any:
-                    while (executionQueue.TryDequeue(out var call))
-                    {
-                        var localCalled = call.Call(inputEvent.Event, currentPhase, name);
-                        if (!localCalled) continue;
-                        called = true;
-                    }
+
                     break;
                 default:
                     throw new InvalidOperationException();
@@ -192,13 +185,13 @@ public abstract partial class UIPanelBaseCore
 
         if (!_mappedInputAxis.TryGetValue(binding, out var mappedInputAxis))
         {
-            mappedInputAxis = new(LocalName);
+            var negativeDeadZone = InputMap.ActionGetDeadzone(negativeInputName);
+            var positiveDeadZone = InputMap.ActionGetDeadzone(positiveInputName);
+            mappedInputAxis = new(LocalName, (negativeDeadZone + positiveDeadZone) / 2f);
             _mappedInputAxis.Add(binding, mappedInputAxis);
-            
-            RegisterInput(negativeInputName, mappedInputAxis.NegativeInputActionPressed, InputActionPhase.Pressed);
-            RegisterInput(negativeInputName, mappedInputAxis.NegativeInputActionReleased, InputActionPhase.Released);
-            RegisterInput(positiveInputName, mappedInputAxis.PositiveInputActionPressed, InputActionPhase.Pressed);
-            RegisterInput(positiveInputName, mappedInputAxis.PositiveInputActionReleased, InputActionPhase.Released);
+
+            RegisterInput(negativeInputName, mappedInputAxis.NegativeInputActionUpdate, InputActionPhase.Any);
+            RegisterInput(positiveInputName, mappedInputAxis.PositiveInputActionUpdate, InputActionPhase.Any);
         }
 
         switch (actionState)
@@ -247,15 +240,10 @@ public abstract partial class UIPanelBaseCore
                 throw new ArgumentOutOfRangeException(nameof(actionState), actionState, null);
         }
 
-        if (mappedInputAxis.IsEmpty)
-        {
-            _mappedInputAxis.Remove(binding);
-        }
-        
-        RemoveInput(negativeInputName, mappedInputAxis.NegativeInputActionPressed, InputActionPhase.Pressed);
-        RemoveInput(negativeInputName, mappedInputAxis.NegativeInputActionReleased, InputActionPhase.Released);
-        RemoveInput(positiveInputName, mappedInputAxis.PositiveInputActionPressed, InputActionPhase.Pressed);
-        RemoveInput(positiveInputName, mappedInputAxis.PositiveInputActionReleased, InputActionPhase.Released);
+        if (mappedInputAxis.IsEmpty) _mappedInputAxis.Remove(binding);
+
+        RemoveInput(negativeInputName, mappedInputAxis.NegativeInputActionUpdate, InputActionPhase.Any);
+        RemoveInput(positiveInputName, mappedInputAxis.PositiveInputActionUpdate, InputActionPhase.Any);
     }
 
     /// <summary>
@@ -289,17 +277,17 @@ public abstract partial class UIPanelBaseCore
 
         if (!_mappedInputVector.TryGetValue(binding, out var mappedInputVector2))
         {
-            mappedInputVector2 = new(LocalName);
+            var upDeadZone = InputMap.ActionGetDeadzone(upInputName);
+            var downDeadZone = InputMap.ActionGetDeadzone(downInputName);
+            var leftDeadZone = InputMap.ActionGetDeadzone(leftInputName);
+            var rightDeadZone = InputMap.ActionGetDeadzone(rightInputName);
+            mappedInputVector2 = new(LocalName, (upDeadZone + downDeadZone + leftDeadZone + rightDeadZone) / 4f);
             _mappedInputVector.Add(binding, mappedInputVector2);
-            
-            RegisterInput(upInputName, mappedInputVector2.VerticalAxis.PositiveInputActionPressed, InputActionPhase.Pressed);
-            RegisterInput(upInputName, mappedInputVector2.VerticalAxis.PositiveInputActionReleased, InputActionPhase.Released);
-            RegisterInput(downInputName, mappedInputVector2.VerticalAxis.NegativeInputActionPressed, InputActionPhase.Pressed);
-            RegisterInput(downInputName, mappedInputVector2.VerticalAxis.NegativeInputActionReleased, InputActionPhase.Released);
-            RegisterInput(rightInputName, mappedInputVector2.HorizontalAxis.PositiveInputActionPressed, InputActionPhase.Pressed);
-            RegisterInput(rightInputName, mappedInputVector2.HorizontalAxis.PositiveInputActionReleased, InputActionPhase.Released);
-            RegisterInput(leftInputName, mappedInputVector2.HorizontalAxis.NegativeInputActionPressed, InputActionPhase.Pressed);
-            RegisterInput(leftInputName, mappedInputVector2.HorizontalAxis.NegativeInputActionReleased, InputActionPhase.Released);
+
+            RegisterInput(upInputName, mappedInputVector2.VerticalPositiveInputActionUpdate, InputActionPhase.Any);
+            RegisterInput(downInputName, mappedInputVector2.VerticalNegativeInputActionUpdate, InputActionPhase.Any);
+            RegisterInput(rightInputName, mappedInputVector2.HorizontalPositiveInputActionUpdate, InputActionPhase.Any);
+            RegisterInput(leftInputName, mappedInputVector2.HorizontalNegativeInputActionUpdate, InputActionPhase.Any);
         }
 
         switch (actionState)
@@ -350,19 +338,12 @@ public abstract partial class UIPanelBaseCore
                 throw new ArgumentOutOfRangeException(nameof(actionState), actionState, null);
         }
 
-        if (mappedInputVector2.IsEmpty)
-        {
-            _mappedInputVector.Remove(binding);
-        }
-        
-        RemoveInput(upInputName, mappedInputVector2.VerticalAxis.PositiveInputActionPressed, InputActionPhase.Pressed);
-        RemoveInput(upInputName, mappedInputVector2.VerticalAxis.PositiveInputActionReleased, InputActionPhase.Released);
-        RemoveInput(downInputName, mappedInputVector2.VerticalAxis.NegativeInputActionPressed, InputActionPhase.Pressed);
-        RemoveInput(downInputName, mappedInputVector2.VerticalAxis.NegativeInputActionReleased, InputActionPhase.Released);
-        RemoveInput(rightInputName, mappedInputVector2.HorizontalAxis.PositiveInputActionPressed, InputActionPhase.Pressed);
-        RemoveInput(rightInputName, mappedInputVector2.HorizontalAxis.PositiveInputActionReleased, InputActionPhase.Released);
-        RemoveInput(leftInputName, mappedInputVector2.HorizontalAxis.NegativeInputActionPressed, InputActionPhase.Pressed);
-        RemoveInput(leftInputName, mappedInputVector2.HorizontalAxis.NegativeInputActionReleased, InputActionPhase.Released);
+        if (mappedInputVector2.IsEmpty) _mappedInputVector.Remove(binding);
+
+        RemoveInput(upInputName, mappedInputVector2.VerticalPositiveInputActionUpdate, InputActionPhase.Any);
+        RemoveInput(downInputName, mappedInputVector2.VerticalNegativeInputActionUpdate, InputActionPhase.Any);
+        RemoveInput(rightInputName, mappedInputVector2.HorizontalPositiveInputActionUpdate, InputActionPhase.Any);
+        RemoveInput(leftInputName, mappedInputVector2.HorizontalNegativeInputActionUpdate, InputActionPhase.Any);
     }
 
     /// <summary>
