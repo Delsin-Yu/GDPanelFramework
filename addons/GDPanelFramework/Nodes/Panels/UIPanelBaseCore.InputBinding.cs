@@ -125,14 +125,14 @@ public abstract partial class UIPanelBaseCore
     /// <summary>
     /// Register or remove a <paramref name="callback"/> registration from the associated <paramref name="inputName"/> for this panel when it's active.
     /// </summary>
-    /// <param name="enable">When setting to true, calls <see cref="RegisterInput"/>, otherwise calls <see cref="RemoveInput"/></param>
+    /// <param name="enable">When setting to true, calls <see cref="RegisterInput(StringName,Action{InputEvent},InputActionPhase)"/>, otherwise calls <see cref="RemoveInput"/></param>
     /// <param name="inputName">The input name to associate to or remove from.</param>
     /// <param name="callback">The callback for receiving or stops receiving input command.</param>
     /// <param name="actionPhase">The action phase this callback registers to.</param>
     protected void ToggleInput(bool enable, StringName inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
     {
         if (enable) RegisterInput(inputName, callback, actionPhase);
-        else RegisterInput(inputName, callback, actionPhase);
+        else RemoveInput(inputName, callback, actionPhase);
     }
 
     /// <summary>
