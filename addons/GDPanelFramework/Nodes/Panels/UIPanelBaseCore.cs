@@ -59,7 +59,7 @@ public abstract partial class UIPanelBaseCore : Control
     }
 
     /// <summary>
-    /// A <see cref="CancellationToken"/> that gets canceled when the <see cref="UIPanel.ClosePanel"/> / <see cref="UIPanelArg{TOpenArg,TCloseArg}.ClosePanel"/> calls.
+    /// A <see cref="CancellationToken"/> that gets canceled when the <see cref="UIPanel.ClosePanel"/> / <see cref="UIPanelArg2{TOpenArg,TCloseArg}.ClosePanel"/> calls.
     /// </summary>
     public CancellationToken PanelCloseToken => (PanelCloseTokenSource ??= new()).Token;
 
