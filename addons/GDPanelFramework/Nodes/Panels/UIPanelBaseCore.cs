@@ -82,16 +82,6 @@ public abstract partial class UIPanelBaseCore : Control
         set => _panelTweener = value;
     }
 
-    /// <summary>
-    /// Sets a <see cref="Control"/> under the current panel to only react with mouse interaction and does not grab focus when pressed. 
-    /// </summary>
-    protected void SetMouseOnly(Control control)
-    {
-        _mouseOnlyControls.Add(control);
-        if (control.MouseFilter != MouseFilterEnum.Ignore) control.MouseFilter = MouseFilterEnum.Stop;
-        control.FocusMode = FocusModeEnum.None;
-    }
-    
     internal void CacheCurrentSelection(ref Control? currentSelection)
     {
         _cachedSelection = null;
@@ -138,7 +128,8 @@ public abstract partial class UIPanelBaseCore : Control
 
     internal void SetPanelChildAvailability(bool enabled)
     {
-        NodeUtils.SetNodeChildAvailability(this, _mouseOnlyControls, _cachedChildrenControlInfos, enabled);
+        FocusBehaviorRecursive = enabled ? FocusBehaviorRecursiveEnum.Inherited : FocusBehaviorRecursiveEnum.Disabled;
+        MouseBehaviorRecursive = enabled ? MouseBehaviorRecursiveEnum.Inherited : MouseBehaviorRecursiveEnum.Disabled;
         _OnPanelAvailabilityChanged(enabled);
     }
 
@@ -181,7 +172,6 @@ public abstract partial class UIPanelBaseCore : Control
         _cachedSelection = null;
         _panelTweener = null;
 
-        _mouseOnlyControls.Clear();
         _registeredInputEventNames.Clear();
 
         foreach (var registeredInputEvent in _registeredInputEvent.Values)
