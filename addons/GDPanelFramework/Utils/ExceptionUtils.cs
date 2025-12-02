@@ -4,7 +4,7 @@ using Godot;
 
 namespace GDPanelFramework;
 
-internal static class ExceptionUtils
+static class ExceptionUtils
 {
     private const string PanelClosingOrderNotification = "When closing panels, it is mandatory to ensure the order of closing these panels is symmetrical to how they are opened.";
 
@@ -28,7 +28,7 @@ internal static class ExceptionUtils
 
     public static void ThrowIfUnauthorizedPanelRootOwner(Node requester, Node? owner)
     {
-        if(ReferenceEquals(requester, owner)) return;
+        if (ReferenceEquals(requester, owner)) return;
         throw new InvalidOperationException($"{requester.Name} is attempting to pop a panel root that's owned by {owner?.Name ?? nameof(PanelManager)}, this is not supported.");
     }
 }

@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GDPanelFramework.Utils.Pooling;
 
-internal static class Pool
+static class Pool
 {
     private static class BackingPool<T>
     {

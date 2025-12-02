@@ -2,7 +2,7 @@
 
 namespace GodotPanelFramework.Utils;
 
-internal static class Singleton<T>
+static class Singleton<T>
 {
     private static T? _instance;
 

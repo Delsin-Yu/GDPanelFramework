@@ -16,11 +16,8 @@ public static class GDPanelFrameworkExceptionHandler
     internal static void PublishProtectedException(Exception e, string actionName, string targetName, string? methodName)
     {
         if (OnProtectedException != null)
-        {
             OnProtectedException.Invoke(e);
-        }
         else
-        {
             GD.PushError(
                 $"""
 
@@ -32,6 +29,5 @@ public static class GDPanelFrameworkExceptionHandler
                  {e.StackTrace}
                  """
             );
-        }
     }
 }

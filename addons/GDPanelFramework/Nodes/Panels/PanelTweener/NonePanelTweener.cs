@@ -13,7 +13,7 @@ public class NonePanelTweener : IPanelTweener
     /// The unified instance of this <see cref="NonePanelTweener"/>.
     /// </summary>
     public static NonePanelTweener Instance => Singleton<NonePanelTweener>.GetInstance(() => new());
-    
+
     private NonePanelTweener() { }
 
     /// <inheritdoc/>

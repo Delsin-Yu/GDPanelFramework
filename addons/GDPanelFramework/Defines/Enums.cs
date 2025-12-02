@@ -15,7 +15,7 @@ public enum CreatePolicy
     /// <summary>
     /// The framework will creating a new instance of panel regardless the cache status.
     /// </summary>
-    ForceCreate
+    ForceCreate,
 }
 
 /// <summary>
@@ -30,7 +30,7 @@ public enum ClosePolicy
     /// <summary>
     /// The framework will calls the <see cref="Node.QueueFree"/> on this panel for deletion.
     /// </summary>
-    Delete
+    Delete,
 }
 
 /// <summary>
@@ -46,7 +46,7 @@ public enum PreviousPanelVisual
     /// <summary>
     /// When opening a panel, the previous panel become hidden.
     /// </summary>
-    Hidden
+    Hidden,
 }
 
 /// <summary>
@@ -65,7 +65,7 @@ public enum InputActionPhase
     /// <summary>
     /// Triggers regardless the return value of the <see cref="InputEvent.IsPressed"/>.
     /// </summary>
-    Any
+    Any,
 }
 
 /// <summary>
@@ -86,5 +86,5 @@ public enum CompositeInputActionState
     /// <summary>
     /// Triggers when the last associated input event releases.
     /// </summary>
-    End
+    End,
 }

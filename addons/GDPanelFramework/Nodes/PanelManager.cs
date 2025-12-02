@@ -28,7 +28,7 @@ public static partial class PanelManager
         if (Engine.IsEditorHint()) return;
         GetCurrentPanelRoot();
     }
-    
+
     private record struct PanelRootInfo(Node? Owner, Control Root);
 
 
@@ -39,24 +39,22 @@ public static partial class PanelManager
         public bool TryGetPanel(PackedScene prefab, [NotNullWhen(true)] out UIPanelBaseCore? instance)
         {
             instance = null;
-            if (!_bufferedPanels.Remove(prefab, out var panelInstanceStack))
-            {
-                return false;
-            }
+            if (!_bufferedPanels.Remove(prefab, out var panelInstanceStack)) return false;
+
             if (!panelInstanceStack.TryPop(out var panelInstance))
             {
                 _bufferedPanels.Remove(prefab);
                 return false;
             }
-            if (panelInstanceStack.Count == 0)
-            {
-                _bufferedPanels.Remove(prefab);
-            }
+
+            if (panelInstanceStack.Count == 0) _bufferedPanels.Remove(prefab);
+
             if (!GodotObject.IsInstanceValid(panelInstance))
             {
                 panelInstance.Dispose();
                 return false;
             }
+
             instance = panelInstance;
             return true;
         }
@@ -68,6 +66,7 @@ public static partial class PanelManager
                 panelInstanceStack = [];
                 _bufferedPanels.Add(prefab, panelInstanceStack);
             }
+
             panelInstanceStack.Push(instance);
         }
     }
@@ -98,10 +97,7 @@ public static partial class PanelManager
         else panelInstance.Reparent(parent);
 
         // Pushes a panel to new layer, disables gui handling for the previous panel. 
-        if (PanelStack.TryPeek(out var topmostPanel))
-        {
-            topmostPanel.SetPanelActiveState(false, previousPreviousPanelVisual);
-        }
+        if (PanelStack.TryPeek(out var topmostPanel)) topmostPanel.SetPanelActiveState(false, previousPreviousPanelVisual);
 
         PanelStack.Push(panelInstance);
     }
@@ -143,7 +139,7 @@ public static partial class PanelManager
         var cachedWrapper = new CachedInputEvent(inputEvent);
 
         var hasAccepted = topPanel.ProcessPanelInput(ref cachedWrapper);
-        
+
         cachedWrapper.Dispose();
 
         return hasAccepted;
@@ -163,18 +159,17 @@ public static partial class PanelManager
         private class ReferenceEqualityComparer : IEqualityComparer<StringName>
         {
             public static readonly ReferenceEqualityComparer Instance = new();
-            
+
             public bool Equals(StringName? x, StringName? y) => ReferenceEquals(x, y);
 
             public int GetHashCode(StringName obj) => obj.IsEmpty.GetHashCode();
         }
-        
+
         public InputActionPhase Phase { get; }
         public InputEvent Event { get; }
 
         public bool ActionHasEventCached(StringName action)
         {
-            #warning Perf Hotspot
             if (_actionHasEvent.TryGetValue(action, out var result)) return result;
             result = InputMap.ActionHasEvent(action, Event);
             _actionHasEvent.Add(action, result);
@@ -253,10 +248,7 @@ public static partial class PanelManager
         }
 
         panelInstance = packedPanel.InstantiateOrNull<TPanel>();
-        if (panelInstance is null)
-        {
-            throw new InvalidOperationException($"Unable to cast {packedPanel.ResourceName} to {typeof(TPanel)}!");
-        }
+        if (panelInstance is null) throw new InvalidOperationException($"Unable to cast {packedPanel.ResourcePath} to {typeof(TPanel)}!");
 
         GetCurrentPanelRoot().AddChild(panelInstance);
         initializeCallback?.Invoke(panelInstance);

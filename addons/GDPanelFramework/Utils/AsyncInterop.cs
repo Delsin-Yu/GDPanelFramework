@@ -43,9 +43,7 @@ public static class AsyncInterop
 /// <inheritdoc cref="AsyncAwaitableBase{T}"/>
 public sealed class AsyncAwaitable : INotifyCompletion
 {
-    internal AsyncAwaitable()
-    {
-    }
+    internal AsyncAwaitable() { }
 
     private readonly AsyncAwaitableBase<Empty> _backing = new();
 
@@ -56,7 +54,7 @@ public sealed class AsyncAwaitable : INotifyCompletion
 
     /// <inheritdoc cref="AsyncAwaitableBase{T}.IsCompleted"/>
     public bool IsCompleted => _backing.IsCompleted;
-    
+
     /// <inheritdoc cref="AsyncAwaitableBase{T}.GetResult"/>
     public void GetResult() => _backing.GetResult();
 
@@ -67,9 +65,7 @@ public sealed class AsyncAwaitable : INotifyCompletion
 /// <inheritdoc cref="AsyncAwaitableBase{T}"/>
 public sealed class AsyncAwaitable<T> : INotifyCompletion
 {
-    internal AsyncAwaitable()
-    {
-    }
+    internal AsyncAwaitable() { }
 
     private readonly AsyncAwaitableBase<T> _backing = new();
 
@@ -91,7 +87,7 @@ public sealed class AsyncAwaitable<T> : INotifyCompletion
 /// <summary>
 /// An awaitable that, when awaited, will asynchronously continues after the associated delegate-callback styled method completes.
 /// </summary>
-internal class AsyncAwaitableBase<T>
+class AsyncAwaitableBase<T>
 {
     private Action<Action<T>>? _sourceMethod;
     private Action? _continuation;
@@ -113,15 +109,18 @@ internal class AsyncAwaitableBase<T>
         get
         {
             ThrowIfNotActive();
+
             if (!_isStarted)
             {
                 var success = DelegateRunner.RunProtected(_sourceMethod, Complete, "Delegate Execution", "Async Interop");
+
                 if (!success)
                 {
                     Collect();
                     throw new InvalidOperationException("Exception thrown when invoking async backing method.");
                 }
             }
+
             _isStarted = true;
             return _isCompleted;
         }
@@ -156,6 +155,7 @@ internal class AsyncAwaitableBase<T>
     private void RunContinuation()
     {
         var success = DelegateRunner.RunProtected(_continuation, "Async Continuation", "Async Interop");
+
         if (!success)
         {
             Collect();
@@ -172,7 +172,7 @@ internal class AsyncAwaitableBase<T>
         _continuation = null;
         Pool.Collect(this);
     }
-    
+
     /// <summary>
     /// Registers a method that gets called when the associated delegate-callback styled method completes.
     /// </summary>

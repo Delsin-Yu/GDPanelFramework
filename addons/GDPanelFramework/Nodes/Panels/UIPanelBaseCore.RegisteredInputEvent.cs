@@ -125,7 +125,7 @@ public abstract partial class UIPanelBaseCore
         private float _cachedValue = float.NaN;
 
         private float GetCurrentValue() => _positiveAxisVector - _negativeAxisVector;
-        
+
         private void InvokeStart(float currentValue) => DelegateRunner.RunProtected(
             OnStart,
             currentValue,
@@ -144,7 +144,7 @@ public abstract partial class UIPanelBaseCore
         {
             if(Mathf.IsZeroApprox(currentValue - _cachedValue)) return;
             _cachedValue = currentValue;
-            
+
             DelegateRunner.RunProtected(
                 OnUpdate,
                 _cachedValue,
@@ -231,7 +231,7 @@ public abstract partial class UIPanelBaseCore
         public event Action<Vector2>? OnStart;
         public event Action<Vector2>? OnUpdate;
         public event Action<Vector2>? OnEnd;
-        
+
         public bool IsEmpty => OnStart == null && OnUpdate == null && OnEnd == null;
 
         private Vector2 GetCurrentValue() => new(_horizontalAxisValue, _verticalAxisValue);

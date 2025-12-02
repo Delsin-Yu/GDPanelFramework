@@ -8,7 +8,6 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
     private InputActionPhase? _registeredInputActionPhase;
 
     /// <inheritdoc cref="UIPanelBase{TOpenArg,TCloseArg}()"/>
-
     /// <summary>
     /// Close this panel.
     /// </summary>
@@ -41,9 +40,7 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
     /// <remarks>
     /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
     /// </remarks>
-    protected virtual void _OnPanelClose()
-    {
-    }
+    protected virtual void _OnPanelClose() { }
 
     /// <summary>
     /// Enable this panel to be closed with the <see cref="PanelManager.UICancelActionName"/>.
@@ -54,7 +51,7 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
     /// </remarks>
     protected void EnableCloseWithCancelKey(InputActionPhase actionPhase = InputActionPhase.Released)
     {
-        if(_registeredInputActionPhase != null) return;
+        if (_registeredInputActionPhase != null) return;
         _registeredInputActionPhase = actionPhase;
         RegisterInputCancel(ClosePanel, actionPhase);
     }
@@ -67,7 +64,7 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
     /// </remarks>
     protected void DisableCloseWithCancelKey()
     {
-        if(_registeredInputActionPhase == null) return;
+        if (_registeredInputActionPhase == null) return;
         RemoveInputCancel(ClosePanel, _registeredInputActionPhase!.Value);
         _registeredInputActionPhase = null;
     }

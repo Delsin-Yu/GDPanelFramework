@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Threading;
 using Godot;
 
 namespace GDPanelFramework.Panels;
+
 /// <summary>
 /// The fundamental type for all panels, do not inherit this type.
 /// </summary>
@@ -14,12 +14,13 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         PreviousPanelVisual PreviousPanelVisual,
         ClosePolicy ClosePolicy,
         Action<TCloseArg>? OnPanelCloseCallback,
-        Action? UntypedOnPanelCloseCallback);
+        Action? UntypedOnPanelCloseCallback
+    );
 
-    
+
     private PanelOpeningMetadata? _metadata;
 
-    
+
     /// <summary>
     /// The argument passed to the panel when opening.
     /// </summary>
@@ -42,7 +43,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
 		ShowPanel(() => FinishAndResetTokenSource(ref PanelOpenTweenFinishTokenSource));
         SetPanelChildAvailability(true);
         DelegateRunner.RunProtected(_OnPanelOpen, openArg, "Open Panel", LocalName);
-	}
+    }
 
     internal void ClosePanelInternal(TCloseArg closeArg)
     {
@@ -55,17 +56,17 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
 
         var metadataValue = _metadata!.Value;
         _metadata = null;
-        
+
         PanelManager.HandlePanelClose(this, metadataValue.PreviousPanelVisual, metadataValue.ClosePolicy);
         HidePanel(() => FinishAndResetTokenSource(ref PanelCloseTweenFinishTokenSource));
 
         metadataValue.UntypedOnPanelCloseCallback?.Invoke();
         metadataValue.OnPanelCloseCallback?.Invoke(closeArg);
-	}
+    }
 
     private static void FinishAndResetTokenSource(ref CancellationTokenSource? cancellationTokenSource)
     {
-        if(cancellationTokenSource == null) return;
+        if (cancellationTokenSource == null) return;
         cancellationTokenSource.Cancel();
         cancellationTokenSource.Dispose();
         cancellationTokenSource = null;
@@ -84,7 +85,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     public sealed override void _Notification(int what)
     {
         base._Notification(what);
-        
+
         DelegateRunner.RunProtected(_OnPanelNotification, what, "Panel Notification", LocalName);
 
         if (what == NotificationPredelete)
@@ -93,10 +94,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
             Cleanup();
         }
 
-        if (what == NotificationWMWindowFocusOut)
-        {
-            CancelPressedInput();
-        }
+        if (what == NotificationWMWindowFocusOut) CancelPressedInput();
     }
 
     /// <summary>
@@ -105,9 +103,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     /// <remarks>
     /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
     /// </remarks>
-    protected virtual void _OnPanelInitialize()
-    {
-    }
+    protected virtual void _OnPanelInitialize() { }
 
     /// <summary>
     /// Called when the system is opening the panel (<see cref="OpenPanelInternal"/>).
@@ -125,9 +121,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     /// <remarks>
     /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
     /// </remarks>
-    protected virtual void _OnPanelClose(TCloseArg closeArg)
-    {
-    }
+    protected virtual void _OnPanelClose(TCloseArg closeArg) { }
 
     /// <summary>
     /// Called when Godot is deleting the panel (<see cref="GodotObject.NotificationPredelete"/>).
@@ -135,15 +129,11 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     /// <remarks>
     /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
     /// </remarks>
-    protected virtual void _OnPanelPredelete()
-    {
-    }
+    protected virtual void _OnPanelPredelete() { }
 
     /// <inheritdoc cref="GodotObject._Notification"/>
     /// <remarks>
     /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
     /// </remarks>
-    protected virtual void _OnPanelNotification(int what)
-    {
-    }
+    protected virtual void _OnPanelNotification(int what) { }
 }

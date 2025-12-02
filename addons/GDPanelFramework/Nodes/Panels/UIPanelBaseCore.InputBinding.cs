@@ -22,11 +22,12 @@ public abstract partial class UIPanelBaseCore
         foreach (var inputEvent in _pressedInputEvents) 
             inputEvent.Call(inputEventAction, InputActionPhase.Released, name);
     }
-    
+
     internal bool ProcessPanelInput(ref readonly PanelManager.CachedInputEvent inputEvent)
     {
         var name = LocalName;
         var executionQueue = Pool.Get<Queue<RegisteredInputEvent>>(() => new());
+
         try
         {
             foreach (var inputEventName in CollectionsMarshal.AsSpan(_registeredInputEventNames))
@@ -51,6 +52,7 @@ public abstract partial class UIPanelBaseCore
                         called = true;
                         _pressedInputEvents.Add(call);
                     }
+
                     break;
                 case InputActionPhase.Released:
                     while (executionQueue.TryDequeue(out var call))
@@ -80,7 +82,7 @@ public abstract partial class UIPanelBaseCore
             Pool.Collect(executionQueue);
         }
     }
-    
+
     /// <summary>
     /// Register a <paramref name="callback"/> to the associated <paramref name="inputName"/> for this panel when it's active.
     /// </summary>
@@ -91,6 +93,7 @@ public abstract partial class UIPanelBaseCore
     {
         ArgumentNullException.ThrowIfNull(inputName);
         ArgumentNullException.ThrowIfNull(callback);
+
         if (!_registeredInputEvent.TryGetValue(inputName, out var registeredInputEvent))
         {
             registeredInputEvent = Pool.Get<RegisteredInputEvent>(() => new());
@@ -140,6 +143,7 @@ public abstract partial class UIPanelBaseCore
     protected void RegisterInputCancel(Action callback, InputActionPhase actionPhase = InputActionPhase.Released)
     {
         ArgumentNullException.ThrowIfNull(callback);
+
         if (!_mappedCancelEvent.TryGetValue(callback, out var mappedCallback))
         {
             mappedCallback = _ => callback();
@@ -172,7 +176,7 @@ public abstract partial class UIPanelBaseCore
         if (enable) RegisterInputCancel(callback, actionPhase);
         else RemoveInputCancel(callback, actionPhase);
     }
-    
+
     /// <summary>
     /// Register a <paramref name="callback"/> to the composite axis of the <paramref name="negativeInputName"/> and <paramref name="positiveInputName"/> for this panel when it's active.
     /// </summary>
@@ -185,7 +189,7 @@ public abstract partial class UIPanelBaseCore
         ArgumentNullException.ThrowIfNull(callback);
 
         var binding = new InputAxisBinding(negativeInputName, positiveInputName);
-        
+
         if (!_mappedInputAxis.TryGetValue(binding, out var mappedInputAxis))
         {
             mappedInputAxis = new(LocalName);
@@ -227,7 +231,7 @@ public abstract partial class UIPanelBaseCore
         var binding = new InputAxisBinding(negativeInputName, positiveInputName);
 
         if (!_mappedInputAxis.TryGetValue(binding, out var mappedInputAxis)) return;
-        
+
         switch (actionState)
         {
             case CompositeInputActionState.Start:
@@ -282,7 +286,7 @@ public abstract partial class UIPanelBaseCore
         ArgumentNullException.ThrowIfNull(callback);
 
         var binding = new InputVectorBinding(new(downInputName, upInputName), new(leftInputName, rightInputName));
-        
+
         if (!_mappedInputVector.TryGetValue(binding, out var mappedInputVector2))
         {
             mappedInputVector2 = new(LocalName);
@@ -326,9 +330,9 @@ public abstract partial class UIPanelBaseCore
     protected void RemoveInputVector(StringName upInputName, StringName downInputName, StringName leftInputName, StringName rightInputName, Action<Vector2> callback, CompositeInputActionState actionState)
     {
         ArgumentNullException.ThrowIfNull(callback);
-        
+
         var binding = new InputVectorBinding(new(downInputName, upInputName), new(leftInputName, rightInputName));
-        
+
         if (!_mappedInputVector.TryGetValue(binding, out var mappedInputVector2)) return;
 
         switch (actionState)
@@ -360,7 +364,7 @@ public abstract partial class UIPanelBaseCore
         RemoveInput(leftInputName, mappedInputVector2.HorizontalAxis.NegativeInputActionPressed, InputActionPhase.Pressed);
         RemoveInput(leftInputName, mappedInputVector2.HorizontalAxis.NegativeInputActionReleased, InputActionPhase.Released);
     }
-    
+
     /// <summary>
     /// Register or removes a <paramref name="callback"/> registration from the composite vector (2 axis) of the <paramref name="upInputName"/>, <paramref name="downInputName"/>, <paramref name="leftInputName"/>, and <paramref name="rightInputName"/> for this panel when it's active.
     /// </summary>

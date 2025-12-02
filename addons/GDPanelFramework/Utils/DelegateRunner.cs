@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace GDPanelFramework;
 
-internal static class DelegateRunner
+static class DelegateRunner
 {
     internal static bool RunProtected<T>(Action<T>? call, in T arg, string actionName, string targetName, [CallerArgumentExpression(nameof(call))] string? methodName = null)
     {

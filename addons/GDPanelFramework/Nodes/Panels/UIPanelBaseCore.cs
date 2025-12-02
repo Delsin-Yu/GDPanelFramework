@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading;
 using GDPanelFramework.Panels.Tweener;
 using GDPanelFramework.Utils.Pooling;
 using Godot;
@@ -33,13 +31,11 @@ public abstract partial class UIPanelBaseCore : Control
         /// <summary>
         /// The panel has been closed and, maybe reopened later or gets freed, this is the state when the panel is not visible and not interactable.
         /// </summary>
-        Closed
+        Closed,
     }
 
     private Control? _cachedSelection;
     private bool _isShownInternal;
-    private readonly Dictionary<Control, CachedControlInfo> _cachedChildrenControlInfos = new();
-    private readonly HashSet<Control> _mouseOnlyControls = new();
     private IPanelTweener? _panelTweener;
     private string? _cachedName;
     internal CancellationTokenSource? PanelCloseTokenSource;
@@ -139,13 +135,13 @@ public abstract partial class UIPanelBaseCore : Control
             ShowPanel(useNoneTweener: useNoneTweener);
         }
     }
-    
+
     internal void SetPanelChildAvailability(bool enabled)
     {
         NodeUtils.SetNodeChildAvailability(this, _mouseOnlyControls, _cachedChildrenControlInfos, enabled);
         _OnPanelAvailabilityChanged(enabled);
     }
-    
+
     /// <summary>
     /// Called when the panel availability changes.
     /// </summary>
@@ -173,7 +169,6 @@ public abstract partial class UIPanelBaseCore : Control
                 onFinish();
             }
         );
-    }
 
     internal virtual void Cleanup()
     {
