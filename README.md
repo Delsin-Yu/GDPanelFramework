@@ -6,7 +6,7 @@
 
 ## Introduction
 
-Supports in `Godot 4.3+` with `mono (.Net)` module.
+Supports in `Godot 4.5+` with `mono (.Net)` module.
 ***GD Panel Framework*** is a `Godot 4` UI Management System designed to provide a `flexible`, `panel-based`, `single-focus point`, `Gamepad + Keyboard + Keyboard&Mouse friendly` UI programming experience.
 
 This framework groups `sets` of `user interactions` into a `UIPanel`, which includes a combination of the following:
