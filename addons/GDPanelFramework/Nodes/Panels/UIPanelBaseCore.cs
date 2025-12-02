@@ -42,6 +42,16 @@ public abstract partial class UIPanelBaseCore : Control
     internal CancellationTokenSource? PanelOpenTweenFinishTokenSource;
     internal CancellationTokenSource? PanelCloseTweenFinishTokenSource;
 
+
+    /// <summary>
+    /// Called when the system is closing the panel (after <see cref="UIPanelBase{TOpenArg,TCloseArg}._OnPanelClose"/>).
+    /// </summary>
+    /// <remarks>
+    /// This event is considered "Protected", that is, throwing an exception inside the override of this event will not cause the framework to malfunction.
+    /// </remarks>
+    public event Action? OnPanelClosed;
+    private protected void InvokePanelClosed() => OnPanelClosed?.Invoke();
+
     internal PackedScene? SourcePrefab { get; private set; }
     internal string LocalName => _cachedName ??= Name;
 
@@ -145,13 +155,9 @@ public abstract partial class UIPanelBaseCore : Control
         return panelTweener;
     }
 
-    private void TweenHide(IPanelTweener tweener)
-    {
-        tweener.Hide(this, () => Visible = false);
-    }
+    private void TweenHide(IPanelTweener tweener) => tweener.Hide(this, () => Visible = false);
 
-    private void TweenHide(IPanelTweener tweener, Action onFinish)
-    {
+    private void TweenHide(IPanelTweener tweener, Action onFinish) =>
         tweener.Hide(
             this,
             () =>
@@ -171,6 +177,7 @@ public abstract partial class UIPanelBaseCore : Control
 
         _cachedSelection = null;
         _panelTweener = null;
+        OnPanelClosed = null;
 
         _registeredInputEventNames.Clear();
 

@@ -40,19 +40,18 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         _metadata = panelOpeningMetadata;
         CurrentPanelStatus = PanelStatus.Opened;
         OpenArg = openArg;
-		ShowPanel(() => FinishAndResetTokenSource(ref PanelOpenTweenFinishTokenSource));
-        SetPanelChildAvailability(true);
+        ShowPanel(() => FinishAndResetTokenSource(ref PanelOpenTweenFinishTokenSource));
         DelegateRunner.RunProtected(_OnPanelOpen, openArg, "Open Panel", LocalName);
     }
 
     internal void ClosePanelInternal(TCloseArg closeArg)
     {
-        if(CurrentPanelStatus != PanelStatus.Opened) return;
+        if (CurrentPanelStatus != PanelStatus.Opened) return;
         CurrentPanelStatus = PanelStatus.Closed;
         FinishAndResetTokenSource(ref PanelCloseTokenSource);
         DelegateRunner.RunProtected(_OnPanelClose, closeArg, "Close Panel", LocalName);
+        DelegateRunner.RunProtected(InvokePanelClosed, "Panel Closed Event", LocalName);
         OpenArg = default;
-        SetPanelChildAvailability(false);
 
         var metadataValue = _metadata!.Value;
         _metadata = null;
