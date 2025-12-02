@@ -104,8 +104,10 @@ public abstract partial class UIPanelBaseCore : Control
     internal void TryRestoreSelection()
     {
         if (_cachedSelection is null) return;
+        if (!IsInstanceValid(_cachedSelection)) return;
 
-        _cachedSelection.GrabFocus();
+        if (_cachedSelection.GetFocusModeWithOverride() != FocusModeEnum.None)
+            _cachedSelection.GrabFocus();
         _cachedSelection = null;
     }
 
