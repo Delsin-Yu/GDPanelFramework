@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using GDPanelFramework.Utils.Pooling;
 using Godot;
+using GodotPanelFramework;
 
 namespace GDPanelFramework.Panels;
 
@@ -10,6 +11,7 @@ public abstract partial class UIPanelBaseCore
 {
     private readonly List<StringName> _registeredInputEventNames = [];
     private readonly Dictionary<StringName, RegisteredInputEvent> _registeredInputEvent = new();
+    private readonly RegisteredInputEvent _registeredAnyKeyInputEvent = new();
     private readonly Dictionary<Action, Action<InputEvent>> _mappedCancelEvent = new();
     private readonly Dictionary<InputAxisBinding, MappedInputAxis> _mappedInputAxis = new();
     private readonly Dictionary<InputVectorBinding, MappedInputVector> _mappedInputVector = new();
@@ -30,6 +32,10 @@ public abstract partial class UIPanelBaseCore
 
         try
         {
+            if (!_registeredAnyKeyInputEvent.Empty)
+                if (inputEvent.Event is InputEventJoypadButton or InputEventKey or InputEventMouseButton or InputEventScreenTouch)
+                    executionQueue.Enqueue(_registeredAnyKeyInputEvent);
+
             foreach (var inputEventName in CollectionsMarshal.AsSpan(_registeredInputEventNames))
             {
                 if (!inputEvent.ActionHasEventCached(inputEventName)) continue;
@@ -70,9 +76,53 @@ public abstract partial class UIPanelBaseCore
 
             return called;
         }
-        finally
+        finally { Pool.Collect(executionQueue); }
+    }
+
+    /// <summary>
+    /// Register a <paramref name="callback"/> to any key input for this panel when it's active.
+    /// </summary>
+    /// <param name="callback">The callback for receiving input command.</param>
+    /// <param name="actionPhase">The action phase this callback registers to.</param>
+    protected void RegisterAnyKeyInput(Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    {
+        ArgumentNullException.ThrowIfNull(callback);
+        _registeredAnyKeyInputEvent.RegisterCall(callback, actionPhase);
+    }
+
+    /// <summary>
+    /// Register a <paramref name="callback"/> that receives toggle state (pressed/released) for the associated <paramref name="inputName"/> for this panel when it's active.
+    /// </summary>
+    /// <param name="inputName">The input name to associate to.</param>
+    /// <param name="callback">The callback for receiving the toggle state (true when pressed, false when released).</param>
+    protected void RegisterInputToggle(StringName inputName, Action<bool> callback)
+    {
+        RegisterInput(inputName, _ => callback(true), InputActionPhase.Pressed);
+        RegisterInput(inputName, _ => callback(false));
+    }
+
+    /// <summary>
+    /// Register a <paramref name="callback"/> that receives toggle state (pressed/released) for any of the associated <paramref name="inputNames"/> for this panel when it's active.
+    /// The callback is invoked with true if any of the inputs is pressed, and false when all inputs are released.
+    /// </summary>
+    /// <param name="inputNames">The input names to associate to.</param>
+    /// <param name="callback">The callback for receiving the combined toggle state.</param>
+    protected void RegisterInputToggle(ReadOnlySpan<StringName> inputNames, Action<bool> callback)
+    {
+        var pressedArray = new bool[inputNames.Length];
+
+        for (var index = 0; index < inputNames.Length; index++)
         {
-            Pool.Collect(executionQueue);
+            var inputName = inputNames[index];
+            var localIndex = index;
+            RegisterInputToggle(
+                inputName,
+                pressed =>
+                {
+                    pressedArray[localIndex] = pressed;
+                    callback(pressedArray.Contains(true));
+                }
+            );
         }
     }
 
@@ -95,6 +145,18 @@ public abstract partial class UIPanelBaseCore
         }
 
         registeredInputEvent.RegisterCall(callback, actionPhase);
+    }
+
+    /// <summary>
+    /// Register a <paramref name="callback"/> to multiple associated <paramref name="inputNames"/> for this panel when it's active.
+    /// </summary>
+    /// <param name="inputNames">The input names to associate to.</param>
+    /// <param name="callback">The callback for receiving input command.</param>
+    /// <param name="actionPhase">The action phase this callback registers to.</param>
+    protected void RegisterInput(ReadOnlySpan<StringName> inputNames, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    {
+        foreach (var inputName in inputNames)
+            RegisterInput(inputName, callback, actionPhase);
     }
 
     /// <summary>
@@ -362,4 +424,26 @@ public abstract partial class UIPanelBaseCore
         else RemoveInputVector(upInputName, downInputName, leftInputName, rightInputName, callback, actionState);
     }
 
+    /// <summary>
+    /// Register the mouse wheel's up and down scroll actions to the UI's horizontal navigation when this panel is at the top layer.
+    /// </summary>
+    /// <param name="scrollUpInputName">The input name for scrolling up (maps to UI Left navigation).</param>
+    /// <param name="scrollDownInputName">The input name for scrolling down (maps to UI Right navigation).</param>
+    protected void RegisterHorizontalScrollNavigation(StringName scrollUpInputName, StringName scrollDownInputName)
+    {
+        RegisterInput(scrollUpInputName, _ => Input.ParseInputEvent(new InputEventAction { Action = BuiltinInputNames.UILeft, Pressed = true }), InputActionPhase.Pressed);
+        RegisterInput(scrollDownInputName, _ => Input.ParseInputEvent(new InputEventAction { Action = BuiltinInputNames.UIRight, Pressed = true }), InputActionPhase.Pressed);
+    }
+
+
+    /// <summary>
+    /// Register the mouse wheel's up and down scroll actions to the UI's vertical navigation when this panel is at the top layer.
+    /// </summary>
+    /// <param name="scrollUpInputName">The input name for scrolling up (maps to UI Up navigation).</param>
+    /// <param name="scrollDownInputName">The input name for scrolling down (maps to UI Down navigation).</param>
+    protected void RegisterVerticalScrollNavigation(StringName scrollUpInputName, StringName scrollDownInputName)
+    {
+        RegisterInput(scrollUpInputName, _ => Input.ParseInputEvent(new InputEventAction { Action = BuiltinInputNames.UIUp, Pressed = true }), InputActionPhase.Pressed);
+        RegisterInput(scrollDownInputName, _ => Input.ParseInputEvent(new InputEventAction { Action = BuiltinInputNames.UIDown, Pressed = true }), InputActionPhase.Pressed);
+    }
 }
