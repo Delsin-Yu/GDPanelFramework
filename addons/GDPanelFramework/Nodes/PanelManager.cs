@@ -21,12 +21,18 @@ namespace GDPanelFramework;
 public static partial class PanelManager
 {
     /// <summary>
+    /// A delegate that defines a method to configure the panel container <see cref="Control"/> for the root panel layer.
+    /// </summary>
+    public delegate Control ConfigurePanelContainerHandler(CanvasLayer panelContainerLayer);
+
+    /// <summary>
     /// Initializes the GDPanelFramework, and allocates a dedicated container for panels.
     /// </summary>
-    public static void Initialize()
+    /// <param name="customHandler">An optional custom handler to configure the root panel container.</param>
+    public static void Initialize(ConfigurePanelContainerHandler? customHandler = null)
     {
         if (Engine.IsEditorHint()) return;
-        GetCurrentPanelRoot();
+        InitializePanelRoot(customHandler);
     }
 
     private record struct PanelRootInfo(Node? Owner, Control Root);
@@ -74,19 +80,28 @@ public static partial class PanelManager
     private static readonly PanelBuffer Buffer = new();
     private static readonly Stack<UIPanelBaseCore> PanelStack = new();
     private static readonly Stack<PanelRootInfo> PanelContainers = new();
+    private static RootPanelContainer? RootPanelContainer;
 
-    private static bool IsPanelRootInitialized;
 
+    /// <summary>
+    /// Gets the current panel root container <see cref="Control"/> where subsequent opening panels will be parented to.
+    /// </summary>
+    /// <remarks>
+    /// This method is intended for enable creating customized panel root containers, do not use this method to reparent panels or delete the returned container.
+    /// </remarks>
     private static Control GetCurrentPanelRoot()
     {
-        if (IsPanelRootInitialized) return PanelContainers.Peek().Root;
-
-        PanelContainers.Push(new(null, RootPanelContainer.PanelRoot));
-        IsPanelRootInitialized = true;
-
+        if (RootPanelContainer is not null) return PanelContainers.Peek().Root;
+        InitializePanelRoot(null);
         return PanelContainers.Peek().Root;
     }
 
+    private static void InitializePanelRoot(ConfigurePanelContainerHandler? customHandler)
+    {
+        if (RootPanelContainer is not null) throw new InvalidOperationException("Panel root is already initialized!");
+        RootPanelContainer = new(customHandler);
+        PanelContainers.Push(new(null, RootPanelContainer.Container));
+    }
 
     private static void PushPanelToPanelStack<TPanel>(TPanel panelInstance, PreviousPanelVisual previousPreviousPanelVisual) where TPanel : UIPanelBaseCore
     {
@@ -100,6 +115,7 @@ public static partial class PanelManager
         if (PanelStack.TryPeek(out var topmostPanel)) topmostPanel.SetPanelActiveState(false, previousPreviousPanelVisual);
 
         PanelStack.Push(panelInstance);
+        panelInstance.SetPanelActiveState(true, PreviousPanelVisual.Visible);
     }
 
     internal static void HandlePanelClose<TPanel>(TPanel closingPanel, PreviousPanelVisual previousPreviousPanelVisual, ClosePolicy closePolicy) where TPanel : UIPanelBaseCore
@@ -126,10 +142,6 @@ public static partial class PanelManager
         var sourcePrefab = closingPanel.SourcePrefab!;
 
         Buffer.BufferPanel(sourcePrefab, closingPanel);
-        
-        var currentParent = closingPanel.GetParent();
-        var defaultPanelRoot = RootPanelContainer.PanelRoot;
-        if (currentParent != defaultPanelRoot) closingPanel.Reparent(defaultPanelRoot, false);
     }
 
     internal static bool ProcessInputEvent(InputEvent inputEvent)
@@ -203,6 +215,7 @@ public static partial class PanelManager
     /// <param name="newRoot">The <see cref="Control"/> that is becoming the container for subsequent opening panels.</param>
     public static void PushPanelContainer(Node owner, Control newRoot)
     {
+        if (RootPanelContainer is null) InitializePanelRoot(null);
         PanelContainers.Push(new(owner, newRoot));
     }
 
@@ -220,10 +233,8 @@ public static partial class PanelManager
         ArgumentNullException.ThrowIfNull(requester);
         ExceptionUtils.ThrowIfUnauthorizedPanelRootOwner(requester, PanelContainers.Peek().Owner);
         var (_, control) = PanelContainers.Pop();
-        foreach (var panel in control.GetChildren().OfType<UIPanelBaseCore>())
-        {
-            panel.Reparent(RootPanelContainer.PanelRoot);
-        }
+        if (RootPanelContainer is null) InitializePanelRoot(null);
+        foreach (var panel in Enumerable.OfType<UIPanelBaseCore>(control.GetChildren())) panel.Reparent(RootPanelContainer!.Container);
     }
 
     /// <summary>
@@ -235,7 +246,9 @@ public static partial class PanelManager
     /// <typeparam name="TPanel">The panel type to create from the <see cref="PackedScene"/></typeparam>
     /// <returns>The instance of the specified panel.</returns>
     /// <exception cref="InvalidOperationException">Throws when the system is unable to cast the instance of the <paramref name="packedPanel"/> to desired <typeparamref name="TPanel"/> type.</exception>
-    public static TPanel CreatePanel<TPanel>(this PackedScene packedPanel, CreatePolicy createPolicy = CreatePolicy.TryReuse,
+    public static TPanel CreatePanel<TPanel>(
+        this PackedScene packedPanel,
+        CreatePolicy createPolicy = CreatePolicy.TryReuse,
         Action<TPanel>? initializeCallback = null) where TPanel : UIPanelBaseCore
     {
         TPanel panelInstance;
@@ -244,6 +257,7 @@ public static partial class PanelManager
         {
             panelInstance = (TPanel)untypedPanelInstance;
             initializeCallback?.Invoke(panelInstance);
+            panelInstance.MoveToFront();
             return panelInstance;
         }
 
