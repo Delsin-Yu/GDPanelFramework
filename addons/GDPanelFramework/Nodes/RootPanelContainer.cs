@@ -31,10 +31,25 @@ partial class RootPanelContainer : CanvasLayer
 
     public override void _Input(InputEvent inputEvent)
     {
-        var accept = PanelManager.ProcessInputEvent(inputEvent);
+        if (inputEvent.IsEcho())
+        {
+            if (IsInstanceValid(_root)) _root.SetInputAsHandled();
+            inputEvent.Dispose();
+            return;
+        }
 
-        if (accept && IsInstanceValid(_root)) _root.SetInputAsHandled();
+        var isSynthesisedEvent = _synthesisedEvent.Remove(inputEvent);
 
-        // if (IsInstanceValid(inputEvent)) inputEvent.Dispose();
+        if (!isSynthesisedEvent)
+        {
+            ProcessEchoEvents(inputEvent);
+            var accept = PanelManager.ProcessInputEvent(inputEvent);
+            if (accept && IsInstanceValid(_root))
+                _root.SetInputAsHandled();
+        }
+
+        if (!IsInstanceValid(inputEvent)) return;
+
+        inputEvent.Dispose();
     }
 }

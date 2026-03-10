@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using GDPanelFramework.Panels;
@@ -7,6 +8,8 @@ using GDPanelFramework.Panels.Tweener;
 using GDPanelFramework.Utils.Pooling;
 using Godot;
 using GodotPanelFramework;
+
+// using System.Linq;
 
 namespace GDPanelFramework;
 
@@ -35,25 +38,71 @@ public static partial class PanelManager
         InitializePanelRoot(customHandler);
     }
 
+    private static readonly List<IGlobalInputListener> GlobalInputListeners = [];
+
+    /// <summary>
+    /// Registers a global input listener to receive all input events processed by the PanelManager.
+    /// </summary>
+    public static void AddGlobalInputListener(IGlobalInputListener listener) =>
+        GlobalInputListeners.Add(listener);
+
+    /// <summary>
+    /// Unregisters a global input listener from receiving input events processed by the PanelManager.
+    /// </summary>
+    public static void RemoveGlobalInputListener(IGlobalInputListener listener) =>
+        GlobalInputListeners.Remove(listener);
+
+    /// <summary>
+    /// Gets or sets the default input registration behavior for panels when no specific behavior is provided.
+    /// </summary>
+    public static InputRegistrationBehavior DefaultInputRegistrationBehavior { get; set; }
+
+    /// <summary>
+    /// Defines the input registration behavior for panels.
+    /// </summary>
+    public enum InputRegistrationBehavior
+    {
+        /// <summary>
+        /// The registered input action is triggered when the associated input is pressed.
+        /// </summary>
+        Press,
+        /// <summary>
+        /// The registered input action is triggered when the associated input is released.
+        /// </summary>
+        Release,
+    }
+
+    internal static InputActionPhase GetInputActionPhase(InputActionPhase? actionPhase)
+    {
+        if (actionPhase is null)
+            return DefaultInputRegistrationBehavior switch
+            {
+                InputRegistrationBehavior.Press => InputActionPhase.Pressed,
+                InputRegistrationBehavior.Release => InputActionPhase.Released,
+                _ => throw new UnreachableException(),
+            };
+        return actionPhase.Value;
+    }
+
     private record struct PanelRootInfo(Node? Owner, Control Root);
 
 
     private class PanelBuffer
     {
-        private readonly Dictionary<PackedScene, Stack<UIPanelBaseCore>> _bufferedPanels = new();
+        public readonly Dictionary<PackedScene, Stack<UIPanelBaseCore>> BufferedPanels = new();
 
         public bool TryGetPanel(PackedScene prefab, [NotNullWhen(true)] out UIPanelBaseCore? instance)
         {
             instance = null;
-            if (!_bufferedPanels.Remove(prefab, out var panelInstanceStack)) return false;
+            if (!BufferedPanels.Remove(prefab, out var panelInstanceStack)) return false;
 
             if (!panelInstanceStack.TryPop(out var panelInstance))
             {
-                _bufferedPanels.Remove(prefab);
+                BufferedPanels.Remove(prefab);
                 return false;
             }
 
-            if (panelInstanceStack.Count == 0) _bufferedPanels.Remove(prefab);
+            if (panelInstanceStack.Count == 0) BufferedPanels.Remove(prefab);
 
             if (!GodotObject.IsInstanceValid(panelInstance))
             {
@@ -67,10 +116,10 @@ public static partial class PanelManager
 
         public void BufferPanel(PackedScene prefab, UIPanelBaseCore instance)
         {
-            if (!_bufferedPanels.TryGetValue(prefab, out var panelInstanceStack))
+            if (!BufferedPanels.TryGetValue(prefab, out var panelInstanceStack))
             {
                 panelInstanceStack = [];
-                _bufferedPanels.Add(prefab, panelInstanceStack);
+                BufferedPanels.Add(prefab, panelInstanceStack);
             }
 
             panelInstanceStack.Push(instance);
@@ -78,10 +127,45 @@ public static partial class PanelManager
     }
 
     private static readonly PanelBuffer Buffer = new();
+    private static readonly List<(Guid Token, string Name, PanelBuffer Buffer)> ScopedPanelBuffers = [];
     private static readonly Stack<UIPanelBaseCore> PanelStack = new();
     private static readonly Stack<PanelRootInfo> PanelContainers = new();
     private static RootPanelContainer? RootPanelContainer;
 
+    /// <summary>
+    /// Begins a scoped panel management session, during which panels opened will be buffered separately.
+    /// </summary>
+    /// <remarks>
+    /// Panels opened during this scoped session will be buffered separately, and when the session ends, all buffered panels will be freed.
+    /// This is useful for managing panels in specific contexts, such as game states.
+    /// </remarks>
+    public static Guid BeginScopedPanelManagement(string name)
+    {
+        var token = Guid.NewGuid();
+        ScopedPanelBuffers.Add((token, name, new()));
+        return token;
+    }
+    
+    /// <summary>
+    /// Ends a scoped panel management session identified by the provided token.
+    /// </summary>
+    /// <remarks>
+    /// All panels buffered during the scoped session will be freed.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">Thrown when there is no active scoped panel buffer or the provided token does not match the active scoped panel buffer.</exception>
+    public static void EndScopedPanelManagement(Guid token)
+    {
+        if(ScopedPanelBuffers.Count == 0) throw new InvalidOperationException("No scoped panel buffer to end!");
+        var (topToken, name, buffer) = ScopedPanelBuffers[^1];
+        if (topToken != token) throw new InvalidOperationException($"The currently active scoped panel buffer is '{name}', which does not match the provided token!");
+        ScopedPanelBuffers.RemoveAt(ScopedPanelBuffers.Count - 1);
+        foreach (var bufferedPanelStack in buffer.BufferedPanels.Values)
+            while (bufferedPanelStack.TryPop(out var panelInstance))
+            {
+                panelInstance.QueueFree();
+            }
+        buffer.BufferedPanels.Clear();
+    }
 
     /// <summary>
     /// Gets the current panel root container <see cref="Control"/> where subsequent opening panels will be parented to.
@@ -141,11 +225,17 @@ public static partial class PanelManager
 
         var sourcePrefab = closingPanel.SourcePrefab!;
 
-        Buffer.BufferPanel(sourcePrefab, closingPanel);
+
+        var panelBuffer = Buffer;
+        if(ScopedPanelBuffers.Count > 0) panelBuffer = ScopedPanelBuffers[^1].Buffer;
+        panelBuffer.BufferPanel(sourcePrefab, closingPanel);
     }
 
     internal static bool ProcessInputEvent(InputEvent inputEvent)
     {
+        foreach (var listener in GlobalInputListeners)
+            listener.OnGlobalInput(inputEvent);
+
         if (!PanelStack.TryPeek(out var topPanel)) return false;
 
         var cachedWrapper = new CachedInputEvent(inputEvent);
@@ -238,7 +328,7 @@ public static partial class PanelManager
     }
 
     /// <summary>
-    /// Try create an instance of the <typeparamref name="TPanel"/> from the supplied <paramref name="packedPanel"/>.
+    /// Try to create an instance of the <typeparamref name="TPanel"/> from the supplied <paramref name="packedPanel"/>.
     /// </summary>
     /// <param name="packedPanel">The <see cref="PackedScene"/> to create the panel from.</param>
     /// <param name="createPolicy">When set to <see cref="CreatePolicy.TryReuse"/>, the system will try reuse an existing cached instance if possible.</param>
@@ -253,7 +343,7 @@ public static partial class PanelManager
     {
         TPanel panelInstance;
 
-        if (createPolicy == CreatePolicy.TryReuse && Buffer.TryGetPanel(packedPanel, out var untypedPanelInstance))
+        if (createPolicy == CreatePolicy.TryReuse && TryGetBufferedPanel(packedPanel, out var untypedPanelInstance))
         {
             panelInstance = (TPanel)untypedPanelInstance;
             initializeCallback?.Invoke(panelInstance);
@@ -268,5 +358,15 @@ public static partial class PanelManager
         initializeCallback?.Invoke(panelInstance);
         panelInstance.InitializePanelInternal(packedPanel);
         return panelInstance;
+    }
+    
+    private static bool TryGetBufferedPanel(PackedScene packedPanel, [NotNullWhen(true)] out UIPanelBaseCore? panelInstance)
+    {
+        for (var i = ScopedPanelBuffers.Count - 1; i >= 0; i--)
+        {
+            if (ScopedPanelBuffers[i].Buffer.TryGetPanel(packedPanel, out panelInstance))
+                return true;
+        }
+        return Buffer.TryGetPanel(packedPanel, out panelInstance);
     }
 }

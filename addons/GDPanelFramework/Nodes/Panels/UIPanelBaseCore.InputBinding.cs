@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using GDPanelFramework.Utils.Pooling;
@@ -17,7 +17,13 @@ public abstract partial class UIPanelBaseCore
     private readonly Dictionary<InputVectorBinding, MappedInputVector> _mappedInputVector = new();
     private readonly HashSet<RegisteredInputEvent> _pressedInputEvents = new();
 
-    private protected void CancelPressedInput()
+    /// <summary>
+    /// Cancels all currently pressed input events, setting their state to released.
+    /// </summary>
+    /// <remarks>
+    /// This method iterates through all currently pressed input events and resets their state to released.
+    /// </remarks>
+    protected void CancelPressedInput()
     {
         var name = LocalName;
         var inputEventAction = new InputEventAction();
@@ -84,7 +90,7 @@ public abstract partial class UIPanelBaseCore
     /// </summary>
     /// <param name="callback">The callback for receiving input command.</param>
     /// <param name="actionPhase">The action phase this callback registers to.</param>
-    protected void RegisterAnyKeyInput(Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void RegisterAnyKeyInput(Action<InputEvent> callback, InputActionPhase? actionPhase = null)
     {
         ArgumentNullException.ThrowIfNull(callback);
         _registeredAnyKeyInputEvent.RegisterCall(callback, actionPhase);
@@ -98,7 +104,7 @@ public abstract partial class UIPanelBaseCore
     protected void RegisterInputToggle(StringName inputName, Action<bool> callback)
     {
         RegisterInput(inputName, _ => callback(true), InputActionPhase.Pressed);
-        RegisterInput(inputName, _ => callback(false));
+        RegisterInput(inputName, _ => callback(false), InputActionPhase.Released);
     }
 
     /// <summary>
@@ -120,7 +126,7 @@ public abstract partial class UIPanelBaseCore
                 pressed =>
                 {
                     pressedArray[localIndex] = pressed;
-                    callback(pressedArray.Contains(true));
+                    callback(Array.IndexOf(pressedArray, true) >= 0);
                 }
             );
         }
@@ -132,7 +138,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="inputName">The input name to associate to.</param>
     /// <param name="callback">The callback for receiving input command.</param>
     /// <param name="actionPhase">The action phase this callback registers to.</param>
-    protected void RegisterInput(StringName inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void RegisterInput(StringName inputName, Action<InputEvent> callback, InputActionPhase? actionPhase = null)
     {
         ArgumentNullException.ThrowIfNull(inputName);
         ArgumentNullException.ThrowIfNull(callback);
@@ -153,10 +159,128 @@ public abstract partial class UIPanelBaseCore
     /// <param name="inputNames">The input names to associate to.</param>
     /// <param name="callback">The callback for receiving input command.</param>
     /// <param name="actionPhase">The action phase this callback registers to.</param>
-    protected void RegisterInput(ReadOnlySpan<StringName> inputNames, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void RegisterInput(ReadOnlySpan<StringName> inputNames, Action<InputEvent> callback, InputActionPhase? actionPhase = null)
     {
         foreach (var inputName in inputNames)
             RegisterInput(inputName, callback, actionPhase);
+    }
+
+    private class EchoedInputAction
+    {
+        public UIPanelBaseCore? Panel;
+        public StringName? InputName;
+        public Action? InputAction;
+
+        private bool _pressedInvoked;
+        public void InvokePressed(InputEvent inputEvent)
+        {
+            if (_pressedInvoked) return;
+            _pressedInvoked = true;
+            Panel!.RunAndQueueRepeatInputAction(InputName!);
+        }
+        
+        public void InvokeReleased(InputEvent inputEvent)
+        {
+            if (!_pressedInvoked) return;
+            _pressedInvoked = false;
+            Panel!.RemoveRepeatInputAction(InputName!);
+        }
+        
+        public void Reset()
+        {
+            _pressedInvoked = false;
+            InputName = null;
+            Panel = null;
+        }
+    }
+    
+    private readonly Dictionary<StringName, EchoedInputAction> _registeredEchoedInputEvent = new();
+    private readonly Dictionary<EchoedInputAction, ulong> _pendingRepeatInputs = [];
+    private readonly Dictionary<EchoedInputAction, ulong> _activeRepeatInputs = [];
+    private readonly Queue<EchoedInputAction> _executionQueue = [];
+
+    private void RunAndQueueRepeatInputAction(StringName actionName)
+    {
+        if (!_registeredEchoedInputEvent.TryGetValue(actionName, out var action)) return;
+        if(action.InputAction is null) return;
+        DelegateRunner.RunProtected(action.InputAction, "EchoedInput", LocalName);
+        _pendingRepeatInputs.Remove(action);
+        _activeRepeatInputs.Remove(action);
+        _pendingRepeatInputs[action] = Time.GetTicksMsec() + InputEchoing.InitialDelay;
+    }
+    
+    private void RemoveRepeatInputAction(StringName actionName)
+    {
+        if (!_registeredEchoedInputEvent.TryGetValue(actionName, out var action)) return;
+        _pendingRepeatInputs.Remove(action);
+        _activeRepeatInputs.Remove(action);
+    }
+
+    /// <inheritdoc/>
+    public sealed override void _Process(double delta)
+    {
+        var currentTime = Time.GetTicksMsec();
+
+        foreach (var (key, triggerTime) in _pendingRepeatInputs)
+            if (currentTime >= triggerTime && key.InputAction != null)
+                _executionQueue.Enqueue(key);
+
+        while (_executionQueue.TryDequeue(out var key))
+        {
+            _pendingRepeatInputs.Remove(key);
+            _activeRepeatInputs.Add(key, currentTime + InputEchoing.RepeatInterval);
+            DelegateRunner.RunProtected(key.InputAction, "EchoedInput", LocalName);
+        }
+
+        foreach (var (key, triggerTime) in _activeRepeatInputs)
+            if (currentTime >= triggerTime)
+                _executionQueue.Enqueue(key);
+
+        while (_executionQueue.TryDequeue(out var key))
+        {
+            _activeRepeatInputs[key] = currentTime + InputEchoing.RepeatInterval;
+            DelegateRunner.RunProtected(key.InputAction, "EchoedInput", LocalName);
+        }
+        
+        _Process((float)delta);
+    }
+
+    /// <inheritdoc cref="Node._Process"/>
+    public virtual void _Process(float delta) { }
+
+    /// <summary>
+    /// Register a <paramref name="callback"/> to the associated <paramref name="inputName"/> for echoed input when this panel is active.
+    /// </summary>
+    /// <param name="inputName">The input name to associate to.</param>
+    /// <param name="callback">The callback for receiving input command.</param>
+    /// <remarks>Echoed Input refers to input that is triggered repetitively when the input is held down, similar to keyboard key repeat behavior.</remarks>
+    protected void RegisterEchoedInput(StringName inputName, Action callback)
+    {
+        ArgumentNullException.ThrowIfNull(inputName);
+        ArgumentNullException.ThrowIfNull(callback);
+
+        if (!_registeredEchoedInputEvent.TryGetValue(inputName, out var registeredInputEvent))
+        {
+            registeredInputEvent = Pool.Get(() => new EchoedInputAction());
+            registeredInputEvent.Panel = this;
+            registeredInputEvent.InputName = inputName;
+            _registeredEchoedInputEvent.Add(inputName, registeredInputEvent);
+            RegisterInput(inputName, registeredInputEvent.InvokePressed, InputActionPhase.Pressed);
+            RegisterInput(inputName, registeredInputEvent.InvokeReleased, InputActionPhase.Released);
+        }
+        registeredInputEvent.InputAction += callback;
+    }
+    
+    /// <summary>
+    /// Register a <paramref name="callback"/> to multiple associated <paramref name="inputNames"/> for echoed input when this panel is active.
+    /// </summary>
+    /// <param name="inputNames">The input names to associate to.</param>
+    /// <param name="callback">The callback for receiving input command.</param>
+    /// <remarks>Echoed Input refers to input that is triggered repetitively when the input is held down, similar to keyboard key repeat behavior.</remarks>
+    protected void RegisterEchoedInput(ReadOnlySpan<StringName> inputNames, Action callback)
+    {
+        foreach (var inputName in inputNames)
+            RegisterEchoedInput(inputName, callback);
     }
 
     /// <summary>
@@ -165,7 +289,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="inputName">The input name to remove from.</param>
     /// <param name="callback">The callback to remove.</param>
     /// <param name="actionPhase">The action phase this callback registered to.</param>
-    protected void RemoveInput(StringName inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void RemoveInput(StringName inputName, Action<InputEvent> callback, InputActionPhase? actionPhase = null)
     {
         ArgumentNullException.ThrowIfNull(inputName);
         ArgumentNullException.ThrowIfNull(callback);
@@ -174,17 +298,38 @@ public abstract partial class UIPanelBaseCore
         if (!registeredInputEvent.Empty) return;
         _registeredInputEvent.Remove(inputName);
         _registeredInputEventNames.Remove(inputName);
+        registeredInputEvent.Reset();
         Pool.Collect(registeredInputEvent);
+    }
+    
+    /// <summary>
+    /// Remove a <paramref name="callback"/> registration from the associated <paramref name="inputName"/> for echoed input for this panel.
+    /// </summary>
+    /// <param name="inputName">The input name to remove from.</param>
+    /// <param name="callback">The callback to remove.</param>
+    /// <remarks>>Echoed Input refers to input that is triggered repetitively when the input is held down, similar to keyboard key repeat behavior.</remarks>
+    protected void RemoveEchoedInput(StringName inputName, Action callback)
+    {
+        ArgumentNullException.ThrowIfNull(inputName);
+        ArgumentNullException.ThrowIfNull(callback);
+        if (!_registeredEchoedInputEvent.TryGetValue(inputName, out var actionRef)) return;
+        actionRef.InputAction -= callback;
+        if(actionRef.InputAction != null) return;
+        _registeredEchoedInputEvent.Remove(inputName);
+        RemoveInput(inputName, actionRef.InvokePressed, InputActionPhase.Pressed);
+        RemoveInput(inputName, actionRef.InvokeReleased, InputActionPhase.Released);
+        actionRef.Reset();
+        Pool.Collect(actionRef);
     }
 
     /// <summary>
     /// Register or remove a <paramref name="callback"/> registration from the associated <paramref name="inputName"/> for this panel when it's active.
     /// </summary>
-    /// <param name="enable">When setting to true, calls <see cref="RegisterInput(StringName,Action{InputEvent},InputActionPhase)"/>, otherwise calls <see cref="RemoveInput"/></param>
+    /// <param name="enable">When setting to true, calls <see cref="RegisterInput(StringName,Action{InputEvent},InputActionPhase?)"/>, otherwise calls <see cref="RemoveInput"/></param>
     /// <param name="inputName">The input name to associate to or remove from.</param>
     /// <param name="callback">The callback for receiving or stops receiving input command.</param>
     /// <param name="actionPhase">The action phase this callback registers to.</param>
-    protected void ToggleInput(bool enable, StringName inputName, Action<InputEvent> callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void ToggleInput(bool enable, StringName inputName, Action<InputEvent> callback, InputActionPhase? actionPhase = null)
     {
         if (enable) RegisterInput(inputName, callback, actionPhase);
         else RemoveInput(inputName, callback, actionPhase);
@@ -195,7 +340,7 @@ public abstract partial class UIPanelBaseCore
     /// </summary>
     /// <param name="callback">The callback for receiving input command.</param>
     /// <param name="actionPhase">The action phase this callback registers to.</param>
-    protected void RegisterInputCancel(Action callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void RegisterInputCancel(Action callback, InputActionPhase? actionPhase = null)
     {
         ArgumentNullException.ThrowIfNull(callback);
 
@@ -213,7 +358,7 @@ public abstract partial class UIPanelBaseCore
     /// </summary>
     /// <param name="callback">The callback to remove.</param>
     /// <param name="actionPhase">The action phase this callback registered to.</param>
-    protected void RemoveInputCancel(Action callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void RemoveInputCancel(Action callback, InputActionPhase? actionPhase = null)
     {
         ArgumentNullException.ThrowIfNull(callback);
         if (!_mappedCancelEvent.Remove(callback, out var mappedCallback)) return;
@@ -226,7 +371,7 @@ public abstract partial class UIPanelBaseCore
     /// <param name="enable">When setting to true, calls <see cref="RegisterInputCancel"/>, otherwise calls <see cref="RemoveInputCancel"/></param>
     /// <param name="callback">The callback for receiving or stops receiving input command.</param>
     /// <param name="actionPhase">The action phase this callback registers to.</param>
-    protected void ToggleInputCancel(bool enable, Action callback, InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void ToggleInputCancel(bool enable, Action callback, InputActionPhase? actionPhase = null)
     {
         if (enable) RegisterInputCancel(callback, actionPhase);
         else RemoveInputCancel(callback, actionPhase);

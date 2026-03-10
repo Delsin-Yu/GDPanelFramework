@@ -13,9 +13,9 @@ public abstract partial class UIPanelBaseCore
 
         public bool Empty => _pressedCall is null && _releasedCall is null && _anyCall is null;
 
-        public void RegisterCall(Action<InputEvent> call, InputActionPhase inputActionPhase) => GetCall(inputActionPhase) += call;
+        public void RegisterCall(Action<InputEvent> call, InputActionPhase? inputActionPhase) => GetCall(PanelManager.GetInputActionPhase(inputActionPhase)) += call;
 
-        public void RemoveCall(Action<InputEvent> call, InputActionPhase inputActionPhase) => GetCall(inputActionPhase) -= call;
+        public void RemoveCall(Action<InputEvent> call, InputActionPhase? inputActionPhase) => GetCall(PanelManager.GetInputActionPhase(inputActionPhase)) -= call;
 
         public bool Call(InputEvent inputEvent, InputActionPhase inputActionPhase, string name)
         {
@@ -64,8 +64,8 @@ public abstract partial class UIPanelBaseCore
     {
         public MappedInputAxis(string target, float deadZone)
         {
-            _deadZoneSquared = deadZone * deadZone;
             _target = target;
+            var deadZoneSquared = deadZone * deadZone;
             NegativeInputActionUpdate = inputEvent =>
             {
                 var oldValue = GetCurrentValue();
@@ -73,7 +73,7 @@ public abstract partial class UIPanelBaseCore
                 if (inputEvent is InputEventJoypadMotion motion)
                 {
                     _negativeAxisVector = Mathf.Abs(motion.AxisValue);
-                    _negativeAxisVector = Mathf.Max(_negativeAxisVector, _deadZoneSquared);
+                    _negativeAxisVector = Mathf.Max(_negativeAxisVector, deadZoneSquared);
                 }
                 else _negativeAxisVector = inputEvent.IsPressed() ? 1 : 0;
 
@@ -86,7 +86,7 @@ public abstract partial class UIPanelBaseCore
                 if (inputEvent is InputEventJoypadMotion motion)
                 {
                     _positiveAxisVector = Mathf.Abs(motion.AxisValue);
-                    _positiveAxisVector = Mathf.Max(_negativeAxisVector, _deadZoneSquared);
+                    _positiveAxisVector = Mathf.Max(_negativeAxisVector, deadZoneSquared);
                 }
                 else _positiveAxisVector = inputEvent.IsPressed() ? 1 : 0;
 
@@ -129,7 +129,6 @@ public abstract partial class UIPanelBaseCore
         private float _negativeAxisVector;
         private float _positiveAxisVector;
         private float _cachedValue = float.NaN;
-        private float _deadZoneSquared;
 
         private float GetCurrentValue() => _positiveAxisVector - _negativeAxisVector;
 

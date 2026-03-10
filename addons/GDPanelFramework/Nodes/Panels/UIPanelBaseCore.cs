@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using GDPanelFramework.Panels.Tweener;
 using GDPanelFramework.Utils.Pooling;
 using Godot;
@@ -54,8 +55,6 @@ public abstract partial class UIPanelBaseCore : Control
 
     internal PackedScene? SourcePrefab { get; private set; }
     internal string LocalName => _cachedName ??= Name;
-
-    internal record struct CachedControlInfo(FocusModeEnum FocusMode, MouseFilterEnum MouseFilter);
 
     /// <summary>
     /// The current status of the panel.

@@ -15,6 +15,12 @@ public abstract partial class UIPanelArg1<TOpenArg> : UIPanelBase<TOpenArg, Empt
     /// </remarks>
     protected void ClosePanel() => ClosePanelInternal(Empty.Default);
 
+    /// <inheritdoc cref="_OnPanelClose(Empty)"/>
+    protected virtual void _OnPanelClose() { }
+    
+    /// <inheritdoc/>
+    protected sealed override void _OnPanelClose(Empty closeArg) => _OnPanelClose();
+
     /// <summary>
     /// Enable this panel to be closed with the <see cref="PanelManager.UICancelActionName"/>.
     /// </summary>
@@ -22,7 +28,7 @@ public abstract partial class UIPanelArg1<TOpenArg> : UIPanelBase<TOpenArg, Empt
     /// <remarks>
     /// Repeated calls to this method will not function, only the first call actually registers the <see cref="ClosePanel"/> method.
     /// </remarks>
-    protected void EnableCloseWithCancelKey(InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void EnableCloseWithCancelKey(InputActionPhase? actionPhase = null)
     {
         if (_registeredInputActionPhase != null) return;
         _registeredInputActionPhase = actionPhase;

@@ -49,7 +49,7 @@ public abstract partial class UIPanel : UIPanelBase<Empty, Empty>
     /// <remarks>
     /// Repeated calls to this method will not function, only the first call actually registers the <see cref="ClosePanel"/> method.
     /// </remarks>
-    protected void EnableCloseWithCancelKey(InputActionPhase actionPhase = InputActionPhase.Released)
+    protected void EnableCloseWithCancelKey(InputActionPhase? actionPhase = null)
     {
         if (_registeredInputActionPhase != null) return;
         _registeredInputActionPhase = actionPhase;
