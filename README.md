@@ -45,16 +45,22 @@ This addon only contains source file for runtime use; so you do not need to enab
     - [Input Binding / Routing](#input-binding--routing)
       - [Input Registration](#input-registration)
         - [Basic Usage](#basic-usage)
+                - [Default Input Phase](#default-input-phase)
+                - [Variation: `RegisterAnyKeyInput`](#variation-registeranykeyinput)
+                - [Variation: `RegisterInputToggle`](#variation-registerinputtoggle)
+                - [Variation: `RegisterEchoedInput`/`RemoveEchoedInput`](#variation-registerechoedinputremoveechoedinput)
         - [Variation: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`](#variation-registerinputcancelremoveinputcanceltoggleinputcancel)
         - [Variation: `EnableCloseWithCancelKey` and `DisableCloseWithCancelKey`](#variation-enableclosewithcancelkey-and-disableclosewithcancelkey)
         - [Variation: `RegisterInputAxis`/`RemoveInputAxis`/`ToggleInputAxis`](#variation-registerinputaxisremoveinputaxistoggleinputaxis)
         - [Variation: `RegisterInputVector`/`RemoveInputVector`/`ToggleInputVector`](#variation-registerinputvectorremoveinputvectortoggleinputvector)
       - [the BuiltinInputNames Class](#the-builtininputnames-class)
+            - [Global Input Listeners](#global-input-listeners)
     - [Panel Stack](#panel-stack)
     - [Framework-level Caching](#framework-level-caching)
+        - [Scoped Panel Buffering](#scoped-panel-buffering)
     - [Panel Event Methods Overview](#panel-event-methods-overview)
     - [Configuring the Previous Panel Visual Behavior](#configuring-the-previous-panel-visual-behavior)
-  - [The `UIPanelArg`](#the-uipanelarg)
+    - [The `UIPanelArg1` and `UIPanelArg2`](#the-uipanelarg1-and-uipanelarg2)
   - [Panel Container Management](#panel-container-management)
   - [The `Panel Tweener`](#the-panel-tweener)
     - [Built-in Tweeners](#built-in-tweeners)
@@ -194,7 +200,7 @@ public partial class Example01_Main : Node
                 onPanelCloseCallback: // This delegate gets called when this panel gets closed when the panel itself calls ClosePanel().
                 result => // Prints the result and terminate the application when this panel gets closed.
                 {
-                    GD.Print($"Clicked {result} time(s) before closed.");
+                    GD.Print($"Clicked {result.Unwrap()} time(s) before closed.");
                     GetTree().Quit();
                 }
             );
@@ -211,7 +217,7 @@ namespace GDPanelFramework.Examples;
 /// <summary>
 /// Attach this script to a Control to make it a "UIPanel".
 /// </summary>
-public partial class Example01_MyPanel : UIPanelArg<string, string>
+public partial class Example01_MyPanel : UIPanelArg2<string, string>
 {
     // These three fields are assigned in Godot Editor, through inspector.
     [Export] private Label _text;
@@ -291,15 +297,18 @@ var panelInstance =
 
 There are three OpenPanel Methods for a UIPanel each of which is designed for a certain programming style.
 
-In an async method, a `async/await-styled` opening method returns a `one-time awaitable` that allows the developer to `await` for a panel close, in `PanelArg`, awaiting this awaitable will also get the return value from the panel.
+In an async method, an `async/await-styled` opening method returns a `PanelAwaitable` / `PanelAwaitable<TCloseArg>` that allows the developer to `await` for a panel close. These awaitables are `single-use`, similar to `ValueTask`, and `OpenPanelAsync` also accepts an optional `CancellationToken` for externally closing the panel.
 
 ```csharp
 // When opening a panel, in async method.
 await panelInstance.OpenPanelAsync();
 GD.Print("The panel has closed!");
+
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+await panelInstance.OpenPanelAsync(cancellationToken: cts.Token);
 ```
 
-A `callback-styled` opening method allows the developer to supply a delegate to get notified when the panel has closed, in `PanelArg`, the return value will also pass to this delegate.
+A `callback-styled` opening method allows the developer to supply a delegate to get notified when the panel has closed. For `UIPanelArg2`, the callback receives a `PanelResult<TCloseArg>` so you can distinguish a normal close from an external cancellation.
 
 ```csharp
 // When opening a panel.
@@ -307,6 +316,18 @@ panelInstance
     .OpenPanel(
         onPanelCloseCallback: // This lambda gets called when the panel is closed.
            () => GD.Print("The panel has closed!")
+    );
+
+argPanelInstance
+    .OpenPanel(
+        10,
+        onPanelCloseCallback: result =>
+        {
+            if (result.TryGetValue(out var value))
+                GD.Print($"Returned: {value}");
+            else
+                GD.Print("The panel was closed by cancellation.");
+        }
     );
 ```
 
@@ -320,6 +341,8 @@ panelInstance.OpenPanel();
 #### Close a panel
 
 Calling `ClosePanel()` in a panel script will close the opened panel. This method is `protected` by default, developer may expose this method by wrapping it around by a public one.
+
+If a panel is closed by the `cancellationToken` supplied to `OpenPanel` / `OpenPanelAsync`, the framework invokes `_OnPanelExternalClose()` instead of `_OnPanelClose(...)`.
 
 > Please note that a panel must be opened before you can close it, and closing a panel that's not on top of the panel stack is considered an error and will crash the framework.
 
@@ -351,6 +374,19 @@ RegisterInput( // Register a callback to the associated inputName
 );
 ```
 
+###### Default Input Phase
+
+The `actionPhase` argument on `RegisterInput`, `RemoveInput`, `ToggleInput`, and related helpers is now optional. When omitted, the framework uses `PanelManager.DefaultInputRegistrationBehavior`, whose default value is `InputRegistrationBehavior.Press`.
+
+```csharp
+PanelManager.DefaultInputRegistrationBehavior = PanelManager.InputRegistrationBehavior.Release;
+
+RegisterInput(
+    BuiltinInputNames.UIAccept,
+    inputEvent => GD.Print($"Released: {inputEvent.AsText()}")
+); // Uses the global default phase.
+```
+
 In certain cases where unbinding a delegate is required, call `RemoveInput` with the corresponding registration.
 
 > Note that when working with input deregistration, to correctly deregisters a `lambda expression`, it is mandatory to `assign the lambda expression to a variable` and `pass that variable to the APIs`.
@@ -376,6 +412,41 @@ ToggleInput( // This API supports change input registration based on the first b
 ```
 
 For achieving certain purposes there are several other variations of input registration APIs.
+
+###### Variation: `RegisterAnyKeyInput`
+
+Associate a delegate to any key/button style input received by the active panel.
+
+```csharp
+RegisterAnyKeyInput(inputEvent => GD.Print($"Any key: {inputEvent.AsText()}"));
+```
+
+###### Variation: `RegisterInputToggle`
+
+Associate a delegate that receives `true` on press and `false` on release. You may bind one input name or a span of input names and observe the combined pressed state.
+
+```csharp
+RegisterInputToggle(BuiltinInputNames.UIAccept, pressed => GD.Print($"Accept: {pressed}"));
+
+RegisterInputToggle(
+    [BuiltinInputNames.UILeft, BuiltinInputNames.UIRight],
+    pressed => GD.Print($"Any horizontal input pressed: {pressed}")
+);
+```
+
+###### Variation: `RegisterEchoedInput`/`RemoveEchoedInput`
+
+Associate a delegate to repeated held input, similar to keyboard key-repeat. The first call fires immediately, then repeats after `InputEchoing.InitialDelay`, and continues at `InputEchoing.RepeatInterval`.
+
+```csharp
+InputEchoing.InitialDelay = 250;
+InputEchoing.RepeatInterval = 100;
+
+Action moveSelection = () => GD.Print("Move selection");
+
+RegisterEchoedInput(BuiltinInputNames.UIDown, moveSelection);
+RemoveEchoedInput(BuiltinInputNames.UIDown, moveSelection);
+```
 
 ###### Variation: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`
 
@@ -477,6 +548,23 @@ ToggleInputVector(
 
 Godot provides a list of builtin UI input event names, developer may access these input names from the `BuiltinInputNames` class.
 
+##### Global Input Listeners
+
+The active panel still receives routed panel input, but the framework can now also broadcast every processed input event globally through `IGlobalInputListener`.
+
+```csharp
+public partial class MyGlobalInputLogger : Node, IGlobalInputListener
+{
+    public void OnGlobalInput(InputEvent inputEvent)
+    {
+        GD.Print($"Global input: {inputEvent.AsText()}");
+    }
+}
+
+PanelManager.AddGlobalInputListener(this);
+PanelManager.RemoveGlobalInputListener(this);
+```
+
 #### Panel Stack
 
 The `Panel Stack` is designed to maintain the order of the opened panels, when opening a panel, the framework peeks at the panel stack for the top panel, disables every control under it (their opening statuses are cached), and pushes this new instance to the stack. When closing the top panel, the framework pops it from the panel stack and reactivates all the control for the panel underneath it, it also sets the focus to the last selected item before this panel becomes inactive.
@@ -518,6 +606,24 @@ panelInstance
     .OpenPanel(
         closePolicy: ClosePolicy.Delete // ClosePolicy.Cache
     );
+
+#### Scoped Panel Buffering
+
+For temporary gameplay states or modal flows, you may create a scoped panel buffer. Panels cached while the scope is active are stored separately from the global cache and are all freed when the scope ends.
+
+```csharp
+var scopeToken = PanelManager.BeginScopedPanelManagement("Gameplay");
+
+try
+{
+    var panel = _panelPrefab.CreatePanel<MyPanel>();
+    panel.OpenPanel(closePolicy: ClosePolicy.Cache);
+}
+finally
+{
+    PanelManager.EndScopedPanelManagement(scopeToken);
+}
+```
 
 ```
 
@@ -570,14 +676,19 @@ panelInstance
     );
 ```
 
-### The `UIPanelArg`
+### The `UIPanelArg1` and `UIPanelArg2`
 
-precautionsIt is a common practice for passing the argument to/receiving return value from a panel, `UIPanelArg<TOpenArg, TCloseArg>` is here to achieve this requirement.
+Passing arguments to a panel and receiving a result from it are separated into two base types:
+
+- `UIPanelArg1<TOpenArg>` for panels that need an opening argument but do not return a value.
+- `UIPanelArg2<TOpenArg, TCloseArg>` for panels that need both an opening argument and a closing result.
+
+If you need neither, inherit `UIPanel`. If you only need one side of the pair while still using `UIPanelArg2`, use `Empty` as the placeholder type.
 
 ```csharp
 // MyArgumentPanel.cs
 // Defines a panel that accepts an int as the opening argument, and string as the returning value.
-public partial class MyArgumentPanel : UIPanelArg<int, string>
+public partial class MyArgumentPanel : UIPanelArg2<int, string>
 {
     protected override void _OnPanelOpen(int openArg) // The opening argument passed from the caller.
     {
@@ -587,7 +698,7 @@ public partial class MyArgumentPanel : UIPanelArg<int, string>
 }
 ```
 
-Different from the regular `UIPanel` type, the `OpenPanel` methods of a `UIPanelArg` accepts an extra argument and passes it to the `_OnPanelOpen(TOpenArg)` panel event method and its async/callback-styled overload has its way for obtaining the return value.
+Different from the regular `UIPanel` type, the `OpenPanel` methods of `UIPanelArg1` and `UIPanelArg2` accept an extra argument and pass it to `_OnPanelOpen(TOpenArg)`. `UIPanelArg2` additionally exposes async/callback overloads for receiving the closing result.
 
 ```csharp
 // In caller class.
@@ -600,14 +711,30 @@ var argPanelInstance = _panelPrefab.CreatePanel<MyArgumentPanel>();
 string returnValue = await argPanelInstance.OpenPanelAsync(10); // return value is "10".
 
 // Callback/Delegate-styled open method.
-argPanelInstance.OpenPanel(10, onPanelCloseCallback: value => GD.Print(value == "10")) // prints true when the panel closes.
+argPanelInstance.OpenPanel(
+    10,
+    onPanelCloseCallback: result => GD.Print(result.Unwrap() == "10")
+); // prints true when the panel closes normally.
 ```
 
-The `UIPanelArg` supports both `passing an argument` and `returning a value`, if one of the features is not needed, you may use the `Empty` struct to serve as a placeholder.
+`UIPanelArg1` is the compact option when you only need an opening argument:
+
+```csharp
+public partial class MyArgumentPanel : UIPanelArg1<int>
+{
+    protected override void _OnPanelOpen(int openArg)
+    {
+        GD.Print($"Opened with argument: {openArg}");
+        ClosePanel();
+    }
+}
+```
+
+`UIPanelArg2` supports both `passing an argument` and `returning a value`. If one of the features is not needed, you may use the `Empty` struct to serve as a placeholder.
 
 ```csharp
 // The definition for a panel that doesn't require an opening argument.
-public partial class MyArgumentPanel : UIPanelArg<Empty, string>
+public partial class MyArgumentPanel : UIPanelArg2<Empty, string>
 {
     protected override void _OnPanelOpen(Empty _)
     {
@@ -621,7 +748,7 @@ argPanelInstance.OpenPanelAsync(Empty.Default);
 
 ```csharp
 // The definition for a panel that doesn't requires returning value.
-public partial class MyArgumentPanel : UIPanelArg<int, Empty>
+public partial class MyArgumentPanel : UIPanelArg2<int, Empty>
 {
     protected override void _OnPanelOpen(int openArg)
     {
@@ -699,25 +826,23 @@ public interface IPanelTweener
 
 ### Note when using `async/await` Styled API
 
-Most asynchronous methods in the framework are written in `callback/delegate` style, that is, have a `Action onFinish` argument in their method signature.
+`OpenPanelAsync` now returns `PanelAwaitable` / `PanelAwaitable<T>`, a lightweight pooled awaitable dedicated to panel lifetime tracking.
 
-To provide an `async/await` styled programming experience, the `AsyncInterop` utility class is used to convert a `callback/delegate` styled API into an `async/await` styled one.
+These awaitables are single-use. Awaiting a panel opened with a canceled token throws `OperationCanceledException`, while callback-based APIs receive `PanelResult.None`.
 
-The returned `AsyncAwaitable` can be used with the `await` keyword, similar to ValueTask, developers may only await for this value once.
+Panels also expose `PanelCancellationToken` for responding to external close requests from inside panel logic, and `_OnPanelExternalClose()` for custom cleanup when the supplied `CancellationToken` closes the panel.
 
 ```csharp
-public void CallbackStyledMethod(Action onFinish);
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-public AsyncAwaitable AsyncAwaitStyledMethodAsync()
+try
 {
-    return AsyncInterop.ToAsync(CallbackStyledMethod);
+    var value = await argPanelInstance.OpenPanelAsync(10, cancellationToken: cts.Token);
+    GD.Print($"Panel returned: {value}");
 }
-
-public void CallbackStyledMethodWithReturn(Action<int> onFinish);
-
-public AsyncAwaitable<int> AsyncAwaitStyledMethodWithReturnAsync()
+catch (OperationCanceledException)
 {
-    return AsyncInterop.ToAsync<int>(CallbackStyledMethodWithReturn);
+    GD.Print("The panel was canceled externally.");
 }
 ```
 
@@ -730,6 +855,7 @@ The following panel event methods are executed in under `try ... catch block`, t
 - `_OnPanelInitialize`
 - `_OnPanelOpen`
 - `_OnPanelClose`
+- `_OnPanelExternalClose`
 - `_OnPanelPredelete`
 - `_OnPanelNotification`
 - Registered input events
@@ -742,5 +868,5 @@ The following usage ***WILL*** crash the framework:
 - Closing a panel that's not the last opened panel.
 - Providing an invalid `CompositeInputActionState` enum.
 - Authorising a `panel container popping` with a `node` which is pushed by a different `node`.
-- Reuse the `await` keyword on an AsyncAwaitable that has already awaited, or access any of its parameters.
-- Calling `GetResult()` on an `AsyncAwaitable` that has not been completed yet.
+- Reuse the `await` keyword on a `PanelAwaitable` that has already awaited, or access its awaiter after completion.
+- Calling `GetResult()` on a `PanelAwaitable` that has not been completed yet.

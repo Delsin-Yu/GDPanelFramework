@@ -34,33 +34,39 @@
 ## Table of Contents
 
 - [API简单用法](#api%E7%AE%80%E5%8D%95%E7%94%A8%E6%B3%95)
-  - [创建一个简单的面板](#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E9%9D%A2%E6%9D%BF)
-  - [创建一个支持传参及返回值的面板](#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%94%AF%E6%8C%81%E4%BC%A0%E5%8F%82%E5%8F%8A%E8%BF%94%E5%9B%9E%E5%80%BC%E7%9A%84%E9%9D%A2%E6%9D%BF)
+    - [创建一个简单的面板](#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E9%9D%A2%E6%9D%BF)
+    - [创建一个支持传参及返回值的面板](#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%94%AF%E6%8C%81%E4%BC%A0%E5%8F%82%E5%8F%8A%E8%BF%94%E5%9B%9E%E5%80%BC%E7%9A%84%E9%9D%A2%E6%9D%BF)
 - [框架文档](#%E6%A1%86%E6%9E%B6%E6%96%87%E6%A1%A3)
-  - [框架概念](#%E6%A1%86%E6%9E%B6%E6%A6%82%E5%BF%B5)
-  - [`UIPanel` 类型](#uipanel-%E7%B1%BB%E5%9E%8B)
-    - [实例化一个面板](#%E5%AE%9E%E4%BE%8B%E5%8C%96%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
-    - [开启一个面板](#%E5%BC%80%E5%90%AF%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
-    - [关闭一个面板](#%E5%85%B3%E9%97%AD%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
-    - [输入绑定/路由](#%E8%BE%93%E5%85%A5%E7%BB%91%E5%AE%9A%E8%B7%AF%E7%94%B1)
-      - [输入注册](#%E8%BE%93%E5%85%A5%E6%B3%A8%E5%86%8C)
-        - [基本用法](#%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95)
-        - [变体: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`](#%E5%8F%98%E4%BD%93-registerinputcancelremoveinputcanceltoggleinputcancel)
-        - [变体: `EnableCloseWithCancelKey` and `DisableCloseWithCancelKey`](#%E5%8F%98%E4%BD%93-enableclosewithcancelkey-and-disableclosewithcancelkey)
-        - [变体: `RegisterInputAxis`/`RemoveInputAxis`/`ToggleInputAxis`](#%E5%8F%98%E4%BD%93-registerinputaxisremoveinputaxistoggleinputaxis)
-        - [变体: `RegisterInputVector`/`RemoveInputVector`/`ToggleInputVector`](#%E5%8F%98%E4%BD%93-registerinputvectorremoveinputvectortoggleinputvector)
-      - [BuiltinInputNames类](#builtininputnames%E7%B1%BB)
-    - [面板栈/Panel Stack](#%E9%9D%A2%E6%9D%BF%E6%A0%88panel-stack)
-    - [框架级别缓存](#%E6%A1%86%E6%9E%B6%E7%BA%A7%E5%88%AB%E7%BC%93%E5%AD%98)
-    - [面板事件方法概述](#%E9%9D%A2%E6%9D%BF%E4%BA%8B%E4%BB%B6%E6%96%B9%E6%B3%95%E6%A6%82%E8%BF%B0)
-    - [配置上一个面板的视觉行为](#%E9%85%8D%E7%BD%AE%E4%B8%8A%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF%E7%9A%84%E8%A7%86%E8%A7%89%E8%A1%8C%E4%B8%BA)
-  - [`UIPanelArg` 类型](#uipanelarg-%E7%B1%BB%E5%9E%8B)
-  - [面板容器管理](#%E9%9D%A2%E6%9D%BF%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86)
-  - [`面板过渡控制器/PanelTweener`](#%E9%9D%A2%E6%9D%BF%E8%BF%87%E6%B8%A1%E6%8E%A7%E5%88%B6%E5%99%A8paneltweener)
-    - [内置过渡器](#%E5%86%85%E7%BD%AE%E8%BF%87%E6%B8%A1%E5%99%A8)
-    - [自定义过渡器](#%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%B8%A1%E5%99%A8)
-  - [使用`async/await`风格的API时请注意](#%E4%BD%BF%E7%94%A8asyncawait%E9%A3%8E%E6%A0%BC%E7%9A%84api%E6%97%B6%E8%AF%B7%E6%B3%A8%E6%84%8F)
-  - [使用此框架时请注意](#%E4%BD%BF%E7%94%A8%E6%AD%A4%E6%A1%86%E6%9E%B6%E6%97%B6%E8%AF%B7%E6%B3%A8%E6%84%8F)
+    - [框架概念](#%E6%A1%86%E6%9E%B6%E6%A6%82%E5%BF%B5)
+    - [`UIPanel` 类型](#uipanel-%E7%B1%BB%E5%9E%8B)
+        - [实例化一个面板](#%E5%AE%9E%E4%BE%8B%E5%8C%96%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
+        - [开启一个面板](#%E5%BC%80%E5%90%AF%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
+        - [关闭一个面板](#%E5%85%B3%E9%97%AD%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
+        - [输入绑定/路由](#%E8%BE%93%E5%85%A5%E7%BB%91%E5%AE%9A%E8%B7%AF%E7%94%B1)
+            - [输入注册](#%E8%BE%93%E5%85%A5%E6%B3%A8%E5%86%8C)
+                - [基本用法](#%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95)
+                - [默认输入触发阶段](#%E9%BB%98%E8%AE%A4%E8%BE%93%E5%85%A5%E8%A7%A6%E5%8F%91%E9%98%B6%E6%AE%B5)
+                - [变体: `RegisterAnyKeyInput`](#%E5%8F%98%E4%BD%93-registeranykeyinput)
+                - [变体: `RegisterInputToggle`](#%E5%8F%98%E4%BD%93-registerinputtoggle)
+                - [变体: `RegisterEchoedInput`/`RemoveEchoedInput`](#%E5%8F%98%E4%BD%93-registerechoedinputremoveechoedinput)
+                - [变体: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`](#%E5%8F%98%E4%BD%93-registerinputcancelremoveinputcanceltoggleinputcancel)
+                - [变体: `EnableCloseWithCancelKey` and `DisableCloseWithCancelKey`](#%E5%8F%98%E4%BD%93-enableclosewithcancelkey-and-disableclosewithcancelkey)
+                - [变体: `RegisterInputAxis`/`RemoveInputAxis`/`ToggleInputAxis`](#%E5%8F%98%E4%BD%93-registerinputaxisremoveinputaxistoggleinputaxis)
+                - [变体: `RegisterInputVector`/`RemoveInputVector`/`ToggleInputVector`](#%E5%8F%98%E4%BD%93-registerinputvectorremoveinputvectortoggleinputvector)
+            - [BuiltinInputNames类](#builtininputnames%E7%B1%BB)
+            - [全局输入监听器](#%E5%85%A8%E5%B1%80%E8%BE%93%E5%85%A5%E7%9B%91%E5%90%AC%E5%99%A8)
+        - [面板栈/Panel Stack](#%E9%9D%A2%E6%9D%BF%E6%A0%88panel-stack)
+        - [框架级别缓存](#%E6%A1%86%E6%9E%B6%E7%BA%A7%E5%88%AB%E7%BC%93%E5%AD%98)
+        - [作用域面板缓冲](#%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%9D%A2%E6%9D%BF%E7%BC%93%E5%86%B2)
+        - [面板事件方法概述](#%E9%9D%A2%E6%9D%BF%E4%BA%8B%E4%BB%B6%E6%96%B9%E6%B3%95%E6%A6%82%E8%BF%B0)
+        - [配置上一个面板的视觉行为](#%E9%85%8D%E7%BD%AE%E4%B8%8A%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF%E7%9A%84%E8%A7%86%E8%A7%89%E8%A1%8C%E4%B8%BA)
+    - [`UIPanelArg1` 和 `UIPanelArg2` 类型](#uipanelarg1-%E5%92%8C-uipanelarg2-%E7%B1%BB%E5%9E%8B)
+    - [面板容器管理](#%E9%9D%A2%E6%9D%BF%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86)
+    - [`面板过渡控制器/PanelTweener`](#%E9%9D%A2%E6%9D%BF%E8%BF%87%E6%B8%A1%E6%8E%A7%E5%88%B6%E5%99%A8paneltweener)
+        - [内置过渡器](#%E5%86%85%E7%BD%AE%E8%BF%87%E6%B8%A1%E5%99%A8)
+        - [自定义过渡器](#%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%B8%A1%E5%99%A8)
+    - [使用`async/await`风格的API时请注意](#%E4%BD%BF%E7%94%A8asyncawait%E9%A3%8E%E6%A0%BC%E7%9A%84api%E6%97%B6%E8%AF%B7%E6%B3%A8%E6%84%8F)
+    - [使用此框架时请注意](#%E4%BD%BF%E7%94%A8%E6%AD%A4%E6%A1%86%E6%9E%B6%E6%97%B6%E8%AF%B7%E6%B3%A8%E6%84%8F)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -193,7 +199,7 @@ public partial class Example01_Main : Node
                 onPanelCloseCallback: // 当面板本身调用ClosePanel()时，当该面板关闭时，会调用此委托。
                 result => // 在此面板关闭时打印返回值，并终止应用程序。
                 {
-                    GD.Print($"Clicked {result} time(s) before closed.");
+                    GD.Print($"Clicked {result.Unwrap()} time(s) before closed.");
                     GetTree().Quit();
                 }
             );
@@ -210,7 +216,7 @@ namespace GDPanelFramework.Examples;
 /// <summary>
 /// 将此脚本附加到控件以使其成为“UIPanelArg”。
 /// </summary>
-public partial class Example01_MyPanel : UIPanelArg<string, string>
+public partial class Example01_MyPanel : UIPanelArg2<string, string>
 {
     // 这三个字段是在Godot编辑器中通过 inspector 分配的。
     [Export] private Label _text;
@@ -289,15 +295,18 @@ var panelInstance =
 
 UIPanel有三种OpenPanel方法，每种方法都是为特定的编程风格设计的。
 
-在异步方法中，`async/await样式`的打开方法返回一个`一次性awaitable`，允许开发人员`等待`面板关闭，在`PanelArg`中，等待该awaitable也将从面板获得返回值。
+在异步方法中，`async/await`风格的打开方法返回 `PanelAwaitable` / `PanelAwaitable<TCloseArg>`，允许开发人员 `await` 一个面板的关闭。这些 awaitable 是`单次使用`的，行为类似 `ValueTask`；同时，`OpenPanelAsync` 现在还支持可选的 `CancellationToken`，用于从外部关闭面板。
 
 ```csharp
 // 在异步方法中开启面板时。
 await panelInstance.OpenPanelAsync();
 GD.Print("The panel has closed!");
+
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+await panelInstance.OpenPanelAsync(cancellationToken: cts.Token);
 ```
 
-`回调风格`的打开方法允许开发人员提供一个委托，以便在面板关闭时得到通知，在`PanelArg`中，返回值也将传递给该委托。
+`回调风格`的打开方法允许开发人员提供一个委托，以便在面板关闭时得到通知。对于 `UIPanelArg2`，回调接收的是 `PanelResult<TCloseArg>`，因此你可以区分正常关闭和被取消令牌外部关闭这两种情况。
 
 ```csharp
 // 开启面板时。
@@ -305,6 +314,18 @@ panelInstance
     .OpenPanel(
         onPanelCloseCallback: // 该lambda表达式在面板关闭时被调用。
            () => GD.Print("The panel has closed!")
+    );
+
+argPanelInstance
+    .OpenPanel(
+        10,
+        onPanelCloseCallback: result =>
+        {
+            if (result.TryGetValue(out var value))
+                GD.Print($"Returned: {value}");
+            else
+                GD.Print("The panel was closed by cancellation.");
+        }
     );
 ```
 
@@ -318,6 +339,8 @@ panelInstance.OpenPanel();
 #### 关闭一个面板
 
 在面板脚本中调用`ClosePanel()`将关闭打开的面板。默认情况下，此方法是`protected`，开发人员可以通过用公共方法包装此方法来提升可见性。
+
+如果面板是被传入 `OpenPanel` / `OpenPanelAsync` 的 `cancellationToken` 关闭的，框架会调用 `_OnPanelExternalClose()`，而不是 `_OnPanelClose(...)`。
 
 > 请注意，在关闭面板之前，必须先打开面板；此外，关闭不在面板堆栈顶部的面板被认为是一个错误，会使框架崩溃。
 
@@ -349,6 +372,19 @@ RegisterInput( // 向关联的inputName注册回调
 );
 ```
 
+###### 默认输入触发阶段
+
+`RegisterInput`、`RemoveInput`、`ToggleInput` 以及相关辅助 API 的 `actionPhase` 参数现在都是可选的。当你省略该参数时，框架会使用 `PanelManager.DefaultInputRegistrationBehavior`，其默认值是 `InputRegistrationBehavior.Press`。
+
+```csharp
+PanelManager.DefaultInputRegistrationBehavior = PanelManager.InputRegistrationBehavior.Release;
+
+RegisterInput(
+    BuiltinInputNames.UIAccept,
+    inputEvent => GD.Print($"Released: {inputEvent.AsText()}")
+); // 使用全局默认触发阶段。
+```
+
 在某些需要解除委托绑定的情况下，开发者应调用`RemoveInput`并传入对应的注册信息。
 
 > 请注意，在处理输入注销时，如果要正确注销`lambda表达式`，则必须在注册时`将lambda表达式分配给变量`并且`将该变量传递给API`。
@@ -374,6 +410,41 @@ ToggleInput( // 这个api支持基于第一个bool参数的值在注册和注销
 ```
 
 为了实现某些目的，输入注册API还有其他几种变体。
+
+###### 变体: `RegisterAnyKeyInput`
+
+将一个委托绑定到当前活动面板接收到的任意按键/按钮类输入。
+
+```csharp
+RegisterAnyKeyInput(inputEvent => GD.Print($"Any key: {inputEvent.AsText()}"));
+```
+
+###### 变体: `RegisterInputToggle`
+
+将一个委托绑定为按下时收到 `true`，抬起时收到 `false`。你可以绑定单个输入名，也可以绑定一组输入名，以观察它们的组合按下状态。
+
+```csharp
+RegisterInputToggle(BuiltinInputNames.UIAccept, pressed => GD.Print($"Accept: {pressed}"));
+
+RegisterInputToggle(
+    [BuiltinInputNames.UILeft, BuiltinInputNames.UIRight],
+    pressed => GD.Print($"Any horizontal input pressed: {pressed}")
+);
+```
+
+###### 变体: `RegisterEchoedInput`/`RemoveEchoedInput`
+
+将一个委托绑定到持续按住时的重复触发输入，效果类似键盘长按连发。首次按下会立即触发，之后会在 `InputEchoing.InitialDelay` 后开始重复，并以 `InputEchoing.RepeatInterval` 继续触发。
+
+```csharp
+InputEchoing.InitialDelay = 250;
+InputEchoing.RepeatInterval = 100;
+
+Action moveSelection = () => GD.Print("Move selection");
+
+RegisterEchoedInput(BuiltinInputNames.UIDown, moveSelection);
+RemoveEchoedInput(BuiltinInputNames.UIDown, moveSelection);
+```
 
 ###### 变体: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`
 
@@ -475,6 +546,23 @@ ToggleInputVector(
 
 Godot提供了一个列表的内置ui输入事件，开发人员可以从`BuiltinInputNames`类访问这些输入事件的名称。
 
+##### 全局输入监听器
+
+除了活动面板继续接收面板级输入路由之外，框架现在还支持通过 `IGlobalInputListener` 广播每一个被 `PanelManager` 处理到的输入事件。
+
+```csharp
+public partial class MyGlobalInputLogger : Node, IGlobalInputListener
+{
+    public void OnGlobalInput(InputEvent inputEvent)
+    {
+        GD.Print($"Global input: {inputEvent.AsText()}");
+    }
+}
+
+PanelManager.AddGlobalInputListener(this);
+PanelManager.RemoveGlobalInputListener(this);
+```
+
 #### 面板栈/Panel Stack
 
 `面板栈/Panel Stack`用于维护打开的面板的顺序，当打开面板时，框架会检视顶部面板的面板堆栈，禁用其下的每个控件（并缓存它们之前的打开状态），并将此新实例推送到堆栈。当关闭顶部面板时，框架将其从面板堆栈中弹出，并重新激活其下方面板的所有控件，它还将焦点恢复为该面板变为非活动状态之前的最后一个选定的项目。
@@ -497,9 +585,7 @@ timeline
 
 在某些情况下，面板在设计中就需要`频繁打开和关闭`*（例如某些游戏中的库存面板）*，在这种情况下，每次实例化面板并在关闭时删除它可能会带来较高负担。为了解决这个性能问题，该框架会`自动缓存面板`，您可以`在每次打开/关闭界面时进行配置`。
 
-When creating a panel, by specifying the `createPolicy`, you may choose to force the framework `instantiate` a new instance of the panel (`CreatePolicy.ForceCreate`) or let the framework `reuse a cached instance (default)` if possible (`CreatePolicy.TryReuse`), of course, if there is no existing cache, a new instance is created anyway.
-
-在创建面板时，通过指定`createPolicy`，您可以选择强制框架`创建面板的新实例`（`createPolicy.ForceCreate`），或者让框架尽可能`重用缓存的实例（默认值）`（`createPolicy.TryReuse`”`），当然，如果没有现有缓存，无论如何都会创建一个新实例。
+在创建面板时，通过指定`createPolicy`，您可以选择强制框架`创建面板的新实例`（`CreatePolicy.ForceCreate`），或者让框架尽可能`重用缓存的实例（默认值）`（`CreatePolicy.TryReuse`），当然，如果没有现有缓存，无论如何都会创建一个新实例。
 
 ```csharp
 // 在创建面板时
@@ -510,7 +596,7 @@ var panelInstance =
             );
 ```
 
-打开面板时，通过指定`closePolicy`，您可以选择指示框架在关闭的过渡动画完成后`删除此实例`（`closePolicy.delete`），或者让框架`缓存此实例（默认值）`（`closePolicy.cache`），并且下次在同一`PackedScene`上调用`CreatePanel`时重复使用。
+打开面板时，通过指定`closePolicy`，您可以选择指示框架在关闭的过渡动画完成后`删除此实例`（`ClosePolicy.Delete`），或者让框架`缓存此实例（默认值）`（`ClosePolicy.Cache`），并且下次在同一`PackedScene`上调用`CreatePanel`时重复使用。
 
 ```csharp
 // 在开启面板时
@@ -518,6 +604,25 @@ panelInstance
     .OpenPanel(
         closePolicy: ClosePolicy.Delete // ClosePolicy.Cache
     );
+
+```
+
+#### 作用域面板缓冲
+
+对于临时游戏状态或某些模态流程，你可以创建一个`作用域面板缓冲`。当该作用域激活时，被缓存的面板不会进入全局缓存，而是进入一个独立的缓冲区；当作用域结束时，这些被缓存的面板会被统一释放。
+
+```csharp
+var scopeToken = PanelManager.BeginScopedPanelManagement("Gameplay");
+
+try
+{
+    var panel = _panelPrefab.CreatePanel<MyPanel>();
+    panel.OpenPanel(closePolicy: ClosePolicy.Cache);
+}
+finally
+{
+    PanelManager.EndScopedPanelManagement(scopeToken);
+}
 
 ```
 
@@ -570,14 +675,19 @@ panelInstance
     );
 ```
 
-### `UIPanelArg` 类型
+### `UIPanelArg1` 和 `UIPanelArg2` 类型
 
-将参数传递给面板/从面板接收返回值是一种常见的做法，`UIPanelArg<TOpenArg, TCloseArg>`就是为了实现这一要求。
+将参数传递给面板，以及从面板接收返回值，现在被拆分为两个基类：
+
+- `UIPanelArg1<TOpenArg>`：适用于只需要开启参数、不需要返回值的面板。
+- `UIPanelArg2<TOpenArg, TCloseArg>`：适用于既需要开启参数、又需要关闭返回值的面板。
+
+如果两者都不需要，直接继承 `UIPanel`。如果你只需要其中一侧，但仍希望使用 `UIPanelArg2` 统一类型参数，可以用 `Empty` 作为占位类型。
 
 ```csharp
 // MyArgumentPanel.cs
 // 定义一个面板，该面板接受int作为开始参数，并使用string作为返回值。
-public partial class MyArgumentPanel : UIPanelArg<int, string>
+public partial class MyArgumentPanel : UIPanelArg2<int, string>
 {
     protected override void _OnPanelOpen(int openArg) // 从调用方传递的开启参数。
     {
@@ -587,7 +697,7 @@ public partial class MyArgumentPanel : UIPanelArg<int, string>
 }
 ```
 
-常规的`UIPanel`类型不同，`UIPanelArg`的`OpenPanel`方法接受一个额外的参数，并将其传递给`_OnPanelOpen(TOpenArg)`面板事件方法，其异步/回调风格的重载也有获得返回值的方法。
+与常规的 `UIPanel` 不同，`UIPanelArg1` 和 `UIPanelArg2` 的 `OpenPanel` 方法都会接收一个额外参数，并将其传递给 `_OnPanelOpen(TOpenArg)`。其中，`UIPanelArg2` 还会额外提供异步/回调风格的重载，用于接收关闭返回值。
 
 ```csharp
 // 在调用类中。
@@ -600,14 +710,30 @@ var argPanelInstance = _panelPrefab.CreatePanel<MyArgumentPanel>();
 string returnValue = await argPanelInstance.OpenPanelAsync(10); // returnValue为字符串的“10”。
 
 // 回调/委托风格的开启方法。
-argPanelInstance.OpenPanel(10, onPanelCloseCallback: value => GD.Print(value == "10")) // 面板关闭时打印true。
+argPanelInstance.OpenPanel(
+    10,
+    onPanelCloseCallback: result => GD.Print(result.Unwrap() == "10")
+); // 面板正常关闭时打印true。
 ```
 
-`UIPanelArg`同时支持`传递开启参数`和`返回值`，如果不需要其中一个功能，则可以使用`Empty`结构体作为占位符。
+`UIPanelArg1` 是只需要开启参数时更简洁的选择：
+
+```csharp
+public partial class MyArgumentPanel : UIPanelArg1<int>
+{
+    protected override void _OnPanelOpen(int openArg)
+    {
+        GD.Print($"Opened with argument: {openArg}");
+        ClosePanel();
+    }
+}
+```
+
+`UIPanelArg2` 同时支持`传递开启参数`和`返回值`。如果不需要其中一个功能，则可以使用 `Empty` 结构体作为占位符。
 
 ```csharp
 // 定义一个不需要开启参数的界面（仅返回值）
-public partial class MyArgumentPanel : UIPanelArg<Empty, string>
+public partial class MyArgumentPanel : UIPanelArg2<Empty, string>
 {
     protected override void _OnPanelOpen(Empty _)
     {
@@ -621,7 +747,7 @@ argPanelInstance.OpenPanelAsync(Empty.Default);
 
 ```csharp
 // 定义一个不需要返回值的界面（仅传递开启参数）
-public partial class MyArgumentPanel : UIPanelArg<int, Empty>
+public partial class MyArgumentPanel : UIPanelArg2<int, Empty>
 {
     protected override void _OnPanelOpen(int openArg)
     {
@@ -699,25 +825,23 @@ public interface IPanelTweener
 
 ### 使用`async/await`风格的API时请注意
 
-框架中的大多数异步方法都是以`回调/委托`风格编写的，也就是说，它们的方法签名中有一个`Action onFinish`参数。
+`OpenPanelAsync` 现在返回 `PanelAwaitable` / `PanelAwaitable<T>`，这是一个专门用于跟踪面板生命周期的轻量级池化 awaitable。
 
-为了提供`async/await`风格的编程体验，`AsyncInterop`实用程序类被用于将`回调/委托`风格的API转换为`async/await`样式的API。
+这些 awaitable 都是单次使用的。对一个带取消令牌开启的面板执行 `await` 时，如果该令牌被取消，则会抛出 `OperationCanceledException`；而回调风格 API 则会收到 `PanelResult.None`。
 
-返回的`AsyncAwaitable`可以与`await`关键字一起使用，类似于ValueTask，开发人员只能对该值执行一次等待。
+此外，面板内部还可以通过 `PanelCancellationToken` 感知外部关闭请求，并通过 `_OnPanelExternalClose()` 为这种关闭路径编写自定义清理逻辑。
 
 ```csharp
-public void CallbackStyledMethod(Action onFinish);
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-public AsyncAwaitable AsyncAwaitStyledMethodAsync()
+try
 {
-    return AsyncInterop.ToAsync(CallbackStyledMethod);
+    var value = await argPanelInstance.OpenPanelAsync(10, cancellationToken: cts.Token);
+    GD.Print($"Panel returned: {value}");
 }
-
-public void CallbackStyledMethodWithReturn(Action<int> onFinish);
-
-public AsyncAwaitable<int> AsyncAwaitStyledMethodWithReturnAsync()
+catch (OperationCanceledException)
 {
-    return AsyncInterop.ToAsync<int>(CallbackStyledMethodWithReturn);
+    GD.Print("The panel was canceled externally.");
 }
 ```
 
@@ -730,6 +854,7 @@ public AsyncAwaitable<int> AsyncAwaitStyledMethodWithReturnAsync()
 - `_OnPanelInitialize`
 - `_OnPanelOpen`
 - `_OnPanelClose`
+- `_OnPanelExternalClose`
 - `_OnPanelPredelete`
 - `_OnPanelNotification`
 - 已注册的输入事件
@@ -742,5 +867,5 @@ public AsyncAwaitable<int> AsyncAwaitStyledMethodWithReturnAsync()
 - 关闭一个不是最后一次打开的面板的面板。
 - 提供了无效的“CompositeInputActionState”枚举。
 - 使用错误的`节点`来弹出被`另一个节点`推送的`面板容器`。
-- 对一个已经使用过`await`关键字的`AsyncAwaitable`再次使用`await`关键字，或访问其的任何参数。
-- 对尚未完成的`AsyncAwaitable`调用`GetResult()`。
+- 对一个已经使用过 `await` 的 `PanelAwaitable` 再次执行 `await`，或者在完成后继续访问它的 awaiter。
+- 对尚未完成的 `PanelAwaitable` 调用 `GetResult()`。
