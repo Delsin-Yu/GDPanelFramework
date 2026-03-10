@@ -17,7 +17,7 @@ namespace GDPanelFramework.DodgeTheCreeps;
 /// so we utilize this <see cref="Empty"/> struct for a place holder.
 /// This use case is also commonly found in 
 /// </remarks>
-public partial class MainPanel : UIPanelArg<SceneObjectsModel, Empty>
+public partial class MainPanel : UIPanelArg1<SceneObjectsModel>
 {
     /// <summary>
     /// The reference to start button.
@@ -62,7 +62,7 @@ public partial class MainPanel : UIPanelArg<SceneObjectsModel, Empty>
         _startButton.NotNull().Pressed += () => StartGameAsync().Forget(); // Since we don't care when this function ends, Forget() is called for suppressing the compiler warning.
         
         // Since a UIPanelArg requires to close with an argument which we don't need, we 
-        _quitButton.NotNull().Pressed += () => ClosePanel(Empty.Default);
+        _quitButton.NotNull().Pressed += ClosePanel;
     }
     
     /// <summary>

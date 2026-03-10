@@ -5,10 +5,10 @@ using GodotTask;
 
 namespace GDPanelFramework.Tests;
 
-[TestSuite]
+[TestSuite, RequireGodotRuntime]
 public class GDPanelFrameworkTest_UIPanel
 {
-    // [TestCase]
+    // [TestCase, RequireGodotRuntime]
     // public static async Task WaitForDebugger()
     // {
     //     await GDTask.WaitUntil(() => System.Diagnostics.Debugger.IsAttached);
@@ -22,7 +22,7 @@ public class GDPanelFrameworkTest_UIPanel
         _sceneRunner = ISceneRunner.Load("res://Tests/test_entry.tscn", true).NotNull();
     }
 
-    [TestCase]
+    [TestCase, RequireGodotRuntime]
     public static async Task UIPanel_Test_EventFunction()
     {
         await GDTask.NextFrame();
@@ -44,7 +44,7 @@ public class GDPanelFrameworkTest_UIPanel
         Assertions.AssertThat(monitor.Notification).IsTrue();
     }
 
-    [TestCase]
+    [TestCase, RequireGodotRuntime]
     public static async Task UIPanelArg_Test_EventFunction()
     {
         var resource = GD.Load<PackedScene>("res://Tests/Prefabs/UIPanelArg_EventFunctionTest.tscn");
@@ -70,7 +70,7 @@ public class GDPanelFrameworkTest_UIPanel
         Assertions.AssertThat(monitor.CloseValue).IsEqual(closeValue);
     }
 
-    [TestCase]
+    [TestCase, RequireGodotRuntime]
     public static async Task UIPanel_Test_Token()
     {
         await GDTask.NextFrame();
@@ -90,7 +90,7 @@ public class GDPanelFrameworkTest_UIPanel
         Assertions.AssertThat(monitor.PanelOpenTweenFinishTokenCanceled).IsTrue();
     }
     
-    [TestCase]
+    [TestCase, RequireGodotRuntime]
     public async Task UIPanel_Test_Input()
     {
         await GDTask.NextFrame();
@@ -115,7 +115,7 @@ public class GDPanelFrameworkTest_UIPanel
         Assertions.AssertThat(monitor.UICancelReleased).IsTrue();
     }
     
-    [TestCase]
+    [TestCase, RequireGodotRuntime]
     public async Task UIPanel_Test_Input_Composite()
     {
         await GDTask.NextFrame();
@@ -147,7 +147,7 @@ public class GDPanelFrameworkTest_UIPanel
         Assertions.AssertThat(monitor.Composite_Vector_Ended).IsTrue();
     }
 
-    [TestCase]
+    [TestCase, RequireGodotRuntime]
     public async Task UIPanel_Test_TweenHide()
     {
         await GDTask.NextFrame();
@@ -166,7 +166,7 @@ public class GDPanelFrameworkTest_UIPanel
         panelA.CloseExtern();
     }
 
-    [TestCase]
+    [TestCase, RequireGodotRuntime]
     public async Task UIPanel_Test_Delete_Buffer()
     {
         await GDTask.NextFrame();

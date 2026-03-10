@@ -3,7 +3,7 @@ using GodotTask;
 
 namespace GDPanelFramework.Tests;
 
-public partial class UIPanelArg_EventFunctionTest : UIPanelArg<int, int>
+public partial class UIPanelArg_EventFunctionTest : UIPanelArg2<int, int>
 {
     public class TestMonitor
     {

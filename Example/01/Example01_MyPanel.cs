@@ -6,7 +6,7 @@ namespace GDPanelFramework.Examples;
 /// <summary>
 /// Attach this script to a Control to make it a "UIPanel".
 /// </summary>
-public partial class Example01_MyPanel : UIPanelArg<string, string>
+public partial class Example01_MyPanel : UIPanelArg2<string, string>
 {
     // These three fields are assigned in Godot Editor, through inspector.
     [Export] private Label? _text;

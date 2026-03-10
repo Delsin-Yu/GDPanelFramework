@@ -12,7 +12,7 @@ namespace GDPanelFramework.DodgeTheCreeps;
 /// it handles player and mob spawning, control binding, score counting
 /// and stops the game at an appropriate time.
 /// </summary>
-public partial class GamePanel : UIPanelArg<GamePanel.OpenContext, Empty>
+public partial class GamePanel : UIPanelArg1<GamePanel.OpenContext>
 {
     /// <summary>
     /// The open argument required by this panel.
@@ -134,7 +134,7 @@ public partial class GamePanel : UIPanelArg<GamePanel.OpenContext, Empty>
         await GDTask.Delay(TimeSpan.FromSeconds(2));
 
         // Close this panel and return the control flow back to the main panel.
-        ClosePanel(Empty.Default);
+        ClosePanel();
 
         return;
 

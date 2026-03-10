@@ -1,4 +1,5 @@
-﻿using GDPanelFramework.Panels;
+﻿using System;
+using GDPanelFramework.Panels;
 using GdUnit4;
 using Godot;
 using GodotPanelFramework;
@@ -20,35 +21,37 @@ public partial class UIPanel_InputTest : UIPanel
     public ISceneRunner? SceneRunner { get; set; }
 
 
-    protected override void _OnPanelOpen()
+    protected override void _OnPanelOpen() => OnPanelOpenAsync().Forget();
+    
+    protected async GDTask OnPanelOpenAsync()
     {
         Monitor.NotNull();
         
-        void Call1(InputEvent _) => Monitor.UIAcceptPressed = !Monitor.UIAcceptPressed;
-        void Call2(InputEvent _) => Monitor.UIAcceptReleased = !Monitor.UIAcceptReleased;
-        void Call3() => Monitor.UICancelPressed = !Monitor.UICancelPressed;
-        void Call4() => Monitor.UICancelReleased = !Monitor.UICancelReleased;
+        Action<InputEvent> call1 = _ => Monitor.UIAcceptPressed = !Monitor.UIAcceptPressed;
+        Action<InputEvent> call2 = _ => Monitor.UIAcceptReleased = !Monitor.UIAcceptReleased;
+        Action call3 = () => Monitor.UICancelPressed = !Monitor.UICancelPressed;
+        Action call4 = () => Monitor.UICancelReleased = !Monitor.UICancelReleased;
 
-        RegisterInput(BuiltinInputNames.UIAccept, Call1, InputActionPhase.Pressed);
-        RegisterInput(BuiltinInputNames.UIAccept, Call2, InputActionPhase.Released);
+        RegisterInput(BuiltinInputNames.UIAccept, call1, InputActionPhase.Pressed);
+        RegisterInput(BuiltinInputNames.UIAccept, call2, InputActionPhase.Released);
 
-        Helpers.KeyPressed(Key.Enter);
+        await Helpers.KeyPressedAsync(Key.Enter);
 
-        RemoveInput(BuiltinInputNames.UIAccept, Call1, InputActionPhase.Pressed);
-        RemoveInput(BuiltinInputNames.UIAccept, Call2, InputActionPhase.Released);
+        RemoveInput(BuiltinInputNames.UIAccept, call1, InputActionPhase.Pressed);
+        RemoveInput(BuiltinInputNames.UIAccept, call2, InputActionPhase.Released);
 
-        Helpers.KeyPressed(Key.Enter);
+        await Helpers.KeyPressedAsync(Key.Enter);
 
-        RegisterInputCancel(Call3, InputActionPhase.Pressed);
-        RegisterInputCancel(Call4, InputActionPhase.Released);
+        RegisterInputCancel(call3, InputActionPhase.Pressed);
+        RegisterInputCancel(call4, InputActionPhase.Released);
 
-        Helpers.KeyPressed(Key.Escape);
+        await Helpers.KeyPressedAsync(Key.Escape);
 
-        RegisterInputCancel(Call3, InputActionPhase.Pressed);
-        RegisterInputCancel(Call4, InputActionPhase.Released);
+        RegisterInputCancel(call3, InputActionPhase.Pressed);
+        RegisterInputCancel(call4, InputActionPhase.Released);
 
-        Helpers.KeyPressed(Key.Escape);
+        await Helpers.KeyPressedAsync(Key.Escape);
 
-        GDTask.NextFrame().ContinueWith(ClosePanel);
+        ClosePanel();
     }
 }

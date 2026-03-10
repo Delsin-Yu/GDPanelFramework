@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Godot;
+using GodotTask;
 
 namespace GDPanelFramework;
 
@@ -12,13 +13,13 @@ public static class Helpers
         return nullableObject;
     }
 
-    public static void KeyPressed(Key key)
+    public static async GDTask KeyPressedAsync(Key key)
     {
-        KeyPress(key);
-        KeyRelease(key);
+        await KeyPressAsync(key);
+        await KeyReleaseAsync(key);
     }
 
-    public static void KeyPress(Key key)
+    public static async GDTask KeyPressAsync(Key key)
     {
         Input.ParseInputEvent(
             new InputEventKey
@@ -28,10 +29,10 @@ public static class Helpers
                 PhysicalKeycode = key
             }
         );
-        Input.FlushBufferedEvents();
+        await GDTask.NextFrame();
     }
 
-    public static void KeyRelease(Key key)
+    public static async GDTask KeyReleaseAsync(Key key)
     {
         Input.ParseInputEvent(
             new InputEventKey
@@ -41,6 +42,6 @@ public static class Helpers
                 PhysicalKeycode = key
             }
         );
-        Input.FlushBufferedEvents();
+        await GDTask.NextFrame();
     }
 }
