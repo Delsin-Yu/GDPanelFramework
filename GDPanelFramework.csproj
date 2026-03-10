@@ -1,4 +1,4 @@
-<Project Sdk="Godot.NET.Sdk/4.5.1">
+<Project Sdk="Godot.NET.Sdk/4.6.1">
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <LangVersion>12</LangVersion>
@@ -8,6 +8,11 @@
 
     <ItemGroup>
         <PackageReference Include="GDTask" Version="1.3.0" />
+        <PackageReference Include="gdUnit4.analyzers" Version="1.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="gdUnit4.api" Version="5.0.0" />
+        <PackageReference Include="gdUnit4.test.adapter" Version="3.0.0" />
     </ItemGroup>
 </Project>
