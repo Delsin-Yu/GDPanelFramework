@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Godot;
 
 namespace GDPanelFramework.Panels;
@@ -13,13 +14,19 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     internal record struct PanelOpeningMetadata(
         PreviousPanelVisual PreviousPanelVisual,
         ClosePolicy ClosePolicy,
-        Action<TCloseArg>? OnPanelCloseCallback,
-        Action? UntypedOnPanelCloseCallback
+        Action<PanelResult<TCloseArg>>? OnPanelCloseCallback,
+        Action<PanelResult<Empty>>? UntypedOnPanelCloseCallback,
+        CancellationToken? Token
     );
 
 
     private PanelOpeningMetadata? _metadata;
 
+    /// <summary>
+    /// The cancellation token associated with the panel, this panel will be closed when the token is canceled.
+    /// </summary>
+    protected CancellationToken PanelCancellationToken => _metadata?.Token ?? CancellationToken.None;
+    private CancellationTokenRegistration? _registration;
 
     /// <summary>
     /// The argument passed to the panel when opening.
@@ -38,6 +45,7 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     {
         this.ThrowIfAlreadyOpened();
         _metadata = panelOpeningMetadata;
+        _registration = panelOpeningMetadata.Token?.Register(state => ((UIPanelBase<TOpenArg, TCloseArg>)state!).ClosePanelInternal(default!), this);
         CurrentPanelStatus = PanelStatus.Opened;
         OpenArg = openArg;
         ShowPanel(() => FinishAndResetTokenSource(ref PanelOpenTweenFinishTokenSource));
@@ -49,18 +57,32 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
         if (CurrentPanelStatus != PanelStatus.Opened) return;
         CurrentPanelStatus = PanelStatus.Closed;
         FinishAndResetTokenSource(ref PanelCloseTokenSource);
-        DelegateRunner.RunProtected(_OnPanelClose, closeArg, "Close Panel", LocalName);
+        
+        var metadataValue = _metadata!.Value;
+        var isCanceled = metadataValue.Token?.IsCancellationRequested == true;
+        _registration?.Dispose();
+        _registration = null;
+        
+        if(!isCanceled) DelegateRunner.RunProtected(_OnPanelClose, closeArg, "Close Panel", LocalName);
+        else DelegateRunner.RunProtected(_OnPanelExternalClose, "External Close Panel", LocalName);
+        
         DelegateRunner.RunProtected(InvokePanelClosed, "Panel Closed Event", LocalName);
         OpenArg = default;
-
-        var metadataValue = _metadata!.Value;
         _metadata = null;
 
         PanelManager.HandlePanelClose(this, metadataValue.PreviousPanelVisual, metadataValue.ClosePolicy);
         HidePanel(() => FinishAndResetTokenSource(ref PanelCloseTweenFinishTokenSource));
 
-        metadataValue.UntypedOnPanelCloseCallback?.Invoke();
-        metadataValue.OnPanelCloseCallback?.Invoke(closeArg);
+        if (isCanceled)
+        {
+            metadataValue.UntypedOnPanelCloseCallback?.Invoke(PanelResult<Empty>.None);
+            metadataValue.OnPanelCloseCallback?.Invoke(PanelResult<TCloseArg>.None);
+        }
+        else
+        {
+            metadataValue.UntypedOnPanelCloseCallback?.Invoke(Empty.Default);
+            metadataValue.OnPanelCloseCallback?.Invoke(closeArg);
+        }
     }
 
     private static void FinishAndResetTokenSource(ref CancellationTokenSource? cancellationTokenSource)
@@ -121,6 +143,14 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
     /// </remarks>
     protected virtual void _OnPanelClose(TCloseArg closeArg) { }
+    
+    /// <summary>
+    /// Called when the panel is closed by the cancellation token.
+    /// </summary>
+    /// <remarks>
+    /// This method is considered "Protected", that is, throwing an exception inside the override of this method will not cause the framework to malfunction.
+    /// </remarks>
+    protected virtual void _OnPanelExternalClose() { }
 
     /// <summary>
     /// Called when Godot is deleting the panel (<see cref="GodotObject.NotificationPredelete"/>).
