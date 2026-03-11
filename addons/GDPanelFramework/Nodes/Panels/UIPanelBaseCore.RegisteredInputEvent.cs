@@ -66,6 +66,8 @@ public abstract partial class UIPanelBaseCore
         {
             _target = target;
             var deadZoneSquared = deadZone * deadZone;
+            var negativeKeyPressed = false;
+            var positiveKeyPressed = false;
             NegativeInputActionUpdate = inputEvent =>
             {
                 var oldValue = GetCurrentValue();
@@ -74,10 +76,16 @@ public abstract partial class UIPanelBaseCore
                 {
                     _negativeAxisVector = Mathf.Abs(motion.AxisValue);
                     _negativeAxisVector = Mathf.Max(_negativeAxisVector, deadZoneSquared);
+                    ProcessUpdate(oldValue);
                 }
-                else _negativeAxisVector = inputEvent.IsPressed() ? 1 : 0;
-
-                ProcessUpdate(oldValue);
+                else
+                {
+                    var wasActive = negativeKeyPressed || positiveKeyPressed;
+                    negativeKeyPressed = inputEvent.IsPressed();
+                    _negativeAxisVector = negativeKeyPressed ? 1 : 0;
+                    var isActive = negativeKeyPressed || positiveKeyPressed;
+                    ProcessUpdate(oldValue, !wasActive && isActive && negativeKeyPressed, wasActive && !isActive && !negativeKeyPressed);
+                }
             };
             PositiveInputActionUpdate = inputEvent =>
             {
@@ -87,10 +95,16 @@ public abstract partial class UIPanelBaseCore
                 {
                     _positiveAxisVector = Mathf.Abs(motion.AxisValue);
                     _positiveAxisVector = Mathf.Max(_negativeAxisVector, deadZoneSquared);
+                    ProcessUpdate(oldValue);
                 }
-                else _positiveAxisVector = inputEvent.IsPressed() ? 1 : 0;
-
-                ProcessUpdate(oldValue);
+                else
+                {
+                    var wasActive = negativeKeyPressed || positiveKeyPressed;
+                    positiveKeyPressed = inputEvent.IsPressed();
+                    _positiveAxisVector = positiveKeyPressed ? 1 : 0;
+                    var isActive = negativeKeyPressed || positiveKeyPressed;
+                    ProcessUpdate(oldValue, !wasActive && isActive && positiveKeyPressed, wasActive && !isActive && !positiveKeyPressed);
+                }
             };
         }
 
@@ -103,17 +117,29 @@ public abstract partial class UIPanelBaseCore
                 case (true, true):
                     return;
                 case (true, false):
+                    InvokeStart(currentValue);
                     InvokeUpdate(currentValue);
-                    InvokeEnd(currentValue);
                     break;
                 case (false, true):
-                    InvokeStart(currentValue);
+                    InvokeEnd(currentValue);
                     InvokeUpdate(currentValue);
                     break;
                 case (false, false):
                     InvokeUpdate(currentValue);
                     break;
             }
+        }
+
+        private void ProcessUpdate(float oldValue, bool invokeStart, bool invokeEnd)
+        {
+            var currentValue = GetCurrentValue();
+
+            if (Mathf.IsZeroApprox(oldValue) && Mathf.IsZeroApprox(currentValue)) return;
+
+            if (invokeStart) InvokeStart(currentValue);
+            if (invokeEnd) InvokeEnd(currentValue);
+
+            InvokeUpdate(currentValue);
         }
 
         public readonly Action<InputEvent> NegativeInputActionUpdate;
@@ -177,6 +203,7 @@ public abstract partial class UIPanelBaseCore
                 if (inputEvent is InputEventJoypadMotion motion) _horizontalAxisVector = -Mathf.Abs(motion.AxisValue);
                 else
                 {
+                    var wasActive = horizontalNegativeKeyPressed || horizontalPositiveKeyPressed || verticalNegativeKeyPressed || verticalPositiveKeyPressed;
                     horizontalNegativeKeyPressed = inputEvent.IsPressed();
                     _horizontalAxisVector = (horizontalNegativeKeyPressed, horizontalPositiveKeyPressed) switch
                     {
@@ -185,6 +212,10 @@ public abstract partial class UIPanelBaseCore
                         (true, false) => -1,
                         (false, true) => 1,
                     };
+
+                    var isActive = horizontalNegativeKeyPressed || horizontalPositiveKeyPressed || verticalNegativeKeyPressed || verticalPositiveKeyPressed;
+                    ProcessUpdate(oldValue, !wasActive && isActive && horizontalNegativeKeyPressed, wasActive && !isActive && !horizontalNegativeKeyPressed);
+                    return;
                 }
 
                 ProcessUpdate(oldValue);
@@ -196,6 +227,7 @@ public abstract partial class UIPanelBaseCore
                 if (inputEvent is InputEventJoypadMotion motion) _horizontalAxisVector = Mathf.Abs(motion.AxisValue);
                 else
                 {
+                    var wasActive = horizontalNegativeKeyPressed || horizontalPositiveKeyPressed || verticalNegativeKeyPressed || verticalPositiveKeyPressed;
                     horizontalPositiveKeyPressed = inputEvent.IsPressed();
                     _horizontalAxisVector = (horizontalNegativeKeyPressed, horizontalPositiveKeyPressed) switch
                     {
@@ -204,6 +236,10 @@ public abstract partial class UIPanelBaseCore
                         (true, false) => -1,
                         (false, true) => 1,
                     };
+
+                    var isActive = horizontalNegativeKeyPressed || horizontalPositiveKeyPressed || verticalNegativeKeyPressed || verticalPositiveKeyPressed;
+                    ProcessUpdate(oldValue, !wasActive && isActive && horizontalPositiveKeyPressed, wasActive && !isActive && !horizontalPositiveKeyPressed);
+                    return;
                 }
 
                 ProcessUpdate(oldValue);
@@ -215,6 +251,7 @@ public abstract partial class UIPanelBaseCore
                 if (inputEvent is InputEventJoypadMotion motion) _verticalAxisVector = -Mathf.Abs(motion.AxisValue);
                 else
                 {
+                    var wasActive = horizontalNegativeKeyPressed || horizontalPositiveKeyPressed || verticalNegativeKeyPressed || verticalPositiveKeyPressed;
                     verticalNegativeKeyPressed = inputEvent.IsPressed();
                     _verticalAxisVector = (verticalNegativeKeyPressed, verticalPositiveKeyPressed) switch
                     {
@@ -223,6 +260,10 @@ public abstract partial class UIPanelBaseCore
                         (true, false) => -1,
                         (false, true) => 1,
                     };
+
+                    var isActive = horizontalNegativeKeyPressed || horizontalPositiveKeyPressed || verticalNegativeKeyPressed || verticalPositiveKeyPressed;
+                    ProcessUpdate(oldValue, !wasActive && isActive && verticalNegativeKeyPressed, wasActive && !isActive && !verticalNegativeKeyPressed);
+                    return;
                 }
 
                 ProcessUpdate(oldValue);
@@ -234,6 +275,7 @@ public abstract partial class UIPanelBaseCore
                 if (inputEvent is InputEventJoypadMotion motion) _verticalAxisVector = Mathf.Abs(motion.AxisValue);
                 else
                 {
+                    var wasActive = horizontalNegativeKeyPressed || horizontalPositiveKeyPressed || verticalNegativeKeyPressed || verticalPositiveKeyPressed;
                     verticalPositiveKeyPressed = inputEvent.IsPressed();
                     _verticalAxisVector = (verticalNegativeKeyPressed, verticalPositiveKeyPressed) switch
                     {
@@ -242,6 +284,10 @@ public abstract partial class UIPanelBaseCore
                         (true, false) => -1,
                         (false, true) => 1,
                     };
+
+                    var isActive = horizontalNegativeKeyPressed || horizontalPositiveKeyPressed || verticalNegativeKeyPressed || verticalPositiveKeyPressed;
+                    ProcessUpdate(oldValue, !wasActive && isActive && verticalPositiveKeyPressed, wasActive && !isActive && !verticalPositiveKeyPressed);
+                    return;
                 }
 
                 ProcessUpdate(oldValue);
@@ -259,17 +305,30 @@ public abstract partial class UIPanelBaseCore
                 case (true, true):
                     return;
                 case (true, false):
+                    InvokeStart(currentValue);
                     InvokeUpdate(currentValue);
-                    InvokeEnd(currentValue);
                     break;
                 case (false, true):
-                    InvokeStart(currentValue);
+                    InvokeEnd(currentValue);
                     InvokeUpdate(currentValue);
                     break;
                 case (false, false):
                     InvokeUpdate(currentValue);
                     break;
             }
+        }
+
+        private void ProcessUpdate(Vector2 oldValue, bool invokeStart, bool invokeEnd)
+        {
+            var currentValue = GetCurrentValue();
+            if (currentValue.LengthSquared() < _deadZone * _deadZone) currentValue = Vector2.Zero;
+
+            if (Mathf.IsZeroApprox(oldValue.LengthSquared()) && Mathf.IsZeroApprox(currentValue.LengthSquared())) return;
+
+            if (invokeStart) InvokeStart(currentValue);
+            if (invokeEnd) InvokeEnd(currentValue);
+
+            InvokeUpdate(currentValue);
         }
 
         public readonly Action<InputEvent> HorizontalNegativeInputActionUpdate;
