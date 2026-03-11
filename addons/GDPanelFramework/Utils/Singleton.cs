@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GodotPanelFramework.Utils;
+namespace GDPanelFramework.Utils;
 
 static class Singleton<T>
 {

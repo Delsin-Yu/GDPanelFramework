@@ -2,7 +2,7 @@
 using System.Threading;
 using GDPanelFramework.Panels;
 using Godot;
-using GodotPanelFramework;
+using GDPanelFramework;
 using GodotTask;
 
 namespace GDPanelFramework.DodgeTheCreeps;

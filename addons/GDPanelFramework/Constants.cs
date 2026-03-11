@@ -1,4 +1,4 @@
-﻿namespace GodotPanelFramework;
+﻿namespace GDPanelFramework;
 
 /// <summary>
 /// Stores a list of pre-defined Godot's built-in ui action names. 

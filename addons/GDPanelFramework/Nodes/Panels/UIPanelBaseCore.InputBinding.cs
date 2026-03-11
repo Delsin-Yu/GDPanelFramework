@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using GDPanelFramework.Utils.Pooling;
 using Godot;
-using GodotPanelFramework;
+using GDPanelFramework;
 
 namespace GDPanelFramework.Panels;
 

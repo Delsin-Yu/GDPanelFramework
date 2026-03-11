@@ -1,6 +1,6 @@
 ﻿using System;
 using Godot;
-using GodotPanelFramework.Utils;
+using GDPanelFramework.Utils;
 
 namespace GDPanelFramework.Panels.Tweener;
 
