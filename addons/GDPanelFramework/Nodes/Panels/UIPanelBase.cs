@@ -33,9 +33,9 @@ public abstract partial class UIPanelBase<TOpenArg, TCloseArg> : UIPanelBaseCore
     /// </summary>
     protected TOpenArg? OpenArg { get; private set; }
 
-    internal sealed override void InitializePanelInternal(PackedScene sourcePrefab)
+    internal sealed override void InitializePanelInternal()
     {
-        base.InitializePanelInternal(sourcePrefab);
+        base.InitializePanelInternal();
         CurrentPanelStatus = PanelStatus.Initialized;
         DelegateRunner.RunProtected(_OnPanelInitialize, "Initialize Panel", LocalName);
         PanelTweener.Init(this);

@@ -5,6 +5,13 @@ namespace GDPanelFramework;
 
 public static partial class PanelManager
 {
+    private static void PreparePanelOpen(UIPanelBaseCore panel, PreviousPanelVisual previousPanelVisual, ClosePolicy closePolicy)
+    {
+        panel.ThrowIfUninitialized();
+        panel.ThrowIfUnsupportedClosePolicy(closePolicy);
+        PushPanelToPanelStack(panel, previousPanelVisual);
+    }
+
     /// <summary>
     /// Opens this panel and stops the previous panel from receiving inputs until this panel closes.
     /// </summary>
@@ -75,8 +82,7 @@ public static partial class PanelManager
         ClosePolicy closePolicy = ClosePolicy.Cache,
         System.Threading.CancellationToken? cancellationToken = null)
     {
-        panel.ThrowIfUninitialized();
-        PushPanelToPanelStack(panel, previousPanelVisual);
+        PreparePanelOpen(panel, previousPanelVisual, closePolicy);
         panel.OpenPanelInternal(Empty.Default, new(previousPanelVisual, closePolicy, null, onPanelCloseCallback, cancellationToken));
     }
 
@@ -94,8 +100,7 @@ public static partial class PanelManager
         ClosePolicy closePolicy = ClosePolicy.Cache,
         System.Threading.CancellationToken? cancellationToken = null)
     {
-        panel.ThrowIfUninitialized();
-        PushPanelToPanelStack(panel, previousPanelVisual);
+        PreparePanelOpen(panel, previousPanelVisual, closePolicy);
         panel.OpenPanelInternal(Empty.Default, new(previousPanelVisual, closePolicy, null, null, cancellationToken));
     }
 
@@ -151,8 +156,7 @@ public static partial class PanelManager
         ClosePolicy closePolicy = ClosePolicy.Cache,
         System.Threading.CancellationToken? cancellationToken = null)
     {
-        panel.ThrowIfUninitialized();
-        PushPanelToPanelStack(panel, previousPanelVisual);
+        PreparePanelOpen(panel, previousPanelVisual, closePolicy);
         panel.OpenPanelInternal(openArg, new(previousPanelVisual, closePolicy, null, onPanelCloseCallback, cancellationToken));
     }
 
@@ -172,8 +176,7 @@ public static partial class PanelManager
         ClosePolicy closePolicy = ClosePolicy.Cache,
         System.Threading.CancellationToken? cancellationToken = null)
     {
-        panel.ThrowIfUninitialized();
-        PushPanelToPanelStack(panel, previousPanelVisual);
+        PreparePanelOpen(panel, previousPanelVisual, closePolicy);
         panel.OpenPanelInternal(openArg, new(previousPanelVisual, closePolicy, null, null, cancellationToken));
     }
 
@@ -231,8 +234,7 @@ public static partial class PanelManager
         ClosePolicy closePolicy = ClosePolicy.Cache,
         System.Threading.CancellationToken? cancellationToken = null)
     {
-        panel.ThrowIfUninitialized();
-        PushPanelToPanelStack(panel, previousPanelVisual);
+        PreparePanelOpen(panel, previousPanelVisual, closePolicy);
         panel.OpenPanelInternal(openArg, new(previousPanelVisual, closePolicy, onPanelCloseCallback, null, cancellationToken));
     }
     
@@ -252,8 +254,7 @@ public static partial class PanelManager
         ClosePolicy closePolicy = ClosePolicy.Cache,
         System.Threading.CancellationToken? cancellationToken = null)
     {
-        panel.ThrowIfUninitialized();
-        PushPanelToPanelStack(panel, previousPanelVisual);
+        PreparePanelOpen(panel, previousPanelVisual, closePolicy);
         panel.OpenPanelInternal(Empty.Default, new(previousPanelVisual, closePolicy, onPanelCloseCallback, null, cancellationToken));
     }
 
@@ -273,8 +274,7 @@ public static partial class PanelManager
         ClosePolicy closePolicy = ClosePolicy.Cache,
         System.Threading.CancellationToken? cancellationToken = null)
     {
-        panel.ThrowIfUninitialized();
-        PushPanelToPanelStack(panel, previousPanelVisual);
+        PreparePanelOpen(panel, previousPanelVisual, closePolicy);
         panel.OpenPanelInternal(openArg, new(previousPanelVisual, closePolicy, null, null, cancellationToken));
     }
 }

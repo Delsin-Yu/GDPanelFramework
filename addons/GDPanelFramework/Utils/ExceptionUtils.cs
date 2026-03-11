@@ -7,11 +7,19 @@ namespace GDPanelFramework;
 static class ExceptionUtils
 {
     private const string PanelClosingOrderNotification = "When closing panels, it is mandatory to ensure the order of closing these panels is symmetrical to how they are opened.";
+    private const string PanelInitializationHint = "please use PanelManager.CreatePanel or PanelBuilder.CreatePanel to properly get an initialized panel.";
 
     internal static void ThrowIfUninitialized(this UIPanelBaseCore panel)
     {
         if (panel.CurrentPanelStatus != UIPanelBaseCore.PanelStatus.Uninitialized) return;
-        throw new InvalidOperationException($"Attempting to open an uninitialized panel, please use {nameof(PanelManager.CreatePanel)} to properly get an initialized panel.");
+        throw new InvalidOperationException($"Attempting to open an uninitialized panel, {PanelInitializationHint}");
+    }
+
+    internal static void ThrowIfUnsupportedClosePolicy(this UIPanelBaseCore panel, ClosePolicy closePolicy)
+    {
+        if (closePolicy != ClosePolicy.Cache) return;
+        if (panel.SupportsCacheReuse) return;
+        throw new InvalidOperationException("This panel does not support ClosePolicy.Cache. Runtime-created panels currently only support ClosePolicy.Delete.");
     }
 
     internal static void ThrowIfAlreadyOpened(this UIPanelBaseCore panel)

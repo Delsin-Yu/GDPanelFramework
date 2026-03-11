@@ -55,16 +55,22 @@ public abstract partial class UIPanelBaseCore : Control
 
     internal PackedScene? SourcePrefab { get; private set; }
     internal string LocalName => _cachedName ??= Name;
+    internal virtual bool SupportsCacheReuse => true;
 
     /// <summary>
     /// The current status of the panel.
     /// </summary>
     public PanelStatus CurrentPanelStatus { get; internal set; } = PanelStatus.Uninitialized;
 
+    internal virtual void InitializePanelInternal()
+    {
+        SetPanelActiveState(false, PreviousPanelVisual.Hidden, true);
+    }
+
     internal virtual void InitializePanelInternal(PackedScene sourcePrefab)
     {
         SourcePrefab = sourcePrefab;
-        SetPanelActiveState(false, PreviousPanelVisual.Hidden, true);
+        InitializePanelInternal();
     }
 
     /// <summary>

@@ -7,7 +7,7 @@ using GDPanelFramework.Panels;
 using GDPanelFramework.Panels.Tweener;
 using GDPanelFramework.Utils.Pooling;
 using Godot;
-using GodotPanelFramework;
+using GDPanelFramework;
 
 // using System.Linq;
 
@@ -223,6 +223,8 @@ public static partial class PanelManager
             return;
         }
 
+        closingPanel.ThrowIfUnsupportedClosePolicy(closePolicy);
+
         var sourcePrefab = closingPanel.SourcePrefab!;
 
 
@@ -357,6 +359,16 @@ public static partial class PanelManager
         GetCurrentPanelRoot().AddChild(panelInstance);
         initializeCallback?.Invoke(panelInstance);
         panelInstance.InitializePanelInternal(packedPanel);
+        return panelInstance;
+    }
+
+    internal static TPanel CreateRuntimePanel<TPanel>(Action<TPanel>? initializeCallback = null)
+        where TPanel : UIPanelBaseCore, new()
+    {
+        var panelInstance = new TPanel();
+        GetCurrentPanelRoot().AddChild(panelInstance);
+        initializeCallback?.Invoke(panelInstance);
+        panelInstance.InitializePanelInternal();
         return panelInstance;
     }
     

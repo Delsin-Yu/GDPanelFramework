@@ -166,6 +166,56 @@ public partial class Example00_MyPanel : UIPanel
 
 ### Creating a panel with Argument
 
+### Creating a runtime-built panel
+
+You may also build a simple panel completely in C# without a PackedScene. Runtime-built panels use the same open and await APIs, but currently support `ClosePolicy.Delete` only.
+
+```csharp
+using GDPanelFramework;
+using Godot;
+
+var panel = PanelBuilder.CreatePanel(builder =>
+{
+    var titleLabel = builder.Label("Runtime Panel", label => label.HorizontalAlignment = HorizontalAlignment.Center);
+    var closeButton = builder.Button("Close");
+
+    builder.OnPanelInitialized += runtimePanel =>
+    {
+        closeButton.Pressed += runtimePanel.Close;
+        runtimePanel.RegisterInputCancel(runtimePanel.Close);
+    };
+
+    return builder.MarginContainer(
+        builder.VBox(
+            box => box.AddThemeConstantOverride("separation", 12),
+            titleLabel,
+            closeButton
+        )
+    );
+});
+
+await panel.OpenPanelAsync(closePolicy: ClosePolicy.Delete);
+
+var argPanel = PanelBuilder.CreatePanelArg2<int, string>(builder =>
+{
+    var valueLabel = builder.LateInit<Label>();
+
+    builder.OnPanelOpen += runtimePanel =>
+    {
+        valueLabel.Text = runtimePanel.CurrentOpenArg.ToString();
+        runtimePanel.Close($"closed:{runtimePanel.CurrentOpenArg}");
+    };
+
+    return builder.MarginContainer(valueLabel = builder.Label());
+});
+
+var result = await argPanel.OpenPanelAsync(10, closePolicy: ClosePolicy.Delete);
+```
+
+The runtime DSL also covers tool-oriented controls such as `TextureRect`, floating-point and integer `SpinBox` helpers, and `OptionButton` overloads that accept icon entries.
+
+For a richer runtime-built sample, run `Example/03/RunMe_Example03.tscn` to see `RichTextLabel`, `TextureButton`, `ColorPickerButton`, `HSlider`, and `ProgressBar` created entirely through `PanelBuilder`.
+
 You can run ***[RunMe_Example01.tscn](https://github.com/Delsin-Yu/GDPanelFramework.Test/blob/main/Examples/01/RunMe_Example01.tscn)*** in Godot Editor.
 
 ```csharp

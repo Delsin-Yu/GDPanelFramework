@@ -165,6 +165,56 @@ public partial class Example00_MyPanel : UIPanel
 
 ### 创建一个支持传参及返回值的面板
 
+### 创建一个运行时代码构建的面板
+
+你也可以完全不依赖 PackedScene，直接在 C# 中构建一个简单面板。运行时代码构建的面板继续复用同一套打开和 await API，但当前只支持 `ClosePolicy.Delete`。
+
+```csharp
+using GDPanelFramework;
+using Godot;
+
+var panel = PanelBuilder.CreatePanel(builder =>
+{
+    var titleLabel = builder.Label("Runtime Panel", label => label.HorizontalAlignment = HorizontalAlignment.Center);
+    var closeButton = builder.Button("Close");
+
+    builder.OnPanelInitialized += runtimePanel =>
+    {
+        closeButton.Pressed += runtimePanel.Close;
+        runtimePanel.RegisterInputCancel(runtimePanel.Close);
+    };
+
+    return builder.MarginContainer(
+        builder.VBox(
+            box => box.AddThemeConstantOverride("separation", 12),
+            titleLabel,
+            closeButton
+        )
+    );
+});
+
+await panel.OpenPanelAsync(closePolicy: ClosePolicy.Delete);
+
+var argPanel = PanelBuilder.CreatePanelArg2<int, string>(builder =>
+{
+    var valueLabel = builder.LateInit<Label>();
+
+    builder.OnPanelOpen += runtimePanel =>
+    {
+        valueLabel.Text = runtimePanel.CurrentOpenArg.ToString();
+        runtimePanel.Close($"closed:{runtimePanel.CurrentOpenArg}");
+    };
+
+    return builder.MarginContainer(valueLabel = builder.Label());
+});
+
+var result = await argPanel.OpenPanelAsync(10, closePolicy: ClosePolicy.Delete);
+```
+
+现在这套运行时 DSL 也覆盖了更适合工具面板的控件，包括 `TextureRect`、浮点与整数 `SpinBox` 辅助方法，以及支持图标项的 `OptionButton` 重载。
+
+如果你想看更完整的运行时构建示例，可以运行 `Example/03/RunMe_Example03.tscn`，里面展示了通过 `PanelBuilder` 创建 `RichTextLabel`、`TextureButton`、`ColorPickerButton`、`HSlider` 和 `ProgressBar`。
+
 你可以在Godot编辑器中运行 ***[RunMe_Example01.tscn](https://github.com/Delsin-Yu/GDPanelFramework.Test/blob/main/Examples/01/RunMe_Example01.tscn)***。
 
 ```csharp
