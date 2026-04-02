@@ -45,28 +45,35 @@ This addon only contains source file for runtime use; so you do not need to enab
     - [Input Binding / Routing](#input-binding--routing)
       - [Input Registration](#input-registration)
         - [Basic Usage](#basic-usage)
-                - [Default Input Phase](#default-input-phase)
-                - [Variation: `RegisterAnyKeyInput`](#variation-registeranykeyinput)
-                - [Variation: `RegisterInputToggle`](#variation-registerinputtoggle)
-                - [Variation: `RegisterEchoedInput`/`RemoveEchoedInput`](#variation-registerechoedinputremoveechoedinput)
+        - [Default Input Phase](#default-input-phase)
+        - [Variation: `RegisterAnyKeyInput`](#variation-registeranykeyinput)
+        - [Variation: `RegisterInputToggle`](#variation-registerinputtoggle)
+        - [Variation: `RegisterEchoedInput`/`RemoveEchoedInput`](#variation-registerechoedinputremoveechoedinput)
         - [Variation: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`](#variation-registerinputcancelremoveinputcanceltoggleinputcancel)
         - [Variation: `EnableCloseWithCancelKey` and `DisableCloseWithCancelKey`](#variation-enableclosewithcancelkey-and-disableclosewithcancelkey)
         - [Variation: `RegisterInputAxis`/`RemoveInputAxis`/`ToggleInputAxis`](#variation-registerinputaxisremoveinputaxistoggleinputaxis)
         - [Variation: `RegisterInputVector`/`RemoveInputVector`/`ToggleInputVector`](#variation-registerinputvectorremoveinputvectortoggleinputvector)
       - [the BuiltinInputNames Class](#the-builtininputnames-class)
-            - [Global Input Listeners](#global-input-listeners)
+      - [Global Input Listeners](#global-input-listeners)
     - [Panel Stack](#panel-stack)
     - [Framework-level Caching](#framework-level-caching)
-        - [Scoped Panel Buffering](#scoped-panel-buffering)
     - [Panel Event Methods Overview](#panel-event-methods-overview)
     - [Configuring the Previous Panel Visual Behavior](#configuring-the-previous-panel-visual-behavior)
-    - [The `UIPanelArg1` and `UIPanelArg2`](#the-uipanelarg1-and-uipanelarg2)
+  - [The `UIPanelArg1` and `UIPanelArg2`](#the-uipanelarg1-and-uipanelarg2)
   - [Panel Container Management](#panel-container-management)
+    - [Note when using `async/await` Styled API](#note-when-using-asyncawait-styled-api)
+    - [Note when using this Framework](#note-when-using-this-framework)
   - [The `Panel Tweener`](#the-panel-tweener)
     - [Built-in Tweeners](#built-in-tweeners)
     - [Customized Tweenrs](#customized-tweenrs)
-  - [Note when using `async/await` Styled API](#note-when-using-asyncawait-styled-api)
-  - [Note when using this Framework](#note-when-using-this-framework)
+- [Runtime Builder DSL](#runtime-builder-dsl)
+  - [What the DSL is for](#what-the-dsl-is-for)
+  - [Building a runtime panel](#building-a-runtime-panel)
+  - [How to think about the builder callback](#how-to-think-about-the-builder-callback)
+  - [Lifecycle and state](#lifecycle-and-state)
+  - [What the DSL already covers](#what-the-dsl-already-covers)
+  - [Runtime panel-specific capabilities](#runtime-panel-specific-capabilities)
+  - [Current limitation](#current-limitation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -165,56 +172,6 @@ public partial class Example00_MyPanel : UIPanel
 ```
 
 ### Creating a panel with Argument
-
-### Creating a runtime-built panel
-
-You may also build a simple panel completely in C# without a PackedScene. Runtime-built panels use the same open and await APIs, but currently support `ClosePolicy.Delete` only.
-
-```csharp
-using GDPanelFramework;
-using Godot;
-
-var panel = PanelBuilder.CreatePanel(builder =>
-{
-    var titleLabel = builder.Label("Runtime Panel", label => label.HorizontalAlignment = HorizontalAlignment.Center);
-    var closeButton = builder.Button("Close");
-
-    builder.OnPanelInitialized += runtimePanel =>
-    {
-        closeButton.Pressed += runtimePanel.Close;
-        runtimePanel.RegisterInputCancel(runtimePanel.Close);
-    };
-
-    return builder.MarginContainer(
-        builder.VBox(
-            box => box.AddThemeConstantOverride("separation", 12),
-            titleLabel,
-            closeButton
-        )
-    );
-});
-
-await panel.OpenPanelAsync(closePolicy: ClosePolicy.Delete);
-
-var argPanel = PanelBuilder.CreatePanelArg2<int, string>(builder =>
-{
-    var valueLabel = builder.LateInit<Label>();
-
-    builder.OnPanelOpen += runtimePanel =>
-    {
-        valueLabel.Text = runtimePanel.CurrentOpenArg.ToString();
-        runtimePanel.Close($"closed:{runtimePanel.CurrentOpenArg}");
-    };
-
-    return builder.MarginContainer(valueLabel = builder.Label());
-});
-
-var result = await argPanel.OpenPanelAsync(10, closePolicy: ClosePolicy.Delete);
-```
-
-The runtime DSL also covers tool-oriented controls such as `TextureRect`, floating-point and integer `SpinBox` helpers, and `OptionButton` overloads that accept icon entries.
-
-For a richer runtime-built sample, run `Example/03/RunMe_Example03.tscn` to see `RichTextLabel`, `TextureButton`, `ColorPickerButton`, `HSlider`, and `ProgressBar` created entirely through `PanelBuilder`.
 
 You can run ***[RunMe_Example01.tscn](https://github.com/Delsin-Yu/GDPanelFramework.Test/blob/main/Examples/01/RunMe_Example01.tscn)*** in Godot Editor.
 
@@ -675,8 +632,6 @@ finally
 }
 ```
 
-```
-
 #### Panel Event Methods Overview
 
 While working with `UIPanel`, certain methods get called at a certain lifetime of a panel, a brief diagram of the panel can be summarised as follows.
@@ -693,7 +648,6 @@ id3(["ClosePanel()"])
 id4["_OnPanelClose()"]
 id5["_OnPanelPredelete()"]
 id6["_OnPanelNotification()"]
-
 
 id0[["Framework Calls"]] -.-> id1
 id1 -.->|Framework Calls|id2
@@ -831,49 +785,6 @@ PanelManager.PopPanelContainer(this);
 
 > Please note that, when working with customized panel containers, be careful when `spawning panels under a panel/custom container` that's `getting deleted in the future`, while the framework is trying its best to handle deleted panels, it is possible to `delete custom panel containers that have active panels live under`, such behavior will possibly crash the framework, developers are recommended to `ensure every panel under a custom container has closed` before `popping/deleting that container`.
 
-### The `Panel Tweener`
-
-Developers may customize a panel's `visual transition behavior when opening/closing` by accessing its `PanelTweener` property, or modifying the `PanelManager.DefaultPanelTweener` to set the default tweener for all panels globally.
-
-#### Built-in Tweeners
-
-There are two preconfigured Tweenrs provided with the framework.
-
-1. NonePanelTweener: This tweener simply hides and shows the panel instantly on open and close, it is also the default value of `PanelManager.DefaultPanelTweener`, you may access the global instance of this tweener from `NonPanelTweener.Instance`.
-2. FadePanelTweener: This tweener performs fade transition for the panel opening and closing, after instantiating the tweener, you may configure the transition time by accessing its `FadeTime` property.
-
-#### Customized Tweenrs
-
-By inheriting the `IPanelTweenr` interface, the developer may customize their transition effects.
-
-```csharp
-/// <summary>
-/// Defines the behavior for panel transitions.
-/// </summary>
-public interface IPanelTweener
-{
-    /// <summary>
-    /// This sets the default visual appearance for a panel.
-    /// </summary>
-    /// <param name="panel">The target panel.</param>
-    void Init(Control panel);
-    
-    /// <summary>
-    /// This async method manages the behavior when the panel is showing up.
-    /// </summary>
-    /// <param name="panel">The target panel.</param>
-    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behavior is interrupted</param>
-    void Show(Control panel, Action? onFinish);
-    
-    /// <summary>
-    /// This async method manages the behavior when the panel is hiding out.
-    /// </summary>
-    /// <param name="panel">The target panel.</param>
-    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behavior is interrupted</param>
-    void Hide(Control panel, Action? onFinish);
-}
-```
-
 ### Note when using `async/await` Styled API
 
 `OpenPanelAsync` now returns `PanelAwaitable` / `PanelAwaitable<T>`, a lightweight pooled awaitable dedicated to panel lifetime tracking.
@@ -920,3 +831,179 @@ The following usage ***WILL*** crash the framework:
 - Authorising a `panel container popping` with a `node` which is pushed by a different `node`.
 - Reuse the `await` keyword on a `PanelAwaitable` that has already awaited, or access its awaiter after completion.
 - Calling `GetResult()` on a `PanelAwaitable` that has not been completed yet.
+
+### The `Panel Tweener`
+
+Developers may customize a panel's `visual transition behavior when opening/closing` by accessing its `PanelTweener` property, or modifying the `PanelManager.DefaultPanelTweener` to set the default tweener for all panels globally.
+
+#### Built-in Tweeners
+
+There are two preconfigured Tweenrs provided with the framework.
+
+1. NonePanelTweener: This tweener simply hides and shows the panel instantly on open and close, it is also the default value of `PanelManager.DefaultPanelTweener`, you may access the global instance of this tweener from `NonPanelTweener.Instance`.
+2. FadePanelTweener: This tweener performs fade transition for the panel opening and closing, after instantiating the tweener, you may configure the transition time by accessing its `FadeTime` property.
+
+#### Customized Tweenrs
+
+By inheriting the `IPanelTweenr` interface, the developer may customize their transition effects.
+
+```csharp
+/// <summary>
+/// Defines the behavior for panel transitions.
+/// </summary>
+public interface IPanelTweener
+{
+    /// <summary>
+    /// This sets the default visual appearance for a panel.
+    /// </summary>
+    /// <param name="panel">The target panel.</param>
+    void Init(Control panel);
+    
+    /// <summary>
+    /// This async method manages the behavior when the panel is showing up.
+    /// </summary>
+    /// <param name="panel">The target panel.</param>
+    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behavior is interrupted</param>
+    void Show(Control panel, Action? onFinish);
+    
+    /// <summary>
+    /// This async method manages the behavior when the panel is hiding out.
+    /// </summary>
+    /// <param name="panel">The target panel.</param>
+    /// <param name="onFinish">Called by the method when the behavior is considered finished, or not be called at all if the behavior is interrupted</param>
+    void Hide(Control panel, Action? onFinish);
+}
+```
+
+## Runtime Builder DSL
+
+This section focuses on the dedicated runtime panel builder DSL introduced by `PanelBuilder`, rather than the PackedScene-based panel flow shown above.
+
+### What the DSL is for
+
+`PanelBuilder` is a runtime factory for `UIPanel`, `UIPanelArg1`, and `UIPanelArg2`. Instead of preparing a `PackedScene` in the editor, you describe the control tree directly in C# and let the framework wrap that tree inside a fully initialized panel instance.
+
+The important point is that this is not a separate UI system. The result is still a regular framework panel with the same panel stack, focus handling, async open APIs, callback open APIs, input routing, and close semantics. The DSL only changes how the panel's `Control` tree is produced.
+
+This makes it a good fit when:
+
+- the UI is highly data-driven or generated from runtime state
+- the panel is primarily a tool, inspector, picker, or debug surface
+- you want to compose small temporary dialogs without creating many scene assets
+- you need a panel flow that is easier to keep close to gameplay or application logic
+
+It is usually a worse fit when the panel depends heavily on hand-authored scene layout, animation tracks, artist iteration in the editor, or large reusable visual prefabs. In those cases, the PackedScene workflow is still the better default.
+
+### Building a runtime panel
+
+You may also build a simple panel completely in C# without a PackedScene. Runtime-built panels use the same open and await APIs, but currently support `ClosePolicy.Delete` only.
+
+```csharp
+using GDPanelFramework;
+using Godot;
+
+var panel = PanelBuilder.CreatePanel(builder =>
+{
+    var titleLabel = builder.Label("Runtime Panel", label => label.HorizontalAlignment = HorizontalAlignment.Center);
+    var closeButton = builder.Button("Close");
+
+    builder.OnPanelInitialized += runtimePanel =>
+    {
+        closeButton.Pressed += runtimePanel.Close;
+        runtimePanel.RegisterInputCancel(runtimePanel.Close);
+    };
+
+    return builder.MarginContainer(
+        builder.VBox(
+            box => box.AddThemeConstantOverride("separation", 12),
+            titleLabel,
+            closeButton
+        )
+    );
+});
+
+await panel.OpenPanelAsync(closePolicy: ClosePolicy.Delete);
+
+var argPanel = PanelBuilder.CreatePanelArg2<int, string>(builder =>
+{
+    var valueLabel = builder.LateInit<Label>();
+
+    builder.OnPanelOpen += runtimePanel =>
+    {
+        valueLabel.Text = runtimePanel.CurrentOpenArg.ToString();
+        runtimePanel.Close($"closed:{runtimePanel.CurrentOpenArg}");
+    };
+
+    return builder.MarginContainer(valueLabel = builder.Label());
+});
+
+var result = await argPanel.OpenPanelAsync(10, closePolicy: ClosePolicy.Delete);
+```
+
+The three entry points map directly to the three panel shapes used elsewhere in the framework:
+
+- `CreatePanel(...)` creates a `UIPanel`
+- `CreatePanelArg1<TOpenArg>(...)` creates a panel that accepts one open argument
+- `CreatePanelArg2<TOpenArg, TCloseArg>(...)` creates a panel that accepts an open argument and returns a typed close value
+
+The runtime DSL also covers tool-oriented controls such as `TextureRect`, floating-point and integer `SpinBox` helpers, and `OptionButton` overloads that accept icon entries.
+
+For a richer runtime-built sample, run `Example/03/RunMe_Example03.tscn` to see `RichTextLabel`, `TextureButton`, `ColorPickerButton`, `HSlider`, and `ProgressBar` created entirely through `PanelBuilder`.
+
+### How to think about the builder callback
+
+The builder callback should be read as “construct the panel's control tree once, then register panel lifecycle hooks around it”. In practice that means two kinds of work happen in the same place:
+
+1. You create the `Control` hierarchy that becomes the panel content.
+2. You attach panel lifecycle handlers such as `OnPanelInitialized` and `OnPanelOpen`.
+
+That split matters because control creation and panel opening are not the same moment. The callback runs when the runtime panel is created, while `OnPanelOpen` runs each time the panel is opened. If a panel may be reopened, initialization code and open-time reset code should stay separate.
+
+### Lifecycle and state
+
+For stateful runtime panels, the usual pattern is:
+
+1. Declare references with `LateInit<T>()` for controls that must be updated from callbacks or lifecycle events.
+2. Keep your mutable panel state in normal C# variables or helper objects captured by the builder callback.
+3. Use `OnPanelInitialized` for one-time wiring such as button events and panel-scoped input registration.
+4. Use `OnPanelOpen` to read `CurrentOpenArg`, reset state for this opening, and push that state back into the controls.
+5. Close through the supplied runtime handle when the panel flow is complete.
+
+`LateInit<T>()` is particularly important because complex trees are often built inside nested container expressions. It gives you a typed placeholder so a child control can be assigned while still being referenced later by callbacks or panel events.
+
+`OnPanelInitialized` is the place for one-time setup. Treat it like `_OnPanelInitialize()` for a runtime-built panel. This is where button delegates, cancel behavior, token registrations, and input bindings usually belong.
+
+`OnPanelOpen` is the place for per-open refresh. Treat it like `_OnPanelOpen(...)`. If the panel has open arguments, this is where `CurrentOpenArg` should be read and translated into current UI state.
+
+For `CreatePanelArg2`, the runtime handle also becomes your typed close channel. That is the main reason the DSL works well for picker dialogs, wizards, and temporary editors: the whole interaction can stay in one C# flow while still returning a strongly typed result.
+
+### What the DSL already covers
+
+The helper set is meant to cover the repetitive `Control` creation that otherwise turns runtime-built UI into a long sequence of `new`, property assignment, and `AddChild` calls.
+
+At a high level, the DSL currently includes:
+
+- layout containers such as `VBox`, `HBox`, `Grid`, `Scroll`, `Panel`, `Center`, `HSplit`, and `VSplit`
+- text and display controls such as `Label`, `RichTextLabel`, and `TextureRect`
+- interactive controls such as `Button`, `TextureButton`, `CheckButton`, `LineEdit`, and `TextEdit`
+- value editors such as `HSlider`, `VSlider`, floating-point and integer `SpinBox`, `ColorPickerButton`, and `ProgressBar`
+- list and selection widgets such as `OptionButton`, `ItemList`, and `Tree`
+- tree item helpers such as `TreeRoot(...)` and `TreeItem(...)`
+
+The goal is not to hide Godot. The `init` callbacks still expose the actual Godot control instance, so you can keep using native properties and theme overrides whenever the helper defaults are not enough.
+
+### Runtime panel-specific capabilities
+
+The DSL also exposes panel-specific hooks that plain `Control` factories do not normally give you:
+
+- `OnPanelInitialized`, `OnPanelOpen`, `OnPanelClose`, and related events mirror the runtime panel lifecycle
+- runtime handles expose `Close()`, typed close values, cancellation tokens, and open/close tween tokens
+- runtime handles can register panel-scoped input bindings such as `RegisterInputCancel`, `RegisterInputAxis`, and `RegisterInputVector`
+
+That combination is why the runtime builder is more than just a shorthand for creating controls. It is a shorthand for creating controls and attaching them to the framework's panel model in one place.
+
+### Current limitation
+
+Runtime-built panels currently support `ClosePolicy.Delete` only. In practice, this means you should treat them as runtime-generated objects whose control tree is rebuilt when you recreate the panel, rather than as cached editor-authored assets.
+
+`Example/03/RunMe_Example03.tscn` is a single-panel showcase of the helper controls, while `Example/04/RunMe_Example04.tscn` demonstrates a more complete workflow with live state, a nested confirmation dialog, and a typed close result.

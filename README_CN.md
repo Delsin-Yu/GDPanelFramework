@@ -34,39 +34,47 @@
 ## Table of Contents
 
 - [API简单用法](#api%E7%AE%80%E5%8D%95%E7%94%A8%E6%B3%95)
-    - [创建一个简单的面板](#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E9%9D%A2%E6%9D%BF)
-    - [创建一个支持传参及返回值的面板](#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%94%AF%E6%8C%81%E4%BC%A0%E5%8F%82%E5%8F%8A%E8%BF%94%E5%9B%9E%E5%80%BC%E7%9A%84%E9%9D%A2%E6%9D%BF)
+  - [创建一个简单的面板](#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E9%9D%A2%E6%9D%BF)
+  - [创建一个支持传参及返回值的面板](#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%94%AF%E6%8C%81%E4%BC%A0%E5%8F%82%E5%8F%8A%E8%BF%94%E5%9B%9E%E5%80%BC%E7%9A%84%E9%9D%A2%E6%9D%BF)
 - [框架文档](#%E6%A1%86%E6%9E%B6%E6%96%87%E6%A1%A3)
-    - [框架概念](#%E6%A1%86%E6%9E%B6%E6%A6%82%E5%BF%B5)
-    - [`UIPanel` 类型](#uipanel-%E7%B1%BB%E5%9E%8B)
-        - [实例化一个面板](#%E5%AE%9E%E4%BE%8B%E5%8C%96%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
-        - [开启一个面板](#%E5%BC%80%E5%90%AF%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
-        - [关闭一个面板](#%E5%85%B3%E9%97%AD%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
-        - [输入绑定/路由](#%E8%BE%93%E5%85%A5%E7%BB%91%E5%AE%9A%E8%B7%AF%E7%94%B1)
-            - [输入注册](#%E8%BE%93%E5%85%A5%E6%B3%A8%E5%86%8C)
-                - [基本用法](#%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95)
-                - [默认输入触发阶段](#%E9%BB%98%E8%AE%A4%E8%BE%93%E5%85%A5%E8%A7%A6%E5%8F%91%E9%98%B6%E6%AE%B5)
-                - [变体: `RegisterAnyKeyInput`](#%E5%8F%98%E4%BD%93-registeranykeyinput)
-                - [变体: `RegisterInputToggle`](#%E5%8F%98%E4%BD%93-registerinputtoggle)
-                - [变体: `RegisterEchoedInput`/`RemoveEchoedInput`](#%E5%8F%98%E4%BD%93-registerechoedinputremoveechoedinput)
-                - [变体: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`](#%E5%8F%98%E4%BD%93-registerinputcancelremoveinputcanceltoggleinputcancel)
-                - [变体: `EnableCloseWithCancelKey` and `DisableCloseWithCancelKey`](#%E5%8F%98%E4%BD%93-enableclosewithcancelkey-and-disableclosewithcancelkey)
-                - [变体: `RegisterInputAxis`/`RemoveInputAxis`/`ToggleInputAxis`](#%E5%8F%98%E4%BD%93-registerinputaxisremoveinputaxistoggleinputaxis)
-                - [变体: `RegisterInputVector`/`RemoveInputVector`/`ToggleInputVector`](#%E5%8F%98%E4%BD%93-registerinputvectorremoveinputvectortoggleinputvector)
-            - [BuiltinInputNames类](#builtininputnames%E7%B1%BB)
-            - [全局输入监听器](#%E5%85%A8%E5%B1%80%E8%BE%93%E5%85%A5%E7%9B%91%E5%90%AC%E5%99%A8)
-        - [面板栈/Panel Stack](#%E9%9D%A2%E6%9D%BF%E6%A0%88panel-stack)
-        - [框架级别缓存](#%E6%A1%86%E6%9E%B6%E7%BA%A7%E5%88%AB%E7%BC%93%E5%AD%98)
-        - [作用域面板缓冲](#%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%9D%A2%E6%9D%BF%E7%BC%93%E5%86%B2)
-        - [面板事件方法概述](#%E9%9D%A2%E6%9D%BF%E4%BA%8B%E4%BB%B6%E6%96%B9%E6%B3%95%E6%A6%82%E8%BF%B0)
-        - [配置上一个面板的视觉行为](#%E9%85%8D%E7%BD%AE%E4%B8%8A%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF%E7%9A%84%E8%A7%86%E8%A7%89%E8%A1%8C%E4%B8%BA)
-    - [`UIPanelArg1` 和 `UIPanelArg2` 类型](#uipanelarg1-%E5%92%8C-uipanelarg2-%E7%B1%BB%E5%9E%8B)
-    - [面板容器管理](#%E9%9D%A2%E6%9D%BF%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86)
-    - [`面板过渡控制器/PanelTweener`](#%E9%9D%A2%E6%9D%BF%E8%BF%87%E6%B8%A1%E6%8E%A7%E5%88%B6%E5%99%A8paneltweener)
-        - [内置过渡器](#%E5%86%85%E7%BD%AE%E8%BF%87%E6%B8%A1%E5%99%A8)
-        - [自定义过渡器](#%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%B8%A1%E5%99%A8)
+  - [框架概念](#%E6%A1%86%E6%9E%B6%E6%A6%82%E5%BF%B5)
+  - [`UIPanel` 类型](#uipanel-%E7%B1%BB%E5%9E%8B)
+    - [实例化一个面板](#%E5%AE%9E%E4%BE%8B%E5%8C%96%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
+    - [开启一个面板](#%E5%BC%80%E5%90%AF%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
+    - [关闭一个面板](#%E5%85%B3%E9%97%AD%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF)
+    - [输入绑定/路由](#%E8%BE%93%E5%85%A5%E7%BB%91%E5%AE%9A%E8%B7%AF%E7%94%B1)
+      - [输入注册](#%E8%BE%93%E5%85%A5%E6%B3%A8%E5%86%8C)
+        - [基本用法](#%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95)
+        - [默认输入触发阶段](#%E9%BB%98%E8%AE%A4%E8%BE%93%E5%85%A5%E8%A7%A6%E5%8F%91%E9%98%B6%E6%AE%B5)
+        - [变体: `RegisterAnyKeyInput`](#%E5%8F%98%E4%BD%93-registeranykeyinput)
+        - [变体: `RegisterInputToggle`](#%E5%8F%98%E4%BD%93-registerinputtoggle)
+        - [变体: `RegisterEchoedInput`/`RemoveEchoedInput`](#%E5%8F%98%E4%BD%93-registerechoedinputremoveechoedinput)
+        - [变体: `RegisterInputCancel`/`RemoveInputCancel`/`ToggleInputCancel`](#%E5%8F%98%E4%BD%93-registerinputcancelremoveinputcanceltoggleinputcancel)
+        - [变体: `EnableCloseWithCancelKey` and `DisableCloseWithCancelKey`](#%E5%8F%98%E4%BD%93-enableclosewithcancelkey-and-disableclosewithcancelkey)
+        - [变体: `RegisterInputAxis`/`RemoveInputAxis`/`ToggleInputAxis`](#%E5%8F%98%E4%BD%93-registerinputaxisremoveinputaxistoggleinputaxis)
+        - [变体: `RegisterInputVector`/`RemoveInputVector`/`ToggleInputVector`](#%E5%8F%98%E4%BD%93-registerinputvectorremoveinputvectortoggleinputvector)
+      - [BuiltinInputNames类](#builtininputnames%E7%B1%BB)
+      - [全局输入监听器](#%E5%85%A8%E5%B1%80%E8%BE%93%E5%85%A5%E7%9B%91%E5%90%AC%E5%99%A8)
+    - [面板栈/Panel Stack](#%E9%9D%A2%E6%9D%BF%E6%A0%88panel-stack)
+    - [框架级别缓存](#%E6%A1%86%E6%9E%B6%E7%BA%A7%E5%88%AB%E7%BC%93%E5%AD%98)
+    - [作用域面板缓冲](#%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%9D%A2%E6%9D%BF%E7%BC%93%E5%86%B2)
+    - [面板事件方法概述](#%E9%9D%A2%E6%9D%BF%E4%BA%8B%E4%BB%B6%E6%96%B9%E6%B3%95%E6%A6%82%E8%BF%B0)
+    - [配置上一个面板的视觉行为](#%E9%85%8D%E7%BD%AE%E4%B8%8A%E4%B8%80%E4%B8%AA%E9%9D%A2%E6%9D%BF%E7%9A%84%E8%A7%86%E8%A7%89%E8%A1%8C%E4%B8%BA)
+  - [`UIPanelArg1` 和 `UIPanelArg2` 类型](#uipanelarg1-%E5%92%8C-uipanelarg2-%E7%B1%BB%E5%9E%8B)
+  - [面板容器管理](#%E9%9D%A2%E6%9D%BF%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86)
     - [使用`async/await`风格的API时请注意](#%E4%BD%BF%E7%94%A8asyncawait%E9%A3%8E%E6%A0%BC%E7%9A%84api%E6%97%B6%E8%AF%B7%E6%B3%A8%E6%84%8F)
     - [使用此框架时请注意](#%E4%BD%BF%E7%94%A8%E6%AD%A4%E6%A1%86%E6%9E%B6%E6%97%B6%E8%AF%B7%E6%B3%A8%E6%84%8F)
+  - [`面板过渡控制器/PanelTweener`](#%E9%9D%A2%E6%9D%BF%E8%BF%87%E6%B8%A1%E6%8E%A7%E5%88%B6%E5%99%A8paneltweener)
+    - [内置过渡器](#%E5%86%85%E7%BD%AE%E8%BF%87%E6%B8%A1%E5%99%A8)
+    - [自定义过渡器](#%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%B8%A1%E5%99%A8)
+- [运行时 PanelBuilder DSL](#%E8%BF%90%E8%A1%8C%E6%97%B6-panelbuilder-dsl)
+  - [这个 DSL 是拿来做什么的](#%E8%BF%99%E4%B8%AA-dsl-%E6%98%AF%E6%8B%BF%E6%9D%A5%E5%81%9A%E4%BB%80%E4%B9%88%E7%9A%84)
+  - [构建运行时面板](#%E6%9E%84%E5%BB%BA%E8%BF%90%E8%A1%8C%E6%97%B6%E9%9D%A2%E6%9D%BF)
+  - [如何理解 builder 回调](#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3-builder-%E5%9B%9E%E8%B0%83)
+  - [生命周期与状态组织](#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E7%8A%B6%E6%80%81%E7%BB%84%E7%BB%87)
+  - [这套 DSL 目前能覆盖什么](#%E8%BF%99%E5%A5%97-dsl-%E7%9B%AE%E5%89%8D%E8%83%BD%E8%A6%86%E7%9B%96%E4%BB%80%E4%B9%88)
+  - [运行时面板特有的能力](#%E8%BF%90%E8%A1%8C%E6%97%B6%E9%9D%A2%E6%9D%BF%E7%89%B9%E6%9C%89%E7%9A%84%E8%83%BD%E5%8A%9B)
+  - [当前限制](#%E5%BD%93%E5%89%8D%E9%99%90%E5%88%B6)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -164,56 +172,6 @@ public partial class Example00_MyPanel : UIPanel
 ```
 
 ### 创建一个支持传参及返回值的面板
-
-### 创建一个运行时代码构建的面板
-
-你也可以完全不依赖 PackedScene，直接在 C# 中构建一个简单面板。运行时代码构建的面板继续复用同一套打开和 await API，但当前只支持 `ClosePolicy.Delete`。
-
-```csharp
-using GDPanelFramework;
-using Godot;
-
-var panel = PanelBuilder.CreatePanel(builder =>
-{
-    var titleLabel = builder.Label("Runtime Panel", label => label.HorizontalAlignment = HorizontalAlignment.Center);
-    var closeButton = builder.Button("Close");
-
-    builder.OnPanelInitialized += runtimePanel =>
-    {
-        closeButton.Pressed += runtimePanel.Close;
-        runtimePanel.RegisterInputCancel(runtimePanel.Close);
-    };
-
-    return builder.MarginContainer(
-        builder.VBox(
-            box => box.AddThemeConstantOverride("separation", 12),
-            titleLabel,
-            closeButton
-        )
-    );
-});
-
-await panel.OpenPanelAsync(closePolicy: ClosePolicy.Delete);
-
-var argPanel = PanelBuilder.CreatePanelArg2<int, string>(builder =>
-{
-    var valueLabel = builder.LateInit<Label>();
-
-    builder.OnPanelOpen += runtimePanel =>
-    {
-        valueLabel.Text = runtimePanel.CurrentOpenArg.ToString();
-        runtimePanel.Close($"closed:{runtimePanel.CurrentOpenArg}");
-    };
-
-    return builder.MarginContainer(valueLabel = builder.Label());
-});
-
-var result = await argPanel.OpenPanelAsync(10, closePolicy: ClosePolicy.Delete);
-```
-
-现在这套运行时 DSL 也覆盖了更适合工具面板的控件，包括 `TextureRect`、浮点与整数 `SpinBox` 辅助方法，以及支持图标项的 `OptionButton` 重载。
-
-如果你想看更完整的运行时构建示例，可以运行 `Example/03/RunMe_Example03.tscn`，里面展示了通过 `PanelBuilder` 创建 `RichTextLabel`、`TextureButton`、`ColorPickerButton`、`HSlider` 和 `ProgressBar`。
 
 你可以在Godot编辑器中运行 ***[RunMe_Example01.tscn](https://github.com/Delsin-Yu/GDPanelFramework.Test/blob/main/Examples/01/RunMe_Example01.tscn)***。
 
@@ -830,49 +788,6 @@ PanelManager.PopPanelContainer(this);
 
 > 请注意，在使用自定义面板容器时，当`在将来会被删除的面板/自定义容器下生成面板`时要小心，虽然框架会尽力处理已删除的面板，但部分操作还是会无法避免的`删除具有活动面板的自定义面板容器`，这种行为可能会使框架崩溃，建议开发人员在弹出/删除该容器之前先确保自定义容器下的每个面板都已关闭。
 
-### `面板过渡控制器/PanelTweener`
-
-开发人员可以通过设置面板的`PanelTweener`属性来自定义面板的`打开/关闭时的视觉过渡行为`。或者，也可以通过修改`PanelManager.DefaultPanelTweener`来为全局所有面板设置默认的过渡器。
-
-#### 内置过渡器
-
-该框架提供了两个预配置的过渡器。
-
-1. NonePanelTweener: 此过渡器在打开和关闭时立即隐藏和显示面板，它也是`PanelManager.DefaultPanelTweener`的默认值，您可以从`NonPanelTweener`访问它的全局实例。
-2. FadePanelTweener: 此过渡器为面板打开和关闭执行透明度渐变过渡，在实例化之后，您可以通过访问其`FadeTime`属性来配置转换时间。
-
-#### 自定义过渡器
-
-开发者可以通过继承`IPanelTweenr`接口来自定义它们的转换效果。
-
-```csharp
-/// <summary>
-/// 定义面板过渡的行为。
-/// </summary>
-public interface IPanelTweener
-{
-    /// <summary>
-    /// 这将设置面板的默认视觉外观。
-    /// </summary>
-    /// <param name="panel">目标面板。</param>
-    void Init(Control panel);
-    
-    /// <summary>
-    /// 这个异步方法管理面板显示时的行为。
-    /// </summary>
-    /// <param name="panel">目标面板。</param>
-    /// <param name="onFinish">当行为被认为完成时由方法调用，或者当行为被中断时根本不调用</param>
-    void Show(Control panel, Action? onFinish);
-    
-    /// <summary>
-    /// 这个异步方法管理面板隐藏时的行为。
-    /// </summary>
-    /// <param name="panel">目标面板。</param>
-    /// <param name="onFinish">当行为被认为完成时由方法调用，或者当行为被中断时根本不调用</param>
-    void Hide(Control panel, Action? onFinish);
-}
-```
-
 ### 使用`async/await`风格的API时请注意
 
 `OpenPanelAsync` 现在返回 `PanelAwaitable` / `PanelAwaitable<T>`，这是一个专门用于跟踪面板生命周期的轻量级池化 awaitable。
@@ -919,3 +834,179 @@ catch (OperationCanceledException)
 - 使用错误的`节点`来弹出被`另一个节点`推送的`面板容器`。
 - 对一个已经使用过 `await` 的 `PanelAwaitable` 再次执行 `await`，或者在完成后继续访问它的 awaiter。
 - 对尚未完成的 `PanelAwaitable` 调用 `GetResult()`。
+
+### `面板过渡控制器/PanelTweener`
+
+开发人员可以通过设置面板的`PanelTweener`属性来自定义面板的`打开/关闭时的视觉过渡行为`。或者，也可以通过修改`PanelManager.DefaultPanelTweener`来为全局所有面板设置默认的过渡器。
+
+#### 内置过渡器
+
+该框架提供了两个预配置的过渡器。
+
+1. NonePanelTweener: 此过渡器在打开和关闭时立即隐藏和显示面板，它也是`PanelManager.DefaultPanelTweener`的默认值，您可以从`NonPanelTweener`访问它的全局实例。
+2. FadePanelTweener: 此过渡器为面板打开和关闭执行透明度渐变过渡，在实例化之后，您可以通过访问其`FadeTime`属性来配置转换时间。
+
+#### 自定义过渡器
+
+开发者可以通过继承`IPanelTweenr`接口来自定义它们的转换效果。
+
+```csharp
+/// <summary>
+/// 定义面板过渡的行为。
+/// </summary>
+public interface IPanelTweener
+{
+    /// <summary>
+    /// 这将设置面板的默认视觉外观。
+    /// </summary>
+    /// <param name="panel">目标面板。</param>
+    void Init(Control panel);
+    
+    /// <summary>
+    /// 这个异步方法管理面板显示时的行为。
+    /// </summary>
+    /// <param name="panel">目标面板。</param>
+    /// <param name="onFinish">当行为被认为完成时由方法调用，或者当行为被中断时根本不调用</param>
+    void Show(Control panel, Action? onFinish);
+    
+    /// <summary>
+    /// 这个异步方法管理面板隐藏时的行为。
+    /// </summary>
+    /// <param name="panel">目标面板。</param>
+    /// <param name="onFinish">当行为被认为完成时由方法调用，或者当行为被中断时根本不调用</param>
+    void Hide(Control panel, Action? onFinish);
+}
+```
+
+## 运行时 PanelBuilder DSL
+
+这一节专门说明由 `PanelBuilder` 提供的运行时面板 DSL，而不是上面基于 PackedScene 的常规面板用法。
+
+### 这个 DSL 是拿来做什么的
+
+`PanelBuilder` 本质上是 `UIPanel`、`UIPanelArg1` 和 `UIPanelArg2` 的运行时工厂。你不再需要先在编辑器里准备一个 `PackedScene`，而是直接在 C# 里描述控件树，再由框架把这棵树包进一个已经完成初始化的面板实例中。
+
+需要注意的是，这并不是另一套独立的 UI 系统。通过 DSL 创建出来的仍然是框架里的标准面板，所以它依然遵循同一套面板栈、焦点管理、异步打开 API、回调式打开 API、输入路由以及关闭语义。DSL 改变的只是“面板内容如何被构造出来”，而不是“面板如何工作”。
+
+它通常适合这些场景：
+
+- UI 结构高度依赖运行时数据
+- 面板更偏向工具、检查器、选择器或调试界面
+- 你想快速组合一些临时对话框，而不是再维护很多独立场景资源
+- 你希望让某些面板逻辑更贴近游戏逻辑或业务逻辑代码
+
+如果一个界面高度依赖编辑器里的可视化排版、动画轨道、美术反复调整，或者复用大型视觉 prefab，那么 `PackedScene` 仍然通常是更合适的默认方案。
+
+### 构建运行时面板
+
+你也可以完全不依赖 PackedScene，直接在 C# 中构建一个简单面板。运行时代码构建的面板继续复用同一套打开和 await API，但当前只支持 `ClosePolicy.Delete`。
+
+```csharp
+using GDPanelFramework;
+using Godot;
+
+var panel = PanelBuilder.CreatePanel(builder =>
+{
+    var titleLabel = builder.Label("Runtime Panel", label => label.HorizontalAlignment = HorizontalAlignment.Center);
+    var closeButton = builder.Button("Close");
+
+    builder.OnPanelInitialized += runtimePanel =>
+    {
+        closeButton.Pressed += runtimePanel.Close;
+        runtimePanel.RegisterInputCancel(runtimePanel.Close);
+    };
+
+    return builder.MarginContainer(
+        builder.VBox(
+            box => box.AddThemeConstantOverride("separation", 12),
+            titleLabel,
+            closeButton
+        )
+    );
+});
+
+await panel.OpenPanelAsync(closePolicy: ClosePolicy.Delete);
+
+var argPanel = PanelBuilder.CreatePanelArg2<int, string>(builder =>
+{
+    var valueLabel = builder.LateInit<Label>();
+
+    builder.OnPanelOpen += runtimePanel =>
+    {
+        valueLabel.Text = runtimePanel.CurrentOpenArg.ToString();
+        runtimePanel.Close($"closed:{runtimePanel.CurrentOpenArg}");
+    };
+
+    return builder.MarginContainer(valueLabel = builder.Label());
+});
+
+var result = await argPanel.OpenPanelAsync(10, closePolicy: ClosePolicy.Delete);
+```
+
+这三个入口分别对应框架里的三类面板：
+
+- `CreatePanel(...)` 对应 `UIPanel`
+- `CreatePanelArg1<TOpenArg>(...)` 对应带一个打开参数的面板
+- `CreatePanelArg2<TOpenArg, TCloseArg>(...)` 对应既接收打开参数、又返回强类型关闭值的面板
+
+现在这套运行时 DSL 也覆盖了更适合工具面板的控件，包括 `TextureRect`、浮点与整数 `SpinBox` 辅助方法，以及支持图标项的 `OptionButton` 重载。
+
+如果你想看更完整的运行时构建示例，可以运行 `Example/03/RunMe_Example03.tscn`，里面展示了通过 `PanelBuilder` 创建 `RichTextLabel`、`TextureButton`、`ColorPickerButton`、`HSlider` 和 `ProgressBar`。
+
+### 如何理解 builder 回调
+
+builder 回调可以理解为两件事同时发生的地方：
+
+1. 你在这里构建出最终会成为面板内容的 `Control` 树。
+2. 你在这里注册这个运行时面板的生命周期事件。
+
+这两件事虽然写在一起，但时机并不相同。控件树是在运行时面板被创建时构造的，而 `OnPanelOpen` 则会在每次打开面板时触发。只要一个面板存在“可能重复打开”的可能性，你就应该把“一次性初始化”和“每次打开都要重置的逻辑”明确分开。
+
+### 生命周期与状态组织
+
+当你用 `PanelBuilder` 构建有状态的运行时界面时，比较稳定的组织方式通常是：
+
+1. 用 `LateInit<T>()` 声明那些需要在回调或生命周期事件里继续访问的控件引用。
+2. 用普通的 C# 变量或状态对象保存当前面板状态，并让这些状态被回调闭包捕获。
+3. 在 `OnPanelInitialized` 里做一次性的接线工作，例如按钮事件、取消键行为、面板级输入绑定。
+4. 在 `OnPanelOpen` 里读取 `CurrentOpenArg`，为本次打开重置状态，再把状态同步回控件。
+5. 在流程完成时通过运行时句柄关闭面板，并在需要时返回强类型结果。
+
+`LateInit<T>()` 很重要，因为复杂控件树经常会写在多层容器表达式里。它提供了一个类型安全的占位引用，让你可以一边在嵌套表达式里创建子控件，一边在稍后的回调和生命周期事件中继续访问这个控件。
+
+`OnPanelInitialized` 可以把它当成运行时面板版本的 `_OnPanelInitialize()`。适合放在这里的通常是一劳永逸的事情，例如按钮点击委托、取消键逻辑、Token 注册、面板级输入绑定。
+
+`OnPanelOpen` 则更接近 `_OnPanelOpen(...)`。如果面板有打开参数，这里通常就是读取 `CurrentOpenArg`、刷新当前状态和恢复默认焦点的位置。
+
+对于 `CreatePanelArg2` 来说，运行时句柄同时还是一个强类型的关闭通道。这也是这套 DSL 很适合做选择器、步骤式对话框、临时编辑器的原因之一，因为整段交互流程可以保持在同一段 C# 逻辑里，同时又仍然保留一个明确的返回值。
+
+### 这套 DSL 目前能覆盖什么
+
+这些 helper 的目标不是替代 Godot，而是把运行时代码构建 UI 时最重复的那部分 `new`、属性赋值和 `AddChild` 流程压缩掉。
+
+从大的类别上看，它目前已经覆盖：
+
+- 布局容器，例如 `VBox`、`HBox`、`Grid`、`Scroll`、`Panel`、`Center`、`HSplit` 和 `VSplit`
+- 文本与展示控件，例如 `Label`、`RichTextLabel`、`TextureRect`
+- 交互控件，例如 `Button`、`TextureButton`、`CheckButton`、`LineEdit`、`TextEdit`
+- 数值与编辑控件，例如 `HSlider`、`VSlider`、浮点与整数 `SpinBox`、`ColorPickerButton`、`ProgressBar`
+- 列表与选择控件，例如 `OptionButton`、`ItemList`、`Tree`
+- Tree 辅助 API，例如 `TreeRoot(...)` 和 `TreeItem(...)`
+
+同时，helper 上的 `init` 回调仍然直接暴露 Godot 原生控件实例，所以当默认行为不够时，你依然可以继续设置原生属性、主题覆盖和各种 Godot 特性，而不是被 DSL 封死。
+
+### 运行时面板特有的能力
+
+除了生成控件树以外，这套 DSL 还把普通 `Control` 工厂本来没有的“面板能力”直接暴露了出来：
+
+- `OnPanelInitialized`、`OnPanelOpen`、`OnPanelClose` 等事件直接映射到运行时面板生命周期
+- 运行时句柄暴露了 `Close()`、强类型关闭值、取消 Token 以及开关面板补间完成 Token
+- 运行时句柄可以注册面板级输入，例如 `RegisterInputCancel`、`RegisterInputAxis`、`RegisterInputVector`
+
+所以它不只是“少写一点控件创建代码”的语法糖，它实际上是在同一个位置里同时处理“控件树”和“框架面板模型”的接合点。
+
+### 当前限制
+
+运行时构建的面板目前只支持 `ClosePolicy.Delete`。从使用方式上理解，就是更适合把它当作“运行时生成并销毁的面板对象”，而不是像编辑器里制作好的场景资源那样依赖缓存复用。
+
+`Example/03/RunMe_Example03.tscn` 适合看这套 helper 控件的基本组合，`Example/04/RunMe_Example04.tscn` 则演示了更完整的流程，包括实时状态刷新、嵌套确认面板，以及带类型的关闭返回值。
